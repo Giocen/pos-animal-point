@@ -1,0 +1,328 @@
+/* ==========================================================
+💜 SmartPOS | Login limpio, centrado y colorido
+========================================================== */
+body.login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: "Inter", sans-serif;
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: move-bg 10s ease infinite;
+  color: #333;
+}
+
+@keyframes move-bg {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ==========================================================
+💎 Tarjeta de login
+========================================================== */
+.login-card {
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 1.2rem;
+  width: 90%;
+  max-width: 420px;
+  padding: 2.5rem 2rem 2rem;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  backdrop-filter: blur(8px);
+}
+
+/* ==========================================================
+💜 Logo
+========================================================== */
+.logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.logo-cart {
+  width: 4rem;
+  height: 4rem;
+  background: linear-gradient(135deg, #a21caf, #ec4899, #9333ea);
+  background-clip: text;             /* estándar */
+  -webkit-background-clip: text;     /* compatibilidad Chrome/Safari */
+  color: transparent;
+  -webkit-text-fill-color: transparent; /* evita el color sólido */
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5));
+}
+
+.logo-text {
+  font-size: 2.8rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #a21caf, #ec4899, #9333ea);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+
+.logo-symbol {
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #9333ea, #a21caf);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 2px 2px 4px rgba(255,255,255,0.3),
+              0 2px 6px rgba(0,0,0,0.25);
+}
+
+.slogan {
+  color: #6b7280;
+  font-size: 1rem;
+  margin-top: 0.4rem;
+  font-weight: 500;
+}
+
+/* ==========================================================
+📋 Formulario de login
+========================================================== */
+.form-login {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* Inputs */
+.input-login {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.7rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #6d28d9;
+  background: #f3f4f6;
+  transition: border 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+
+  box-sizing: border-box;
+}
+
+.input-login:focus {
+  border: 2px solid transparent;
+  background: #fff;
+  box-shadow: 0 0 0 2px #c084fc, 0 0 12px rgba(162, 28, 175, 0.35);
+  color: #6d28d9;
+}
+
+.input-login::placeholder {
+  color: #a855f7;
+  opacity: 0.85;
+}
+
+/* Contraseña con ícono */
+.input-group {
+  position: relative;
+  width: 100%;
+}
+
+.btn-eye {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #a21caf;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-eye:hover {
+  color: #7e22ce;
+  transform: translateY(-50%);
+}
+
+/* ==========================================================
+🔘 Botón de iniciar sesión
+========================================================== */
+.btn-login {
+  width: 100%;
+  height: 50px;
+  background: linear-gradient(90deg, #a21caf, #ec4899);
+  color: white;
+  font-weight: 700;
+  border-radius: 0.7rem;
+  box-shadow: 0 4px 0 #6b21a8;
+  transition: all 0.25s ease;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #581c87;
+}
+
+/* ==========================================================
+📅 Footer
+========================================================== */
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: center;
+  gap: 1.6rem;
+  align-items: center;
+  backdrop-filter: blur(8px);
+}
+
+footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==========================================================
+📱 Responsivo
+========================================================== */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 2rem;
+  }
+  .logo-text {
+    font-size: 2.2rem;
+  }
+  .logo-cart {
+    width: 3.2rem;
+    height: 3.2rem;
+  }
+  footer {
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* 💜 Fuerza el color morado estable en todo el login */
+body.login input,
+body.login input::placeholder,
+body.login input:focus,
+body.login input[type="email"],
+body.login input[type="password"] {
+  color: #6d28d9 !important;
+  -webkit-text-fill-color: #6d28d9 !important; /* para Safari / Chrome */
+  caret-color: #6d28d9; /* cursor morado */
+}
+
+/* ==========================================================
+💜 Footer con derechos reservados
+========================================================== */
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.footer-info {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  line-height: 1.4;
+}
+
+.footer-info span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.footer-info span:last-child {
+  opacity: 0.9;
+  font-weight: 500;
+  color: #e5e7eb;
+}
+
+@media (max-width: 480px) {
+  .footer-info {
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* 🔮 Animación suave estilo SmartPOS */
+.animate-pulse-soft {
+  animation: pulseSoft 1.4s ease-in-out infinite;
+}
+
+@keyframes pulseSoft {
+  0% { transform: scale(1); opacity: 0.95; }
+  50% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.95; }
+}
+
+/* 🎭 Entrada elegante del modal */
+.animate-entrada-smart {
+  animation: fadeInUpSmart 0.45s cubic-bezier(.16,.84,.44,1);
+}
+
+@keyframes fadeInUpSmart {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+.login-card {
+  position: relative;
+}
+
+.admin-link-wrap {
+  position: absolute;
+  bottom: 12px;
+  right: 16px;
+}
+
+.admin-link {
+  font-size: 0.7rem;
+  color: rgba(0,0,0,0.25);
+  user-select: none;
+  cursor: default;
+}

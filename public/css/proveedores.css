@@ -1,0 +1,108 @@
+/* ==========================================================
+💜 SmartPOS | proveedores.css (Flat limpio sin 3D)
+========================================================== */
+
+body {
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  font-family: "Inter", sans-serif;
+  color: #1f1f1f;
+  margin: 0;
+  min-height: 100vh;
+}
+
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* --- Header plano elegante --- */
+.header-proveedores {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 50;
+  padding: 0.9rem 0;
+}
+
+.header-content {
+  width: 95%;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.25s ease;
+}
+
+.btn-volver:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* --- Formulario plano con fondo translúcido --- */
+.form-base {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(162, 28, 175, 0.15);
+  border-radius: 0.75rem;
+}
+
+/* --- Inputs --- */
+.input {
+  border: 1.5px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: #fff;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #a21caf;
+  box-shadow: 0 0 0 3px rgba(162, 28, 175, 0.25);
+}
+
+/* --- Botones planos --- */
+.btn-base {
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0.6rem;
+  padding: 0.7rem 1.4rem;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-image: linear-gradient(90deg, var(--tw-gradient-from), var(--tw-gradient-to));
+  transition: all 0.25s ease;
+}
+
+.btn-base:hover {
+  filter: brightness(1.1);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .header-content { flex-direction: column; gap: 0.6rem; text-align: center; }
+  .form-base { padding: 1rem; }
+  .input { font-size: 0.85rem; }
+  .btn-base { width: 100%; justify-content: center; }
+}

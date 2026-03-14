@@ -1,0 +1,188 @@
+{
+  "hosting": [
+    {
+      "site": "animal-point-mid",
+      "public": "public",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "cleanUrls": true,
+      "trailingSlash": false,
+      "headers": [
+        {
+          "source": "/smartpos-*.js",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache" },
+            { "key": "Content-Type", "value": "application/javascript" }
+          ]
+        },
+        {
+          "source": "/js/**",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache" },
+            { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }
+          ]
+        },
+        {
+          "source": "/service-worker.js",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache" },
+            { "key": "Content-Type", "value": "application/javascript" }
+          ]
+        },
+        {
+          "source": "/manifest.json",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache" }
+          ]
+        },
+        {
+          "source": "**/*.@(js|css|png|jpg|jpeg|gif|svg|webp|ico)",
+          "headers": [
+            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+          ]
+        }
+      ],
+      "rewrites": [
+        { "source": "/", "destination": "/index.html" },
+        { "source": "/index", "destination": "/index.html" },
+        { "source": "/login", "destination": "/login.html" },
+        { "source": "/venta", "destination": "/venta.html" },
+        { "source": "/corte-caja", "destination": "/corte-caja.html" },
+        { "source": "/inventario", "destination": "/inventario.html" },
+        { "source": "/inventario-alta", "destination": "/inventario-alta.html" },
+        { "source": "/entradas", "destination": "/entradas.html" },
+        { "source": "/conteo", "destination": "/conteo.html" },
+        { "source": "/ajustes", "destination": "/ajustes.html" },
+        { "source": "/caducidades", "destination": "/caducidades.html" },
+        { "source": "/reportes", "destination": "/reportes.html" },
+        { "source": "/productos", "destination": "/productos.html" },
+        { "source": "/pedidos", "destination": "/pedidos.html" },
+        { "source": "/proveedores", "destination": "/proveedores.html" },
+        { "source": "/usuarios", "destination": "/usuarios.html" },
+        { "source": "/cajas", "destination": "/cajas.html" },
+        { "source": "/configuracion", "destination": "/configuracion.html" },
+        { "source": "/configuracion_ventas", "destination": "/configuracion_ventas.html" },
+        { "source": "/sistema", "destination": "/sistema.html" },
+        { "source": "/ver_ticket", "destination": "/ver_ticket.html" },
+        { "source": "/@(js|css|img|fonts|assets)/**", "destination": "/$1/$2" },
+        { "source": "/404", "destination": "/404.html" },
+        { "source": "**", "destination": "/index.html" }
+      ],
+      "redirects": [
+        {
+          "source": "http://**",
+          "destination": "https://animal-point-mid.web.app",
+          "type": 301
+        },
+        {
+          "source": "/ticket_:id.pdf",
+          "destination": "https://yssihgpqlnekrkjmefkz.supabase.co/storage/v1/object/public/tickets/ticket_:id.pdf",
+          "type": 302
+        }
+      ]
+    },
+
+    {
+      "site": "smartposmid",
+      "public": "public",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "cleanUrls": true,
+      "trailingSlash": false,
+      "headers": [
+        {
+          "source": "/smartpos-*.js",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache" },
+            { "key": "Content-Type", "value": "application/javascript" }
+          ]
+        },
+        {
+          "source": "/js/**",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache" },
+            { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }
+          ]
+        },
+        {
+          "source": "/service-worker.js",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache" },
+            { "key": "Content-Type", "value": "application/javascript" }
+          ]
+        },
+        {
+          "source": "/manifest.json",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache" }
+          ]
+        },
+        {
+          "source": "**/*.@(js|css|png|jpg|jpeg|gif|svg|webp|ico)",
+          "headers": [
+            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+          ]
+        }
+      ],
+      "rewrites": [
+        { "source": "/", "destination": "/index.html" },
+        { "source": "/index", "destination": "/index.html" },
+        { "source": "/login", "destination": "/login.html" },
+        { "source": "/venta", "destination": "/venta.html" },
+        { "source": "/corte-caja", "destination": "/corte-caja.html" },
+        { "source": "/inventario", "destination": "/inventario.html" },
+        { "source": "/inventario-alta", "destination": "/inventario-alta.html" },
+        { "source": "/entradas", "destination": "/entradas.html" },
+        { "source": "/conteo", "destination": "/conteo.html" },
+        { "source": "/ajustes", "destination": "/ajustes.html" },
+        { "source": "/caducidades", "destination": "/caducidades.html" },
+        { "source": "/reportes", "destination": "/reportes.html" },
+        { "source": "/productos", "destination": "/productos.html" },
+        { "source": "/pedidos", "destination": "/pedidos.html" },
+        { "source": "/proveedores", "destination": "/proveedores.html" },
+        { "source": "/usuarios", "destination": "/usuarios.html" },
+        { "source": "/cajas", "destination": "/cajas.html" },
+        { "source": "/configuracion", "destination": "/configuracion.html" },
+        { "source": "/configuracion_ventas", "destination": "/configuracion_ventas.html" },
+        { "source": "/sistema", "destination": "/sistema.html" },
+        { "source": "/ver_ticket", "destination": "/ver_ticket.html" },
+        { "source": "/@(js|css|img|fonts|assets)/**", "destination": "/$1/$2" },
+        { "source": "/404", "destination": "/404.html" },
+        { "source": "**", "destination": "/index.html" }
+      ],
+      "redirects": [
+        {
+          "source": "http://**",
+          "destination": "https://smartposmid.web.app",
+          "type": 301
+        },
+        {
+          "source": "/ticket_:id.pdf",
+          "destination": "https://yssihgpqlnekrkjmefkz.supabase.co/storage/v1/object/public/tickets/ticket_:id.pdf",
+          "type": 302
+        }
+      ]
+    }
+  ],
+
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

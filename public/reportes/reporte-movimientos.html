@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Movimientos Producto</title>
+
+  <!-- 🎨 Librerías -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- 📄 Estilos -->
+  <link rel="stylesheet" href="/css/reportes.css">
+  <link rel="stylesheet" href="/css/movimientos-sap.css">
+</head>
+
+<body>
+
+<header class="header-reportes">
+  <div class="header-content">
+
+    <button onclick="window.location.href='/venta.html'" class="btn-volver">
+      <i data-lucide="arrow-left"></i> Volver a ventas
+    </button>
+
+    <div class="flex items-center gap-2">
+      <i data-lucide="list" class="w-6 h-6 text-white"></i>
+      <h1 class="text-xl font-bold text-white">Movimientos del Producto</h1>
+    </div>
+
+  </div>
+</header>
+
+
+<main class="mt-[5.5rem] px-6">
+
+  <!-- 🔍 Filtros -->
+  <section id="filtros" class="fadeIn">
+    <div id="filtroContenedor" class="flex flex-wrap gap-4 items-end">
+
+      <div class="flex flex-col min-w-[200px]">
+        <label class="text-sm font-semibold text-fuchsia-700 mb-1">SKU / Código</label>
+        <input id="inputSku" class="input-filtro" placeholder="Ej. 123456 o código de barras">
+      </div>
+
+      <div class="flex flex-col min-w-[160px]">
+        <label class="text-sm font-semibold text-fuchsia-700 mb-1">Desde</label>
+        <input type="date" id="inputDesde" class="input-filtro">
+      </div>
+
+      <div class="flex flex-col min-w-[160px]">
+        <label class="text-sm font-semibold text-fuchsia-700 mb-1">Hasta</label>
+        <input type="date" id="inputHasta" class="input-filtro">
+      </div>
+
+      <button id="btnBuscarMovimiento" class="btn-buscar-sap">
+        <i data-lucide="search"></i> Consultar
+      </button>
+
+    </div>
+  </section>
+
+
+  <!-- 📄 Tabla SAP -->
+  <section id="resultadosContainer" class="mt-6 hidden fadeIn">
+
+  <div class="sap-card">
+    <div class="tabla-sap-container">
+      <table class="tabla-sap">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Clase</th>
+            <th>Cantidad</th>
+            <th>Detalle</th>
+            <th>Ref</th>
+          </tr>
+        </thead>
+
+        <tbody id="tablaMovimientos"></tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<script type="module" src="/js/reportes/movimientos_sap.js"></script>
+<script> lucide.createIcons(); </script>
+
+</body>
+</html>

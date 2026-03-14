@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Usuarios | SmartPOS Admin</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg,#1A042D,#4b005f);
+      font-family: "Inter";
+      color: white;
+    }
+    .card {
+      background: rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      transition:.2s;
+    }
+    .card:hover { background:rgba(255,255,255,.25); transform:translateY(-2px); }
+    .btn { padding:8px 12px; border-radius:10px; font-weight:600; display:flex; gap:6px; }
+  </style>
+</head>
+
+<body class="p-6">
+
+  <button onclick="location.href='/admin/index.html'" class="flex items-center gap-2 mb-4 text-white/70 hover:text-white">
+    <i data-lucide="arrow-left"></i> Regresar
+  </button>
+
+  <h1 class="text-3xl font-bold mb-6">Usuarios del Sistema</h1>
+
+  <input id="buscador" placeholder="Buscar usuario..." 
+    class="w-full max-w-md px-3 py-2 rounded bg-white/20 border border-white/30 text-white mb-6">
+
+  <div id="lista" class="space-y-3"></div>
+
+<script type="module">
+import { supabaseAdmin as supabase } from "/admin/supabase-admin.js";
+
+let usuarios = [];
+let roles = {};
+
+/* ==========================================================
+   CARGAR ROLES
+========================================================== */
+async function cargarRoles() {
+  const { data } = await supabase.from("roles").select("*");
+  data.forEach(r => roles[r.id] = r.nombre);
+}
+
+/* ==========================================================
+   CARGAR USUARIOS + negocios asociados
+========================================================== */
+async function cargarUsuarios() {
+  const { data } = await supabase.from("usuarios").select("*");
+  usuarios = data;
+  renderLista(data);
+}
+
+/* ==========================================================
+   RENDER
+========================================================== */
+async function renderLista(lista) {
+  const cont = document.getElementById("lista");
+  cont.innerHTML = "";
+
+  const { data: links } = await supabase
+    .from("usuarios_negocios")
+    .select(`
+      usuario_id,
+      activo,
+      negocios:negocio_id (nombre)
+    `);
+
+  lista.forEach(u => {
+    const negociosUser = links
+      .filter(l => l.usuario_id === u.id)
+      .map(l => l.negocios?.nombre ?? "Sin nombre");
+
+    cont.innerHTML += `
+      <div class="card flex justify-between items-center">
+
+        <div>
+          <p class="font-semibold text-lg">${u.nombre}</p>
+          <p class="text-white/70 text-sm">${u.correo ?? "Sin correo"}</p>
+
+          <p class="text-xs mt-1">Rol: <b>${roles[u.rol_id] || "Sin rol"}</b></p>
+
+          <p class="text-xs mt-1 text-fuchsia-300">
+            Negocios: ${negociosUser.length ? negociosUser.join(", ") : "Ninguno"}
+          </p>
+
+          <p class="text-xs mt-1 ${u.activo ? "text-green-400" : "text-red-400"}">
+            ${u.activo ? "Activo" : "Suspendido"}
+          </p>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="location.href='/admin/usuario-detalle.html?id=${u.id}'"
+            class="btn bg-purple-600 hover:bg-purple-500 text-sm">
+            <i data-lucide="user"></i> Ver
+          </button>
+
+          <button onclick="location.href='/admin/editar-usuario.html?id=${u.id}'"
+            class="btn bg-blue-600 hover:bg-blue-500 text-sm">
+            <i data-lucide="pencil"></i>
+          </button>
+
+          <button onclick="suspender('${u.id}')"
+            class="btn bg-amber-600 hover:bg-amber-500 text-sm">
+            <i data-lucide="pause"></i>
+          </button>
+
+          <button onclick="eliminar('${u.id}')"
+            class="btn bg-red-600 hover:bg-red-500 text-sm">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </div>
+
+      </div>
+    `;
+  });
+
+  lucide.createIcons();
+}
+
+/* ==========================================================
+   BUSCADOR
+========================================================== */
+document.getElementById("buscador").oninput = e => {
+  const t = e.target.value.toLowerCase();
+  const filtrados = usuarios.filter(u =>
+    u.nombre.toLowerCase().includes(t) ||
+    u.correo?.toLowerCase().includes(t)
+  );
+  renderLista(filtrados);
+};
+
+/* ==========================================================
+   SUSPENDER USUARIO (AUTH + tabla interna)
+========================================================== */
+window.suspender = async id => {
+  const ok = await Swal.fire({
+    title:"¿Suspender usuario?",
+    text:"El usuario ya no podrá iniciar sesión",
+    icon:"warning",
+    showCancelButton:true,
+    confirmButtonColor:"#d97706",
+    confirmButtonText:"Suspender"
+  });
+  if (!ok.isConfirmed) return;
+
+  await supabase.auth.admin.updateUserById(id, { banned:true });
+  await supabase.from("usuarios").update({ activo:false }).eq("id", id);
+  await supabase.from("usuarios_negocios").update({ activo:false }).eq("usuario_id", id);
+
+  cargarUsuarios();
+};
+
+/* ==========================================================
+   ELIMINAR USUARIO COMPLETO (AUTH + DB)
+========================================================== */
+window.eliminar = async id => {
+  const ok = await Swal.fire({
+    title: "¿Eliminar usuario del sistema?",
+    html:"Se eliminará del AUTH y de todas las tablas internas.",
+    icon:"warning",
+    showCancelButton:true,
+    confirmButtonColor:"#dc2626",
+    confirmButtonText:"Eliminar"
+  });
+  if (!ok.isConfirmed) return;
+
+  await supabase.auth.admin.deleteUser(id);
+  await supabase.from("usuarios_negocios").delete().eq("usuario_id", id);
+  await supabase.from("usuarios").delete().eq("id", id);
+
+  cargarUsuarios();
+};
+
+/* INIT */
+await cargarRoles();
+await cargarUsuarios();
+
+</script>
+
+</body>
+</html>

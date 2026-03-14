@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seleccionar Negocio | SmartPOS</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #1A042D, #4b005f);
+      font-family: "Inter", sans-serif;
+    }
+    .card {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16px;
+      padding: 20px;
+      transition: 0.2s;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      background: rgba(255,255,255,0.2);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center px-6">
+
+  <div class="text-center max-w-md w-full">
+  
+    <h1 class="text-3xl font-bold text-white mb-2">
+      Selecciona tu Negocio
+    </h1>
+    <p class="text-white/70 mb-6">
+      Elige el negocio con el que deseas trabajar
+    </p>
+
+    <div id="listaNegocios" class="space-y-4"></div>
+
+  </div>
+
+  <script type="module">
+    import { supabaseClient } from "/js/proteccion.js";
+
+    // -------------------------------------------------------------
+    // 🟣 Cargar negocios del usuario
+    // -------------------------------------------------------------
+    async function cargarNegocios() {
+      const { data: user } = await supabaseClient.auth.getUser();
+
+      const { data, error } = await supabaseClient
+        .from("usuarios_negocios")
+        .select("negocio_id, negocios(nombre)")
+        .eq("usuario_id", user.user.id)
+        .eq("activo", true);
+
+      if (error) {
+        return Swal.fire("Error", "No se pudieron cargar negocios", "error");
+      }
+
+      const cont = document.getElementById("listaNegocios");
+
+      if (!data || data.length === 0) {
+        cont.innerHTML = `
+          <p class="text-white text-lg bg-red-600/40 p-4 rounded-lg">
+            No tienes negocios asignados.
+          </p>
+        `;
+        return;
+      }
+
+      data.forEach(n => {
+        cont.innerHTML += `
+          <button
+            class="card w-full text-left text-white"
+            onclick="seleccionarNegocio('${n.negocio_id}', '${n.negocios.nombre}')">
+            <h2 class="text-xl font-semibold">${n.negocios.nombre}</h2>
+            <p class="text-sm text-white/70">ID: ${n.negocio_id}</p>
+          </button>
+        `;
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 🟣 Seleccionar negocio del usuario
+    // -------------------------------------------------------------
+    window.seleccionarNegocio = async (id, nombre) => {
+      localStorage.setItem("negocio_id", id);
+
+      Swal.fire({
+        icon: "success",
+        title: "Negocio seleccionado",
+        text: nombre,
+        timer: 1100,
+        showConfirmButton: false
+      });
+
+      setTimeout(() => window.location.href = "/index", 900);
+    };
+
+    // Ejecutar carga
+    cargarNegocios();
+  </script>
+
+</body>
+</html>

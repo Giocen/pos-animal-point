@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Reporte de Caducidades</title>
+
+  <!-- 🎨 Librerías base -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- 💅 Estilos -->
+  <link rel="stylesheet" href="css/caducidades.css">
+  <link rel="icon" href="/img/favicon-pos.png">
+</head>
+
+<body class="min-h-screen flex flex-col font-inter text-gray-900">
+
+  <!-- ==========================================================
+  💎 ENCABEZADO FIJO ESTILO SMARTPOS
+  =========================================================== -->
+  <header class="header-config">
+    <div class="header-content">
+      <button onclick="window.location.href='/index.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver al Menú
+      </button>
+
+      <div class="flex items-center gap-2 ml-auto">
+        <i data-lucide="calendar-clock" class="w-6 h-6 text-white"></i>
+        <h1 class="text-xl font-semibold text-white">Reporte de Caducidades</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================
+  📦 CONTENIDO PRINCIPAL
+  =========================================================== -->
+  <main class="flex-1 w-full px-6 mt-[1.0rem] pb-10">
+    <div class="max-w-6xl mx-auto space-y-10 animate-fadeIn">
+
+      <!-- 🔘 BOTONES DE FILTRO -->
+      <div class="sticky top-[1.0rem] z-40 bg-transparent pt-1 pb-2 flex flex-wrap gap-4 justify-center sm:justify-start">
+
+        <button id="btnProximos"
+          class="bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold px-5 py-2.5 rounded-md flex items-center gap-2 hover:opacity-90 transition shadow-md">
+          <i data-lucide="alert-triangle"></i>
+          Próximos a caducar
+          <span id="totalProximosBtn"
+            class="ml-1 text-xs font-semibold bg-white/20 px-2 py-0.5 rounded">(0)</span>
+        </button>
+
+        <button id="btnVencidos"
+          class="bg-gradient-to-r from-orange-600 to-amber-500 text-white font-semibold px-5 py-2.5 rounded-md flex items-center gap-2 hover:opacity-90 transition shadow-md">
+          <i data-lucide="x-circle"></i>
+          Vencidos
+          <span id="totalVencidosBtn"
+            class="ml-1 text-xs font-semibold bg-white/20 px-2 py-0.5 rounded">(0)</span>
+        </button>
+
+      </div>
+
+      <!-- 🕒 SECCIÓN: PRÓXIMOS A CADUCAR -->
+      <section id="sectionProximos" class="hidden opacity-0 transition-all duration-500">
+        <div class="card-section border-emerald-200">
+
+          <div class="flex items-center justify-between border-b border-emerald-100 pb-3">
+            <h2 class="text-lg font-semibold text-emerald-600 flex items-center gap-2">
+              <i data-lucide="clock"></i> Próximos a caducar (≤ 60 días)
+            </h2>
+            <span id="totalProximos" class="text-sm text-gray-600"></span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="smart-table">
+              <thead>
+                <tr class="bg-emerald-50 text-emerald-800 font-semibold">
+                  <th>Producto</th>
+                  <th>SKU</th>
+                  <th>Código</th>
+                  <th>Fecha</th>
+                  <th>Cantidad</th>
+                  <th>Días Restantes</th>
+                </tr>
+              </thead>
+              <tbody id="tablaProximos"></tbody>
+            </table>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ⛔ SECCIÓN: VENCIDOS -->
+      <section id="sectionVencidos" class="hidden opacity-0 transition-all duration-500">
+        <div class="card-section border-orange-200">
+
+          <div class="flex items-center justify-between border-b border-orange-100 pb-3">
+            <h2 class="text-lg font-semibold text-orange-600 flex items-center gap-2">
+              <i data-lucide="x-octagon"></i> Productos Vencidos
+            </h2>
+            <span id="totalVencidos" class="text-sm text-gray-600"></span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="smart-table">
+              <thead>
+                <tr class="bg-orange-50 text-orange-800 font-semibold">
+                  <th>Producto</th>
+                  <th>SKU</th>
+                  <th>Código</th>
+                  <th>Fecha</th>
+                  <th>Cantidad</th>
+                  <th>Días Vencidos</th>
+                </tr>
+              </thead>
+              <tbody id="tablaVencidos"></tbody>
+            </table>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ⚙️ Scripts -->
+  <script type="module" src="/js/localdb.js"></script>
+  <script type="module" src="js/caducidades.js"></script>
+
+  <!-- ✨ Animación fadeIn -->
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; }
+  </style>
+
+</body>
+</html>

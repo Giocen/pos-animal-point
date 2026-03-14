@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Sistema y Dispositivos</title>
+
+  <!-- 🎨 Librerías -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- 💅 Estilos -->
+  <link rel="stylesheet" href="/css/sistema.css">
+  <link rel="icon" href="/img/favicon-pos.png">
+
+  <!-- 🔒 Protección -->
+  <script type="module">
+    import { protegerSesion } from "/js/proteccion.js";
+    (async () => { await protegerSesion(["admin"]); })();
+  </script>
+</head>
+
+<body class="min-h-screen flex flex-col font-inter text-gray-900">
+
+  <!-- ==========================================================
+  💎 Encabezado fijo estilo SmartPOS
+  =========================================================== -->
+  <header class="header-config">
+    <div class="header-content">
+      <button onclick="window.location.href='/configuracion.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver
+      </button>
+
+      <div class="flex items-center gap-2 ml-auto">
+        <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+        <h1 class="text-xl font-semibold text-white">Sistema y Dispositivos</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- ⚙️ Contenido principal -->
+  <main class="flex-1 w-full flex flex-col items-center justify-start mt-[6rem] px-6 pb-12">
+    
+    <!-- 🔘 Botones principales (sincronizados con sistema.js) -->
+    <div id="panelSistema" class="flex justify-center flex-wrap gap-5 mb-10">
+      <button class="tab-btn bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold px-5 py-3 rounded-md flex items-center gap-2 hover:opacity-90 transition" data-tab="conexion">
+        <i data-lucide="wifi"></i> Conexión
+      </button>
+
+      <button class="tab-btn bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold px-5 py-3 rounded-md flex items-center gap-2 hover:opacity-90 transition" data-tab="dispositivos">
+        <i data-lucide="printer"></i> Dispositivos
+      </button>
+
+      <button class="tab-btn bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white font-semibold px-5 py-3 rounded-md flex items-center gap-2 hover:opacity-90 transition" data-tab="bascula">
+        <i data-lucide="scale"></i> Báscula
+      </button>
+
+      <button class="tab-btn bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold px-5 py-3 rounded-md flex items-center gap-2 hover:opacity-90 transition" data-tab="cajon">
+        <i data-lucide="wallet"></i> Cajón
+      </button>
+
+      <button class="tab-btn bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white font-semibold px-5 py-3 rounded-md flex items-center gap-2 hover:opacity-90 transition" data-tab="mantenimiento">
+        <i data-lucide="trash-2"></i> Mantenimiento
+      </button>
+    </div>
+
+    <!-- 📦 Contenedor dinámico -->
+    <section id="sistema-container" class="contenedor-sistema">
+      <p class="text-center text-gray-600">Selecciona una sección para configurar.</p>
+    </section>
+
+  </main>
+
+  <!-- 🔙 Footer limpio -->
+  <footer class="mt-auto mb-6 text-sm text-white/80 text-center"></footer>
+
+  <!-- ✅ Scripts -->
+  <script type="module" src="/js/localdb.js"></script>
+  <script type="module" src="/js/sistema.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => lucide.createIcons());
+  </script>
+</body>
+</html>

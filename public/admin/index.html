@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Acceso Administrador</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #1A042D, #4b005f);
+      font-family: "Inter", sans-serif;
+    }
+    .card-login {
+      background: rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 28px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.15);
+      width: 360px;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center">
+
+  <div class="card-login text-center">
+
+    <i data-lucide="shield" class="w-12 h-12 text-fuchsia-400 mx-auto mb-3"></i>
+
+    <h1 class="text-2xl font-bold text-white mb-2">Acceso Administrador</h1>
+    <p class="text-white/60 mb-6">Panel interno del sistema</p>
+
+    <!-- CAMPO DE CONTRASEÑA -->
+    <div class="relative mb-4">
+      <input 
+        id="adminPass" 
+        type="password" 
+        placeholder="Contraseña maestra"
+        class="w-full bg-white/20 border border-white/30 text-white rounded-lg px-3 py-2 pr-10 placeholder-white/60 focus:outline-none">
+
+      <!-- BOTÓN OJO -->
+      <button id="toggleAdminPass"
+        type="button"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white">
+        <i data-lucide="eye-off"></i>
+      </button>
+    </div>
+
+    <button id="btnEntrar"
+      class="w-full py-2 rounded-lg bg-gradient-to-r from-fuchsia-600 to-pink-500 text-white font-semibold shadow-lg hover:opacity-90">
+      Entrar
+    </button>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- 🔥 SCRIPT PARA MOSTRAR/OCULTAR CONTRASEÑA -->
+  <!-- ============================================= -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const input = document.getElementById("adminPass");
+      const btn = document.getElementById("toggleAdminPass");
+
+      btn.addEventListener("click", () => {
+        const visible = input.type === "text";
+        input.type = visible ? "password" : "text";
+        btn.innerHTML = `<i data-lucide="${visible ? "eye-off" : "eye"}"></i>`;
+        lucide.createIcons();
+      });
+
+      lucide.createIcons();
+    });
+  </script>
+
+  <!-- ============================================= -->
+  <!-- 🔐 VALIDACIÓN CONTRA SUPABASE (ADMIN PASS) -->
+  <!-- ============================================= -->
+  <script type="module">
+    import { supabaseAdmin as supabase } from "/admin/supabase-admin.js";
+
+    async function obtenerPassMaestra() {
+      const { data, error } = await supabase
+        .from("admin_config")
+        .select("admin_pass")
+        .eq("id", 1)
+        .single();
+
+      if (error) {
+        console.error("Error al leer contraseña admin:", error);
+        return null;
+      }
+
+      return data.admin_pass;
+    }
+
+    document.getElementById("btnEntrar").onclick = async () => {
+      const passIngresada = document.getElementById("adminPass").value.trim();
+      const passReal = await obtenerPassMaestra();
+
+      if (!passReal) {
+        return Swal.fire("Error", "No se pudo verificar la contraseña", "error");
+      }
+
+      if (passIngresada === passReal) {
+        sessionStorage.setItem("admin_ok", "1");
+        location.href = "/admin/dashboard.html";
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Acceso denegado",
+          text: "Contraseña incorrecta",
+          confirmButtonColor: "#a21caf",
+        });
+      }
+    };
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Configuración</title>
+
+  <!-- 🎨 Librerías -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- 💅 Estilos -->
+  <link rel="stylesheet" href="css/configuracion.css">
+  <link rel="icon" href="/img/favicon-pos.png">
+
+  <!-- 🧩 Protección -->
+  <script type="module">
+    import { protegerSesion } from "/js/proteccion.js";
+    (async () => { await protegerSesion(["admin"]); })();
+  </script>
+</head>
+
+<body class="min-h-screen flex flex-col font-inter text-gray-900">
+
+  <!-- ==========================================================
+  💎 Encabezado fijo
+  =========================================================== -->
+  <header class="header-config">
+    <div class="header-content">
+      <button onclick="window.location.href='/index.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver al Menú
+      </button>
+
+      <div class="flex items-center gap-2 ml-auto">
+        <i data-lucide="settings" class="w-6 h-6 text-white"></i>
+        <h1 class="text-xl font-semibold text-white">Configuración del Sistema</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================
+  💎 Contenido principal
+  =========================================================== -->
+  <main class="flex-1 w-full px-6 mt-[6rem] pb-10">
+    <div id="panelConfiguracion" class="flex justify-center flex-wrap gap-5 mb-10">
+
+      <button class="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white font-semibold px-5 py-3 rounded-md flex items-center gap-2 hover:opacity-90 transition" onclick="mostrarSeccion('negocio')">
+        <i data-lucide="store"></i> Negocio
+      </button>
+
+      <button class="bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold px-5 py-3 rounded-md flex items-center gap-2 hover:opacity-90 transition" onclick="window.location.href='/configuracion_ventas.html'">
+        <i data-lucide="shopping-cart"></i> Ventas
+      </button>
+
+      <button class="bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-md flex items-center gap-2 hover:opacity-90 transition" onclick="mostrarSeccion('diseño')">
+        <i data-lucide="palette"></i> Diseño
+      </button>
+
+      <!-- ✔ Botón corregido -->
+      <button class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold px-5 py-3 rounded-md flex items-center gap-2 hover:opacity-90 transition"
+              onclick="mostrarSeccion('correo')">
+        <i data-lucide="mail"></i> Correo
+      </button>
+
+      <button class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold px-5 py-3 rounded-md flex items-center gap-2 hover:opacity-90 transition" onclick="window.location.href='/sistema.html'">
+        <i data-lucide="cpu"></i> Sistema
+      </button>
+    </div>
+
+    <!-- 🔹 Secciones dinámicas -->
+    <div id="contenedor-config" class="max-w-2xl mx-auto space-y-6">
+
+      <!-- ============= TAB NEGOCIO ============= -->
+      <div id="tab-negocio" class="tab-content hidden space-y-6">
+        <section class="bg-white/90 backdrop-blur-md rounded-lg border border-fuchsia-100 p-5 shadow-sm">
+
+          <h2 class="text-lg font-semibold text-fuchsia-700 flex items-center gap-2 mb-3">
+            <i data-lucide="file-text"></i> Datos del Ticket
+          </h2>
+
+          <form id="formDatosNegocio" class="grid sm:grid-cols-2 gap-4">
+
+            <div>
+              <label class="label-icon"><i data-lucide="store"></i> Nombre del Negocio</label>
+              <input id="nombreNegocio" type="text" class="input w-full" placeholder="Ej. SmartPOS Peek Shop">
+            </div>
+
+            <div>
+              <label class="label-icon"><i data-lucide="phone"></i> Teléfono</label>
+              <input id="telefonoNegocio" type="text" class="input w-full" placeholder="Ej. 999 999 9999">
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="label-icon"><i data-lucide="map-pin"></i> Dirección</label>
+              <input id="direccionNegocio" type="text" class="input w-full" placeholder="Calle, número, colonia, ciudad">
+            </div>
+
+            <div>
+              <label class="label-icon"><i data-lucide="mail"></i> Correo electrónico</label>
+              <input id="correoNegocio" type="email" class="input w-full" placeholder="ejemplo@smartpos.com">
+            </div>
+
+            <div>
+              <label class="label-icon"><i data-lucide="id-card"></i> RFC</label>
+              <input id="rfcNegocio" type="text" class="input w-full" placeholder="Ej. ABC123456XYZ">
+            </div>
+
+
+            <!-- 🟣🟣 SECCIÓN DEL LOGO - NUEVA Y LISTA PARA USAR 🟣🟣 -->
+            <div class="sm:col-span-2 mt-4">
+              <label class="label-icon"><i data-lucide="image"></i> Logo del Ticket</label>
+
+              <div class="flex items-center gap-4">
+
+              <img id="vistaLogoNegocio"
+                src="/img/sin_imagen.png"
+                class="w-20 h-20 object-contain border border-fuchsia-200 rounded-md bg-white">
+
+
+                <div class="flex flex-col gap-2">
+
+                  <!-- Input archivo -->
+                  <input type="file"
+                        id="inputLogoNegocio"
+                        accept="image/*"
+                        class="text-sm text-gray-700">
+
+                  <!-- Botón eliminar logo -->
+                  <button type="button"
+                          id="btnEliminarLogoNegocio"
+                          class="text-red-600 text-sm flex items-center gap-1 hover:underline">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    Quitar logo
+                  </button>
+
+                </div>
+              </div>
+            </div>
+            <!-- 🟣 FIN SECCIÓN LOGO 🟣 -->
+
+
+            <div class="sm:col-span-2">
+              <label class="label-icon"><i data-lucide="message-circle"></i> Leyenda o mensaje final</label>
+              <textarea id="leyendaNegocio" class="input w-full" rows="2" placeholder="💜 ¡Gracias por su compra!"></textarea>
+            </div>
+
+            <div class="sm:col-span-2 mt-4 border-t border-fuchsia-200 pt-3">
+              <label class="label-icon"><i data-lucide="brush"></i> Estilo del Ticket</label>
+              <select id="plantillaTicket" class="input w-full bg-fuchsia-50 text-sm">
+                <option value="clasico">💜 Clásico Agradecido</option>
+                <option value="minimalista">⚪ Minimalista</option>
+                <option value="comercial">🛍️ Comercial</option>
+                <option value="premium">🌟 Premium</option>
+                <option value="mascotas">🐾 Mascotas</option>
+                <option value="tecnico">⚙️ Taller / Servicios</option>
+              </select>
+            </div>
+
+            <div class="sm:col-span-2 flex justify-end gap-3 mt-4">
+              <button type="reset" class="bg-gray-200 text-gray-700 text-sm px-4 py-2 rounded-md flex items-center gap-2 hover:bg-gray-300 transition">
+                <i data-lucide="x-circle" class="w-4 h-4"></i> Limpiar
+              </button>
+              <button id="btn
+GuardarDatosNegocio" type="submit" class="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-sm px-4 py-2 rounded-md flex items-center gap-2 hover:opacity-90 transition">
+                <i data-lucide="save" class="w-4 h-4"></i> Guardar Cambios
+              </button>
+            </div>
+
+          </form>
+        </section>
+      </div>
+
+      <!-- ============= TAB CORREO ============= -->
+      <div id="tab-correo" class="tab-content hidden space-y-6">
+        <section class="bg-white/90 backdrop-blur-md rounded-lg border border-indigo-100 p-5 shadow-sm">
+
+          <h2 class="text-lg font-semibold text-indigo-700 flex items-center gap-2 mb-4">
+            <i data-lucide="mail"></i> Configuración de Correo (EmailJS)
+          </h2>
+
+          <p class="text-sm text-gray-600 mb-4">
+            Configura EmailJS para enviar tickets digitales con link seguro.
+          </p>
+
+          <form id="formCorreo" class="space-y-4">
+
+            <div>
+              <label class="label-icon"><i data-lucide="server"></i> Service ID</label>
+              <input id="email_service_id" type="text" class="input w-full" placeholder="service_xxxxxx">
+            </div>
+
+            <div>
+              <label class="label-icon"><i data-lucide="file-text"></i> Template ID</label>
+              <input id="email_template_id" type="text" class="input w-full" placeholder="template_xxxxxx">
+            </div>
+
+            <div>
+              <label class="label-icon"><i data-lucide="key"></i> Public Key</label>
+              <input id="email_public_key" type="text" class="input w-full" placeholder="API_KEY_xxxxxx">
+            </div>
+
+            <!-- 🟣 BOTÓN: Copiar plantilla HTML -->
+            <button type="button" id="btnCopiarPlantilla"
+              class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 shadow-md transition">
+              <i data-lucide="copy"></i> Ver y Copiar plantilla HTML
+            </button>
+
+            <!-- 🟢 BOTÓN: Vista previa del correo -->
+            <button type="button" id="btnVistaPreviaCorreo"
+              class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 shadow-md transition">
+              <i data-lucide="eye"></i> Mostrar vista previa del correo
+            </button>
+
+            <div class="flex justify-between mt-6">
+
+              <button type="button" id="btnProbarCorreo"
+                class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
+                <i data-lucide="send"></i> Probar envío
+              </button>
+
+              <button type="submit"
+                class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
+                <i data-lucide="save"></i> Guardar cambios
+              </button>
+
+            </div>
+
+          </form>
+
+        </section>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 🧩 Scripts -->
+  <script type="module" src="/js/localdb.js"></script>
+  <script type="module" src="js/configuracion/index.js"></script>
+
+  <!-- ✔ EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+  <script>
+    lucide.createIcons();
+
+    function mostrarSeccion(id) {
+      document.querySelectorAll(".tab-content").forEach(s => s.classList.add("hidden"));
+      const activa = document.getElementById(`tab-${id}`);
+      if (activa) activa.classList.remove("hidden");
+      lucide.createIcons();
+
+      if (id === "negocio" && !window._negocioInicializado) {
+        import("/js/configuracion/configNegocio.js").then(mod => {
+          if (mod.inicializarConfiguracion) mod.inicializarConfiguracion();
+          window._negocioInicializado = true;
+        });
+      }
+
+      if (id === "correo" && !window._correoInicializado) {
+        import("/js/configuracion/configCorreo.js")
+          .then(mod => mod.inicializarCorreo && mod.inicializarCorreo());
+        window._correoInicializado = true;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => mostrarSeccion("negocio"));
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+/* ==========================================================
+💜 SmartPOS | Inventario Físico (v5.6 Flat)
+========================================================== */
+
+/* --- Fondo general animado --- */
+.index-body {
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ==========================================================
+💎 ENCABEZADO LIMPIO (igual que Ajustes/Entradas/Alta)
+========================================================== */
+.header-conteo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  padding: 0.6rem 0;
+  z-index: 50;
+}
+
+.header-content {
+  width: 95%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* --- Botón volver --- */
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.25s ease;
+}
+.btn-volver:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+/* --- Título alineado a la derecha --- */
+.titulo-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+.titulo-header h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #fff;
+}
+
+/* ==========================================================
+📋 PANEL PRINCIPAL
+========================================================== */
+main {
+  padding-top: 6.5rem; /* espacio visual debajo del header */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 6rem);
+  padding-inline: 1.5rem;
+}
+
+.panel-conteo {
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(162, 28, 175, 0.25);
+  border-radius: 1rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  width: 100%;
+  max-width: 850px;
+  color: #1f1f1f;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* ==========================================================
+📱 RESPONSIVO
+========================================================== */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  .titulo-header {
+    justify-content: center;
+  }
+  .titulo-header h1 {
+    font-size: 1rem;
+  }
+  main {
+    padding-top: 7rem;
+    padding-inline: 1rem;
+  }
+  .panel-conteo {
+    max-width: 100%;
+    padding: 1.5rem;
+  }
+}
+
+
+/* ==========================================================
+💎 SweetAlert2 | Botones personalizados SmartPOS
+========================================================== */
+
+.swal2-confirm,
+.swal2-cancel {
+  border-radius: 0.5rem !important;
+  font-weight: 600 !important;
+  padding: 0.55rem 1.2rem !important;
+  font-family: "Inter", sans-serif !important;
+  transition: all 0.25s ease !important;
+}
+
+.swal2-confirm {
+  background: linear-gradient(90deg, #a21caf, #ec4899) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.swal2-confirm:hover {
+  filter: brightness(1.1);
+}
+
+.swal2-cancel {
+  background: rgba(0,0,0,0.05) !important;
+  color: #333 !important;
+  border: 1px solid rgba(0,0,0,0.1) !important;
+}
+
+.swal2-cancel:hover {
+  background: rgba(0,0,0,0.1) !important;
+}
+
+.swal2-popup.card-3d {
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+  background: rgba(255,255,255,0.96) !important;
+  backdrop-filter: blur(12px) !important;
+  color: #1f1f1f !important;
+}
+.swal2-container .btn-3d {
+  background: linear-gradient(145deg, #a21caf, #ec4899);
+  color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 10px rgba(162, 28, 175, 0.25);
+  font-weight: 600;
+}
+.swal2-container .btn-3d:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}

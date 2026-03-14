@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Ajustes de Inventario</title>
+
+  <!-- 🎨 Librerías -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- 💅 Estilos -->
+  <link rel="stylesheet" href="../css/ajustes.css">
+  <link rel="icon" href="/img/favicon-pos.png">
+</head>
+
+<body class="index-body flex flex-col items-center min-h-screen select-none">
+
+  <!-- 🧭 Encabezado (idéntico al de Inventario) -->
+  <header class="header-ajustes">
+    <div class="header-content">
+      <button onclick="window.location.href='/venta.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver
+      </button>
+
+      <div class="titulo-header">
+        <i data-lucide="settings"></i>
+        <h1>Ajustes de Inventario</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- 📦 Contenido -->
+  <main class="flex-1 p-6 max-w-2xl mx-auto w-full">
+    <form id="formAjuste" class="bg-white/90 backdrop-blur-md border border-fuchsia-100 rounded-lg shadow-sm p-6 space-y-6">
+
+      <!-- Buscar producto -->
+      <div>
+        <label class="label flex items-center gap-1">
+          <i data-lucide="search" class="w-4 h-4 text-fuchsia-600"></i> Buscar producto
+        </label>
+        <input id="busquedaProducto" type="text" class="input" placeholder="Código de barras o nombre" required>
+        <ul id="resultados" class="mt-2 bg-white border border-fuchsia-100 rounded-md hidden"></ul>
+      </div>
+
+      <!-- Existencias -->
+      <div>
+        <label class="label flex items-center gap-1">
+          <i data-lucide="boxes" class="w-4 h-4 text-fuchsia-600"></i> Existencias actuales
+        </label>
+        <input id="existenciasActuales" type="text" readonly class="input bg-gray-100 text-gray-700">
+      </div>
+
+      <!-- Cantidad -->
+      <div>
+        <label class="label flex items-center gap-1">
+          <i data-lucide="hash" class="w-4 h-4 text-fuchsia-600"></i> Cantidad
+        </label>
+        <input id="cantidad" type="number" step="0.01" placeholder="Ej. -2 para merma o 5 para sobrante" required class="input">
+      </div>
+
+      <!-- Motivo -->
+      <div>
+        <label class="label flex items-center gap-1">
+          <i data-lucide="list" class="w-4 h-4 text-fuchsia-600"></i> Motivo
+        </label>
+        <select id="motivo" required class="input">
+          <option value="merma">Merma</option>
+          <option value="caducidad">Caducidad</option>
+          <option value="robo">Robo</option>
+          <option value="conteo_sobrante">Sobrante conteo</option>
+          <option value="conteo_faltante">Faltante conteo</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+
+      <!-- Usuario -->
+      <div>
+        <label class="label flex items-center gap-1">
+          <i data-lucide="user" class="w-4 h-4 text-fuchsia-600"></i> Usuario
+        </label>
+        <input id="usuario" type="text" readonly placeholder="cajero1" class="input">
+      </div>
+
+      <!-- Guardar -->
+      <button type="submit"
+        class="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white w-full py-2 rounded-md font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition">
+        <i data-lucide="save"></i> Guardar Ajuste
+      </button>
+    </form>
+  </main>
+
+  <!-- ⚙️ Scripts -->
+  <script type="module" src="../js/localdb.js"></script>  
+  <script type="module" src="../js/proteccion.js"></script>
+  <script type="module" src="../js/inventario/ajustes.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

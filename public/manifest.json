@@ -1,0 +1,53 @@
+{
+  "name": "SmartPOS",
+  "short_name": "SmartPOS",
+  "description": "Sistema Punto de Venta Inteligente para Mascotas y Negocios",
+  "scope": "/",
+  "start_url": "/venta",
+  "id": "/venta",
+  "display_override": ["fullscreen", "standalone"], 
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#a21caf",
+  "orientation": "landscape",
+  "categories": ["business", "productivity", "finance"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/img/favicon-pos.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/logo-smartpos.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ventas",
+      "short_name": "Ventas",
+      "url": "/venta",
+      "icons": [{ "src": "/img/shortcut-venta.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Inventario",
+      "short_name": "Inventario",
+      "url": "/inventario/menu-inventario.html",
+      "icons": [{ "src": "/img/shortcut-inventario.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Reportes",
+      "short_name": "Reportes",
+      "url": "/reportes",
+      "icons": [{ "src": "/img/shortcut-reportes.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

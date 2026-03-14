@@ -1,0 +1,93 @@
+/* ==========================================================
+💜 SmartPOS | Comparar Precios (v4.6 Unificado)
+========================================================== */
+
+/* --- Fondo animado SmartPOS --- */
+body {
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  font-family: "Inter", sans-serif;
+  color: #1f1f1f;
+  margin: 0;
+}
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ==========================================================
+💎 HEADER FIJO
+========================================================== */
+.header-config {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  padding: 0.9rem 0;
+  z-index: 50;
+}
+.header-content {
+  width: 95%;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.25s ease;
+}
+.btn-volver:hover { background: rgba(255, 255, 255, 0.3); }
+
+/* ==========================================================
+📦 TARJETAS Y SECCIONES
+========================================================== */
+.card-section {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  border: 1px solid rgba(162, 28, 175, 0.15);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+.card-section:hover { transform: translateY(-2px); }
+
+/* ==========================================================
+🔘 BOTONES DE TIENDA
+========================================================== */
+.btn-accion {
+  background: linear-gradient(90deg, #a21caf, #ec4899);
+  border-radius: 0.5rem;
+  padding: 0.65rem 1rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+.btn-accion:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.1);
+}
+
+/* ==========================================================
+📱 RESPONSIVO
+========================================================== */
+@media (max-width: 768px) {
+  .header-content { flex-direction: column; text-align: center; }
+  .btn-volver { width: 100%; justify-content: center; }
+  .card-section { padding: 1.2rem; }
+}

@@ -1,0 +1,240 @@
+/* ==========================================================
+💜 SmartPOS | reportes.css (v3.6 Corrección SAP Ready)
+========================================================== */
+
+/* --- Fondo general animado --- */
+body {
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  font-family: "Inter", sans-serif;
+  color: #1f1f1f;
+  margin: 0;
+  min-height: 100vh;
+}
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ==========================================================
+💎 HEADER UNIFICADO REPORTES
+========================================================== */
+.header-reportes {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+  z-index: 50;
+  padding: 0.9rem 0;
+}
+
+.header-content {
+  width: 95%;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.25s ease;
+}
+.btn-volver:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================
+📦 CONTENEDOR PRINCIPAL
+========================================================== */
+main {
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 2rem;
+  margin-top: 5.5rem;
+  max-width: 1600px;
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #a21caf, #ec4899);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* ==========================================================
+🔍 FILTROS
+========================================================== */
+#filtros {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 0.7rem;
+  border: 1px solid rgba(162, 28, 175, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 0.8rem 1rem;
+  backdrop-filter: blur(3px);
+  margin-bottom: 1rem;
+  transition: .3s ease;
+}
+
+#filtroContenedor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: .8rem;
+}
+
+#filtros label {
+  font-size: .8rem;
+  color: #a21caf;
+  font-weight: 600;
+}
+
+.input-filtro {
+  border: 1.3px solid #d1d5db;
+  border-radius: 0.45rem;
+  padding: 0.45rem 0.7rem;
+  background: #fff;
+  font-size: 0.85rem;
+  transition: .2s ease;
+}
+.input-filtro:focus {
+  outline: none;
+  border-color: #a21caf;
+  box-shadow: 0 0 0 2px rgba(162, 28, 175, 0.25);
+}
+
+/* ==========================================================
+📋 TABLAS NORMALES (NO SAP)
+========================================================== */
+
+#resultado {
+  width: 98%;
+  max-width: 1400px;
+  margin: 0 auto;
+  border-radius: .8rem;
+  overflow-x: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+  border: 1px solid rgba(162, 28, 175, .15);
+  background: rgba(255, 255, 255, .95);
+  padding: 1rem 1.25rem;
+}
+
+/* --- Tabla interna normal --- */
+#resultado table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .88rem;
+  text-align: left;
+  background: #fff;
+  table-layout: auto;
+}
+
+/* --- Encabezado sticky --- */
+#resultado thead {
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+#resultado th {
+  padding: .7rem .5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, .25);
+  text-align: center;
+}
+
+/* --- Filas normales --- */
+#resultado td {
+  padding: .6rem .5rem;
+  border-bottom: 1px solid rgba(162, 28, 175, .1);
+  background: rgba(255, 255, 255, .97);
+  color: #1f1f1f !important;
+  text-align: center;
+}
+
+/* --- Zebra --- */
+#resultado tbody tr:nth-child(even) td {
+  background: rgba(249, 245, 255, .85);
+}
+
+/* --- Hover --- */
+#resultado tbody tr:hover td {
+  background: rgba(236, 72, 153, .08);
+}
+
+/* ==========================================================
+📱 RESPONSIVO
+========================================================== */
+@media (max-width: 768px) {
+  .header-content { flex-direction: column; gap: .6rem; text-align: center; }
+  #filtroContenedor { flex-direction: column; }
+  #resultado { padding: .8rem; }
+}
+
+/* === Tarjeta SAP independiente === */
+.sap-card {
+  background: #ffffff !important;      /* ← BLANCO SOLIDO */
+  border-radius: 10px;
+  padding: 1.2rem 1.5rem;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+}
+
+/* === Colores por fila === */
+.row-entrada td {
+  background: rgba(0, 200, 120, 0.22) !important;
+  color: #0a0a0a;
+}
+.row-salida td {
+  background: rgba(255, 70, 70, 0.22) !important;
+  color: #0a0a0a;
+}
+.row-ajuste td {
+  background: rgba(255, 210, 0, 0.25) !important;
+  color: #0a0a0a;
+}
+
+/* Hover SAP */
+.tabla-sap tr:hover td {
+  filter: brightness(1.08);
+}
+
+/* Botón SAP Consultar */
+.btn-buscar-sap {
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  transition: 0.25s ease;
+}
+
+.btn-buscar-sap i {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-buscar-sap:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}

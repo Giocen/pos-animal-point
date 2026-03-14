@@ -1,0 +1,262 @@
+/* ===========================================================
+💜 SmartPOS | Estilo Global Base (Liverpool Refinado)
+Contraste fuerte, textos grandes, inputs blancos, sin bordes redondos.
+=========================================================== */
+
+/* ===========================================================
+🎨 FUENTE Y FONDO GENERAL
+=========================================================== */
+body {
+  min-height: 100vh;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  color: #fff;
+  background: linear-gradient(135deg, #6d00b8, #a21caf, #c026d3);
+  background-size: 200% 200%;
+  background-attachment: fixed;
+  animation: fondoSmartPOS 12s ease infinite;
+}
+
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ===========================================================
+🔤 TIPOGRAFÍA GLOBAL
+=========================================================== */
+h1, h2, h3, h4, h5, h6 {
+  color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+label, p, span {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* ===========================================================
+🔘 BOTONES GLOBALES | SmartPOS (Unified Style)
+=========================================================== */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 1rem;
+  text-transform: none;
+  padding: 0.75rem 1.4rem;
+  line-height: 1;
+  transition: all 0.2s ease;
+  color: #fff;
+  background-color: #2563eb; /* Azul base */
+}
+
+button:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.btn-fucsia {
+  background-color: #a21caf;
+}
+.btn-fucsia:hover {
+  background-color: #86198f;
+}
+
+.btn-verde {
+  background-color: #059669;
+}
+.btn-verde:hover {
+  background-color: #047857;
+}
+
+.btn-azul {
+  background-color: #2563eb;
+}
+.btn-azul:hover {
+  background-color: #1d4ed8;
+}
+
+button i {
+  width: 1rem;
+  height: 1rem;
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===========================================================
+📋 FORMULARIOS: Inputs blancos con texto violeta.
+=========================================================== */
+input, select, textarea {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 0.25rem;
+  border: 2px solid #fff;
+  background: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #6d00b8;
+  transition: all 0.25s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #a21caf;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #fff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+/* ===========================================================
+📊 TABLAS GLOBALES
+=========================================================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+th {
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.6px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+  padding: 0.75rem;
+  text-align: left;
+}
+
+td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.75rem;
+}
+
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ===========================================================
+🧩 SECCIONES Y PANELES
+=========================================================== */
+section, form, aside {
+  background: transparent !important;
+  border: none;
+  border-radius: 0.25rem;
+  padding: 1.5rem;
+  color: #fff;
+}
+
+/* ===========================================================
+📜 FOOTER GENERAL
+=========================================================== */
+footer {
+  text-align: center;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.95);
+  padding: 1rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  font-weight: 500;
+}
+
+/* ===========================================================
+🖱️ SCROLLBAR PERSONALIZADA
+=========================================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* ===========================================================
+📱 RESPONSIVO GENERAL
+=========================================================== */
+@media (max-width: 768px) {
+  h1, h2 {
+    font-size: 1.4rem;
+  }
+  button {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+  }
+  table {
+    font-size: 0.9rem;
+  }
+}
+
+/* ===========================================================
+💎 EXCEPCIONES SMARTPOS | Módulo de Ventas
+=========================================================== */
+body.ventas main,
+body.ventas section,
+body.ventas aside {
+  background: #fff !important;
+  color: #4b0082 !important;
+}
+
+body.ventas h2,
+body.ventas label,
+body.ventas p,
+body.ventas span,
+body.ventas th,
+body.ventas td {
+  color: #4b0082 !important;
+}
+
+body.ventas #panelPersonalizado button {
+  background: #f9f5ff !important;
+  border: 1px solid #e9d5ff !important;
+  color: #6b21a8 !important;
+  font-weight: 700;
+}
+
+body.ventas section,
+body.ventas form {
+  padding: 1rem !important;
+}
+
+body.ventas header {
+  background: linear-gradient(90deg, #a21caf, #9333ea);
+  color: #fff;
+}
+
+body.ventas table {
+  color: #4b0082 !important;
+}
+
+body.ventas #carritoBody + div {
+  margin-top: 0.5rem !important;
+}
+
+body.ventas #btnRegistrarCliente,
+body.ventas #btnFinalizar {
+  margin-top: 0 !important;
+}

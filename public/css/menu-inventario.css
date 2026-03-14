@@ -1,0 +1,414 @@
+/* ============================================================
+ 💜 SmartPOS | Configuración 3D Compacta (Modo Oscuro Violeta v2.1)
+ Coherente con todos los módulos SmartPOS
+============================================================ */
+
+/* --- Fondo general --- */
+body {
+  background: linear-gradient(135deg, #faf5ff, #fce7f3);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: "Inter", sans-serif;
+  transition: all 0.25s ease;
+}
+
+/* ============================================================
+ 🟣 Header 3D
+============================================================ */
+.header-3d {
+  background: #fff;
+  color: #4b5563;
+  border-radius: 0 0 1rem 1rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1),
+              inset 0 -1px 0 rgba(255,255,255,0.6);
+  padding: 0.8rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 98%;
+  margin: 0 auto 0.8rem auto;
+  transition: all 0.3s ease;
+}
+.header-3d h1 {
+  color: #a21caf;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+.icon-3d {
+  color: #a21caf;
+  filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+}
+
+/* --- Header modo oscuro violeta --- */
+body.dark .header-3d {
+  background: linear-gradient(90deg, #2a0e36 0%, #4c1d95 50%, #1e1b4b 100%);
+  color: #fff;
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.5),
+    inset 0 -1px 0 rgba(255,255,255,0.05);
+}
+body.dark .header-3d h1,
+body.dark .icon-3d {
+  color: #e879f9;
+}
+
+/* ============================================================
+ 🟣 Tarjetas 3D
+============================================================ */
+.card-3d {
+  border-radius: 0.9rem;
+  background: #fff;
+  box-shadow:
+    4px 4px 8px rgba(0,0,0,0.1),
+    -4px -4px 8px rgba(255,255,255,0.8);
+  transition: transform 0.2s ease;
+  padding: 1rem 1.2rem;
+}
+.card-3d:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    6px 6px 12px rgba(0,0,0,0.15),
+    -6px -6px 12px rgba(255,255,255,0.9);
+}
+
+/* --- Modo oscuro 3D coherente --- */
+body.dark .card-3d {
+  background: linear-gradient(145deg, #231938, #1b1b2b);
+  box-shadow:
+    4px 4px 8px rgba(0,0,0,0.6),
+    -4px -4px 8px rgba(60,60,60,0.4);
+}
+
+/* ============================================================
+ 🟣 Título de sección
+============================================================ */
+.titulo-seccion {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #a21caf;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+body.dark .titulo-seccion {
+  color: #e879f9;
+}
+
+/* ============================================================
+ 🟣 Inputs 3D
+============================================================ */
+.input-3d {
+  border-radius: 0.5rem;
+  width: 100%;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.85rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  box-shadow:
+    inset 2px 2px 3px rgba(0,0,0,0.1),
+    inset -2px -2px 4px rgba(255,255,255,0.7);
+  transition: all 0.25s ease;
+}
+.input-3d:focus {
+  outline: none;
+  border-color: #a21caf;
+  box-shadow: 0 0 0 2px rgba(232,121,249,.4);
+}
+
+/* --- Oscuro coherente --- */
+body.dark .input-3d {
+  background: #1e1b2f;
+  color: #f3f4f6;
+  border: 1px solid rgba(147, 51, 234, 0.35);
+  box-shadow:
+    inset 2px 2px 4px rgba(0,0,0,0.4),
+    inset -2px -2px 4px rgba(60,60,60,0.3);
+}
+body.dark .input-3d:focus {
+  border-color: #9333ea;
+  box-shadow: 0 0 6px rgba(147,51,234,0.5);
+}
+
+/* ============================================================
+ 🟣 Botones 3D
+============================================================ */
+.btn-3d {
+  border-radius: 0.5rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  box-shadow:
+    2px 2px 6px rgba(0,0,0,0.2),
+    -2px -2px 6px rgba(255,255,255,0.5);
+}
+.btn-3d:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    4px 4px 10px rgba(0,0,0,0.25),
+    -4px -4px 10px rgba(255,255,255,0.6);
+}
+.btn-3d:active {
+  transform: translateY(0.5px);
+}
+.bg-fuchsia-600 {
+  background: linear-gradient(145deg,#a21caf,#e879f9)!important;
+}
+body.dark .btn-3d {
+  background: linear-gradient(145deg, #4c1d95, #7e22ce);
+  color: #fff;
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.4),
+    0 6px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* ============================================================
+ 🟣 Botones de pestañas
+============================================================ */
+.tab-btn {
+  border-radius: 9999px;
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  background: linear-gradient(145deg, #ffffff, #f4e8ff);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: #444;
+  box-shadow:
+    inset 2px 2px 3px rgba(0,0,0,0.05),
+    inset -2px -2px 4px rgba(255,255,255,0.9);
+  transition: all 0.25s ease;
+}
+.tab-btn:hover,
+.tab-active {
+  background: linear-gradient(90deg, #a21caf, #ec4899);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(147,51,234,0.25);
+}
+
+/* --- Oscuro coherente --- */
+body.dark .tab-btn {
+  background: linear-gradient(145deg, #1e1b2f, #2a1f47);
+  color: #f3f4f6;
+  border: 1px solid rgba(147,51,234,0.35);
+  box-shadow:
+    inset 1px 1px 3px rgba(0,0,0,0.5),
+    inset -1px -1px 2px rgba(255,255,255,0.05);
+}
+body.dark .tab-btn:hover,
+body.dark .tab-active {
+  background: linear-gradient(90deg, #4c1d95, #9333ea);
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(147,51,234,0.25);
+}
+
+/* ============================================================
+ 🟣 Logo y etiquetas
+============================================================ */
+.preview-logo {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #a21caf;
+  border-radius: 0.6rem;
+  background: #fdfaff;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+body.dark .preview-logo {
+  border-color: #9333ea;
+  background: #1e1b2f;
+}
+
+.label-3d {
+  font-weight: 500;
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+body.dark .label-3d {
+  color: #e9d5ff;
+}
+
+/* ============================================================
+ 🟣 Botones logo
+============================================================ */
+#fileLogo + label,
+#btnRestablecerLogo {
+  font-size: 0.8rem !important;
+  padding: 0.4rem 0.8rem !important;
+}
+#fileLogo + label,
+#btnRestablecerLogo {
+  display: inline-flex;
+  align-items: center;
+}
+#previewLogoContainer + div > .btn-3d.bg-fuchsia-600,
+#previewLogoContainer + div > #btnRestablecerLogo {
+  display: inline-flex;
+  margin-right: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+/* ============================================================
+ ✨ Modo oscuro global
+============================================================ */
+body.dark {
+  background: linear-gradient(145deg, #1b1425, #2e114d, #1b1b3a);
+  color: #f0f0f0;
+}
+
+/* ============================================================
+ 💎 Botones de menú 3D – Versión Profunda
+   Más realismo visual: relieve, sombras suaves y luz superior
+============================================================ */
+
+.boton-menu-3d {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 2rem;
+  padding: 1.5rem 1.2rem;
+  transition: all 0.25s ease;
+  box-shadow:
+    6px 6px 16px rgba(0, 0, 0, 0.25),
+    -6px -6px 16px rgba(255, 255, 255, 0.6),
+    inset 0 3px 6px rgba(255, 255, 255, 0.2),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.15);
+}
+.boton-menu-3d:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow:
+    10px 10px 20px rgba(0, 0, 0, 0.3),
+    -10px -10px 20px rgba(255, 255, 255, 0.7),
+    inset 0 3px 6px rgba(255, 255, 255, 0.25),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.2);
+}
+.boton-menu-3d i {
+  margin-bottom: 0.6rem;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+}
+
+/* ============================================================
+ 💎 SmartPOS | Inventario - Menú 3D Horizontal Brillante v1.5
+ 🎨 Coherente con Corte de Caja y Configuración
+============================================================ */
+
+#panelInventario {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  padding: 1.5rem 0.5rem;
+}
+
+/* --- Botones 3D universales --- */
+#panelInventario .boton-menu-3d {
+  flex: 0 0 160px;
+  height: 150px;
+  border-radius: 1rem;
+  position: relative;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 6px 12px rgba(0,0,0,0.25),
+    inset 0 0 8px rgba(255,255,255,0.08);
+}
+
+/* --- Colores personalizados --- */
+#btnAlta         { background: linear-gradient(135deg,#a21caf,#ec4899); }
+#btnEntradas     { background: linear-gradient(135deg,#3b82f6,#06b6d4); }
+#btnConteo       { background: linear-gradient(135deg,#f59e0b,#fbbf24); }
+#btnAjustes      { background: linear-gradient(135deg,#10b981,#059669); }
+#btnCaducidades  { background: linear-gradient(135deg,#7e22ce,#a855f7); }
+
+/* --- Luz glass brillante --- */
+#panelInventario .boton-menu-3d::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(255,255,255,0.25) 0%,
+    rgba(255,255,255,0.05) 50%,
+    rgba(255,255,255,0.25) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+#panelInventario .boton-menu-3d:hover::before {
+  opacity: 1;
+  animation: shine 1.8s linear infinite;
+}
+@keyframes shine {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+/* --- Hover con brillo --- */
+#panelInventario .boton-menu-3d:hover {
+  transform: translateY(-5px) scale(1.03);
+  filter: brightness(1.1);
+  box-shadow:
+    0 10px 20px rgba(0,0,0,0.3),
+    inset 0 0 10px rgba(255,255,255,0.2);
+}
+
+/* --- Íconos --- */
+#panelInventario .boton-menu-3d i {
+  width: 42px;
+  height: 42px;
+  margin-bottom: 8px;
+  filter:
+    drop-shadow(0 3px 6px rgba(0,0,0,0.35))
+    brightness(1.05);
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+#panelInventario .boton-menu-3d:hover i {
+  transform: scale(1.12);
+  filter:
+    drop-shadow(0 0 10px rgba(255,255,255,0.4))
+    brightness(1.25);
+}
+
+/* --- Texto --- */
+#panelInventario .boton-menu-3d span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-shadow: 0 2px 3px rgba(0,0,0,0.25);
+}
+
+/* --- Modo oscuro coherente --- */
+body.dark #panelInventario .boton-menu-3d {
+  box-shadow:
+    0 4px 10px rgba(0,0,0,0.8),
+    inset 0 0 6px rgba(255,255,255,0.05);
+  filter: brightness(1.05);
+}
+body.dark #panelInventario .boton-menu-3d:hover {
+  filter: brightness(1.25);
+}

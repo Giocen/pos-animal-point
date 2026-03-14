@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crear Usuario | SmartPOS</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="/admin/admin.js"></script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg,#1A042D,#4b005f);
+      font-family: "Inter";
+      color: white;
+    }
+    .card {
+      background: rgba(255,255,255,0.15);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.25);
+      backdrop-filter: blur(10px);
+    }
+    input, select {
+      background: rgba(255,255,255,0.20);
+      border: 1px solid rgba(255,255,255,0.30);
+      color: white;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-6">
+
+  <div class="card w-full max-w-md">
+
+    <button onclick="history.back()"
+      class="mb-4 text-white/70 hover:text-white flex items-center gap-2">
+      <i data-lucide="arrow-left"></i> Regresar
+    </button>
+
+    <h1 class="text-2xl font-bold text-center mb-4">Crear Usuario</h1>
+
+    <p id="infoNegocio" class="text-white/70 text-center mb-4"></p>
+
+    <input id="nombre" placeholder="Nombre completo" class="w-full px-3 py-2 mb-3 rounded">
+    <input id="correo" placeholder="Correo electrónico" class="w-full px-3 py-2 mb-3 rounded">
+    <input id="password" placeholder="Contraseña temporal" type="password" class="w-full px-3 py-2 mb-4 rounded">
+
+    <select id="rol" class="w-full px-3 py-2 mb-4 rounded"></select>
+
+    <button id="btnCrear"
+      class="w-full py-2 rounded bg-gradient-to-r from-fuchsia-600 to-pink-500 text-white font-semibold">
+      Crear Usuario
+    </button>
+
+  </div>
+
+<script type="module">
+import { supabaseAdmin as supabase } from "/admin/supabase-admin.js";
+
+const params = new URLSearchParams(location.search);
+const negocioID = params.get("negocio_id");
+
+/* ======================================================
+   CARGAR ROLES
+====================================================== */
+async function cargarRoles() {
+  const sel = document.getElementById("rol");
+  const { data } = await supabase.from("roles").select("*");
+
+  data.forEach(r => {
+    sel.innerHTML += `<option value="${r.id}">${r.nombre}</option>`;
+  });
+}
+cargarRoles();
+
+/* ======================================================
+   MOSTRAR NOMBRE DEL NEGOCIO
+====================================================== */
+if (negocioID) {
+  const { data } = await supabase
+    .from("negocios")
+    .select("nombre")
+    .eq("id", negocioID)
+    .single();
+
+  if (data) {
+    document.getElementById("infoNegocio").innerHTML =
+      `Creando usuario para el negocio: <b>${data.nombre}</b>`;
+  }
+}
+
+/* ======================================================
+   CREAR USUARIO COMPLETO
+====================================================== */
+document.getElementById("btnCrear").onclick = async () => {
+
+  const nombreUsuario = document.getElementById("nombre").value.trim();
+  const correoUsuario = document.getElementById("correo").value.trim();
+  const passUsuario   = document.getElementById("password").value.trim();
+  const rolUsuario    = Number(document.getElementById("rol").value);
+
+  if (!nombreUsuario || !correoUsuario || !passUsuario)
+    return Swal.fire("Faltan datos", "Completa todos los campos", "warning");
+
+  Swal.fire({ title: "Creando usuario...", didOpen: () => Swal.showLoading() });
+
+  try {
+    /* ======================================================
+       1️⃣ Verificar si el correo ya existe en AUTH
+    ====================================================== */
+    const { data: lista } = await supabase.auth.admin.listUsers({ perPage: 200 });
+    const existe = lista?.users?.some(u => u.email === correoUsuario);
+
+    if (existe) {
+      Swal.close();
+      return Swal.fire({
+        icon: "error",
+        title: "Correo ya registrado",
+        text: "Este correo ya pertenece a un usuario del sistema.",
+        confirmButtonColor: "#a21caf"
+      });
+    }
+
+    /* ======================================================
+       2️⃣ Crear usuario en AUTH
+    ====================================================== */
+    const { data: userAuth, error: errAuth } =
+      await supabase.auth.admin.createUser({
+        email: correoUsuario,
+        password: passUsuario,
+        email_confirm: true
+      });
+
+    if (errAuth) throw errAuth;
+
+    const uid = userAuth.user.id;
+
+    /* ======================================================
+       3️⃣ Insertar en tabla `usuarios`
+    ====================================================== */
+    const { error: errUsr } = await supabase
+      .from("usuarios")
+      .insert({
+        id: uid,
+        nombre: nombreUsuario,
+        correo: correoUsuario,
+        rol_id: rolUsuario,
+        activo: true
+      });
+
+    if (errUsr) {
+      Swal.close();
+      return Swal.fire("Error en usuarios", errUsr.message, "error");
+    }
+
+    /* ======================================================
+       4️⃣ Vincular al negocio
+    ====================================================== */
+    if (negocioID) {
+      await supabase.from("usuarios_negocios").insert({
+        usuario_id: uid,
+        negocio_id: negocioID,
+        rol: rolUsuario === 1 ? "admin" : "cajero",
+        activo: true
+      });
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: "Usuario creado correctamente",
+      text: "El usuario ya puede iniciar sesión.",
+      confirmButtonColor: "#a21caf"
+    }).then(() => {
+      location.href = `/admin/negocio-detalle.html?id=${negocioID}`;
+    });
+
+  } catch (err) {
+    Swal.fire("Error", err.message, "error");
+  }
+};
+</script>
+
+</body>
+</html>

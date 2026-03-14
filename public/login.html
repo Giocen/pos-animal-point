@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Iniciar Sesión</title>
+
+  <!-- 🎨 Librerías base -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="icon" href="img/favicon-pos.png" type="image/png">
+
+  <!-- 💅 Estilos solo del login -->
+  <link rel="stylesheet" href="css/login.css">
+</head>
+
+<body class="login">
+
+  <!-- 💎 Tarjeta de Login -->
+  <div class="login-card">
+
+    <!-- 🔹 Logo -->
+    <div class="logo-wrap">
+      <i data-lucide="shopping-cart" class="logo-cart"></i>
+      <h1 class="logo-text">
+        <span class="text-gradient">SmartP</span>
+        <span class="logo-symbol">$</span>
+        <span class="text-gradient">S</span>
+      </h1>
+      <p class="slogan">Sistema de Punto de Venta</p>
+    </div>
+
+    <!-- 🔹 Formulario -->
+    <div class="form-login">
+      <input id="email" type="email" placeholder="Correo electrónico" class="input-login">
+
+      <div class="input-group">
+        <input id="password" type="password" placeholder="Contraseña" class="input-login input-password">
+        <button id="togglePassword" type="button" class="btn-eye" aria-label="Mostrar contraseña">
+          <i data-lucide="eye-off"></i>
+        </button>
+      </div>
+
+      <!-- Botón de login -->
+      <button id="btnLogin" class="btn-login">Iniciar sesión</button>
+
+      <p id="mensaje" class="mensaje-error"></p>
+    </div>
+
+    <!-- 🔒 Acceso Administrador ULTRA DISCRETO -->
+    <div class="admin-link-wrap">
+      <span id="adminHidden" class="admin-link">Administrador</span>
+    </div>
+
+  </div>
+
+  <!-- 👣 Footer inferior -->
+  <footer>
+    <div class="footer-info">
+      <span><i data-lucide="calendar"></i> <span id="fecha"></span></span>
+      <span><i data-lucide="clock"></i> <span id="hora"></span></span>
+      <span><i data-lucide="store"></i> SmartPOS Mérida</span>
+      <span>© <span id="anio"></span> SmartPOS. Todos los derechos reservados.</span>
+    </div>
+  </footer>
+
+  <!-- 🚀 Script principal -->
+  <script type="module" src="js/login.js"></script>
+
+  <!-- 🕓 Fecha / Hora + Admin secreto -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+
+      const fechaEl = document.getElementById("fecha");
+      const horaEl = document.getElementById("hora");
+      const anioEl = document.getElementById("anio");
+
+      function actualizarFechaHora() {
+        const f = new Date();
+        fechaEl.textContent = f.toLocaleDateString("es-MX");
+        horaEl.textContent = f.toLocaleTimeString("es-MX", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit"
+        });
+        anioEl.textContent = f.getFullYear();
+      }
+
+      actualizarFechaHora();
+      setInterval(actualizarFechaHora, 1000);
+
+      /* 🔒 Doble click para entrar a Admin */
+      document.getElementById("adminHidden")?.addEventListener("dblclick", () => {
+        window.location.href = "https://smartposmid.web.app/admin";
+      });
+    });
+  </script>
+
+</body>
+</html>

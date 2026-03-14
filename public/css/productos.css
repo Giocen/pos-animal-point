@@ -1,0 +1,301 @@
+/* ==========================================================
+💜 SmartPOS | productos.css (v3.4 Estable - Tabla 98%, encabezado blanco)
+========================================================== */
+
+body {
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  font-family: "Inter", sans-serif;
+  color: #1f1f1f;
+  margin: 0;
+  padding-top: 50px; /* 🔧 ajustado al alto real del header */
+}
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ==========================================================
+💎 HEADER ESTILO VENTAS
+========================================================== */
+.header-productos {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 2rem;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+  z-index: 50;
+}
+
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.titulo h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.btn-volver {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: 0.25s;
+}
+.btn-volver:hover { background: rgba(255, 255, 255, 0.35); transform: translateY(-1px); }
+
+.btn-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  padding: 0.45rem 0.8rem;
+  border-radius: 0.45rem;
+  color: #fff;
+  font-size: 0.9rem;
+  transition: 0.25s;
+}
+.btn-header i { width: 1.1rem; height: 1.1rem; }
+.btn-header.fucsia { background: #a21caf; }
+.btn-header.sky { background: #0284c7; }
+.btn-header.verde { background: #059669; }
+.btn-header:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+/* ==========================================================
+🔍 FILTROS
+========================================================== */
+section:first-of-type {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(162, 28, 175, 0.25);
+  border-radius: 0.8rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  width: 95%;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.input {
+  border: 1.5px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: #fff;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.9rem;
+  font-weight: 500;
+  color: #4b0082;
+  transition: all 0.25s ease;
+}
+.input:focus {
+  outline: none;
+  border-color: #a21caf;
+  box-shadow: 0 0 0 3px rgba(162, 28, 175, 0.25);
+}
+
+/* ==========================================================
+📊 TABLA PRODUCTOS A 98% DEL ANCHO (completa y visible)
+========================================================== */
+main section.bg-white\/90 {
+  width: 98%;
+  max-width: 2000px;
+  margin: 0 auto; /* centra el contenedor */
+  border-radius: 0.8rem;
+  overflow-x: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(162, 28, 175, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1.5rem 2rem;
+}
+
+/* --- Tabla se ajusta al 100% del contenedor --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  background: #fff;
+  text-align: left;
+}
+
+/* --- Encabezado visible y legible --- */
+thead {
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+th {
+  padding: 1rem 0.9rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.25);
+  white-space: nowrap;
+  color: #fff !important;
+}
+
+/* --- Filas --- */
+td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid rgba(162, 28, 175, 0.1);
+  background: rgba(255, 255, 255, 0.97);
+  color: #1f1f1f;
+  vertical-align: middle;
+}
+
+tbody tr:nth-child(even) td { background: rgba(249, 245, 255, 0.85); }
+tbody tr:hover td {
+  background: rgba(236, 72, 153, 0.08);
+  transition: background 0.25s ease;
+}
+
+/* --- Imagenes --- */
+td img {
+  width: 70px;
+  height: 70px;
+  border-radius: 0.6rem;
+  border: 1px solid #e5e7eb;
+  object-fit: cover;
+}
+
+/* ==========================================================
+🛠️ BOTONES DE ACCIÓN
+========================================================== */
+td .btn-accion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.4rem;
+  color: #fff;
+  font-size: 0.85rem;
+  transition: 0.25s;
+}
+.btn-accion i { width: 16px; height: 16px; }
+.btn-accion.editar { background: #7e22ce; }
+.btn-accion.eliminar { background: #dc2626; }
+.btn-accion:hover { filter: brightness(1.2); transform: translateY(-1px); }
+
+/* ==========================================================
+📄 PAGINACIÓN
+========================================================== */
+.pagination,
+section:last-of-type > div {
+  width: 95%;
+  max-width: 1300px;
+  margin: 1rem auto;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 0.8rem;
+  border: 1px solid rgba(162, 28, 175, 0.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  padding: 0.8rem 1.2rem;
+}
+
+/* ==========================================================
+📱 RESPONSIVO
+========================================================== */
+@media (max-width: 1024px) {
+  table { font-size: 0.85rem; }
+  th, td { padding: 0.6rem; }
+  td img { width: 50px; height: 50px; }
+}
+
+@media (max-width: 768px) {
+  .header-productos { flex-direction: column; gap: 0.8rem; text-align: center; }
+  table { font-size: 0.8rem; }
+  th, td { padding: 0.5rem; }
+  td img { width: 44px; height: 44px; }
+}
+
+/* ==========================================================
+📏 Ajuste de ancho de columnas para que la tabla entre completa
+========================================================== */
+th:nth-child(1), td:nth-child(1) { width: 7%; }   /* SKU */
+th:nth-child(2), td:nth-child(2) { width: 10%; }  /* Código */
+
+th:nth-child(3), td:nth-child(3) { width: 8%; }   /* Imagen */
+
+th:nth-child(4), td:nth-child(4) { width: 16%; }  /* Nombre */
+
+th:nth-child(5), td:nth-child(5) { width: 8%; }   /* Precio */
+th:nth-child(6), td:nth-child(6) { width: 8%; }   /* Costo */
+
+th:nth-child(7), td:nth-child(7) { width: 8%; }   /* Margen */
+th:nth-child(8), td:nth-child(8) { width: 9%; }   /* Ganancia */
+
+th:nth-child(9), td:nth-child(9) { width: 7%; }   /* Exist */
+th:nth-child(10), td:nth-child(10) { width: 6%; } /* Mínimo */
+
+th:nth-child(11), td:nth-child(11) { width: 7%; } /* Caducidad */
+th:nth-child(12), td:nth-child(12) { width: 6%; } /* Acciones */
+
+/* --- Ajustes visuales suaves --- */
+td, th {
+  padding: 0.6rem 0.7rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+td img {
+  width: 50px;
+  height: 50px;
+}
+
+.margen{
+font-size: 0.9rem;
+font-weight: 700;
+}
+
+.ganancia{
+font-size: 0.95rem;
+font-weight: 700;
+}
+
+.editable {
+cursor: pointer;
+position: relative;
+}
+
+.editable:hover {
+background: rgba(168,85,247,0.08);
+}
+
+.editable::after{
+display:none;
+}
+thead th {
+white-space: nowrap;
+font-size: 12px;
+letter-spacing: .5px;
+}
+
+.tabla-productos {
+  width: 98%;
+  max-width: 2000px;
+  margin: 0 auto;
+  border-radius: 0.8rem;
+  overflow-x: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(162, 28, 175, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1.5rem 2rem;
+}

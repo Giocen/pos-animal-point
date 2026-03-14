@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Alta de Producto</title>
+
+  <!-- 🎨 Librerías -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- 💅 Estilos -->
+  <link rel="stylesheet" href="../css/alta-producto.css">
+  <link rel="icon" href="/img/favicon-pos.png">
+</head>
+
+<body class="index-body flex flex-col min-h-screen select-none">
+
+  <!-- 🧭 Encabezado -->
+  <header class="header-alta">
+    <div class="header-content">
+      <button onclick="window.location.href='/venta.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver a venta
+      </button>
+
+      <div class="titulo-header">
+        <i data-lucide="package"></i>
+        <h1>Alta de producto + entrada a inventario</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- 📦 Contenido -->
+  <main>
+    <div class="form-alta">
+      <form id="formAlta" class="space-y-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <label>
+            <span class="label"><i data-lucide="hash"></i> SKU *</span>
+            <input id="sku" required class="input">
+          </label>
+
+          <label>
+            <span class="label"><i data-lucide="barcode"></i> Código de barras</span>
+            <input id="barcode" class="input">
+          </label>
+
+          <label class="md:col-span-2">
+            <span class="label"><i data-lucide="package"></i> Nombre *</span>
+            <input id="nombre" required class="input">
+          </label>
+
+          <label class="md:col-span-2">
+            <span class="label"><i data-lucide="file-text"></i> Descripción</span>
+            <textarea id="descripcion" rows="2" class="input"></textarea>
+          </label>
+
+          <label>
+            <span class="label"><i data-lucide="tag"></i> Categoría</span>
+            <input id="categoria" placeholder="Ej. Alimentos" class="input">
+            <small id="categoriaSugerida" class="text-xs text-gray-500"></small>
+          </label>
+
+          <label>
+            <span class="label"><i data-lucide="map-pin"></i> Ubicación *</span>
+            <input id="ubicacion" required placeholder="Tienda / Bodega" class="input">
+          </label>
+
+         <label>
+              <span class="label"><i data-lucide="coins"></i> Costo *</span>
+              <input id="costo" type="number" step="0.01" min="0" value="0" required class="input">
+          </label>
+
+          <label>
+              <span class="label"><i data-lucide="dollar-sign"></i> Precio venta *</span>
+              <input id="precio" type="number" step="0.01" min="0" value="0" required class="input">
+         </label>
+
+          <!-- 💎 RENTABILIDAD COMPACTA -->
+          <label class="md:col-span-2">
+            <span class="label">
+              <i data-lucide="trending-up"></i> Rentabilidad
+            </span>
+
+            <div class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+
+              <div class="flex flex-wrap items-center justify-between gap-4 text-sm">
+
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 text-xs uppercase">Utilidad:</span>
+                  <span id="utilidadMonto"
+                        class="text-lg font-bold text-emerald-600">
+                    $0.00
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 text-xs">Margen:</span>
+                  <span id="margenPorcentaje"
+                        class="font-semibold text-purple-600">
+                    0%
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 text-xs">Markup:</span>
+                  <span id="markupPorcentaje"
+                        class="font-semibold text-fuchsia-600">
+                    0%
+                  </span>
+                </div>
+
+              </div>
+
+              <div id="alertaMargen"
+                   class="text-xs font-semibold mt-2 text-center">
+              </div>
+
+            </div>
+          </label>
+
+          <label>
+            <span class="label"><i data-lucide="alert-triangle"></i> Stock mínimo</span>
+            <input id="stockMinimo" type="number" min="0" value="0" class="input" placeholder="Ej. 5">
+          </label>
+
+          <label>
+            <span class="label"><i data-lucide="plus-circle"></i> Cantidad *</span>
+            <div class="flex gap-2">
+              <input id="cantidad" type="number" step="0.001" min="0.001" value="1" required class="input flex-1">
+              <select id="unidad" class="input flex-1">
+                <option value="unidad">Piezas</option>
+                <option value="kg">Kilos</option>
+                <option value="g">Gramos</option>
+                <option value="lt">Litros</option>
+              </select>
+            </div>
+          </label>
+
+          <label>
+            <span class="label"><i data-lucide="calendar-clock"></i> Caducidad (opcional)</span>
+            <input id="caducidad" type="date" class="input">
+          </label>
+
+        </div>
+
+        <!-- 🖼️ Imagen -->
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+
+          <div class="md:col-span-2">
+            <span class="label">
+              <i data-lucide="image"></i> Imagen (opcional)
+            </span>
+
+            <div id="zonaImagen"
+                tabindex="0"
+                class="relative block border-2 border-dashed border-gray-300 
+                        rounded-lg p-6 text-center 
+                        bg-gray-50 cursor-pointer transition
+                        hover:border-fuchsia-400 hover:bg-fuchsia-50">
+
+              <!-- Texto inicial -->
+              <p id="textoZonaImagen" class="text-sm text-gray-500">
+                Haz clic para activar (Ctrl + V) o doble clic para seleccionar
+              </p>
+
+              <!-- Vista previa -->
+              <img id="preview"
+                  class="mx-auto mt-4 w-28 h-28 object-cover rounded-lg hidden transition"
+                  alt="Vista previa">
+
+              <!-- Botón eliminar -->
+              <button type="button"
+                      id="btnEliminarImagen"
+                      class="hidden absolute top-2 right-2 
+                            bg-red-500 text-white text-xs px-2 py-1 
+                            rounded-md shadow hover:bg-red-600 transition">
+                ✕
+              </button>
+
+            </div>
+
+            <!-- Input oculto -->
+            <input id="imagen"
+                  type="file"
+                  accept="image/*"
+                  class="hidden">
+
+          </div>
+
+        </div>
+
+        <!-- BOTONES -->
+        <div class="flex items-center gap-3 pt-4">
+          <button id="btnGuardar"
+            class="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white px-5 py-2 rounded-md font-semibold flex items-center gap-2 hover:opacity-90 transition">
+            <i data-lucide="save"></i> Guardar y entrar
+          </button>
+          <span id="estado" class="text-sm text-gray-500"></span>
+        </div>
+
+      </form>
+
+      <div id="resultado" class="hidden mt-6 p-4 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md"></div>
+    </div>
+  </main>
+
+  <!-- ⚙️ Scripts -->
+  <script type="module" src="../js/localdb.js"></script>  
+  <script type="module" src="../js/proteccion.js"></script>
+  <script type="module" src="../js/inventario/alta-producto.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

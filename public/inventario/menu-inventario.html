@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Inventario</title>
+
+  <!-- 🎨 Librerías -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- 💅 Estilos -->
+  <link rel="stylesheet" href="/css/inventario.css">
+  <link rel="icon" href="/img/favicon-pos.png">
+
+  <!-- 🧩 Protección -->
+  <script type="module">
+    import { protegerSesion } from "/js/proteccion.js";
+    (async () => { await protegerSesion(["admin","cajero"]); })();
+  </script>
+
+  <!-- 💬 Tooltip flotante -->
+  <style>
+    .tooltip-bubble {
+      position: fixed;
+      background: #f9fafb;
+      color: #111827;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      white-space: nowrap;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      z-index: 999999;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity .12s ease-out, transform .12s ease-out;
+    }
+  </style>
+</head>
+
+<body class="index-body">
+  <!-- ==========================================================
+  💎 ENCABEZADO IGUAL QUE CORTE
+  =========================================================== -->
+  <header class="header-inventario">
+    <div class="header-content">
+      <button onclick="window.location.href='/index.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver al Menú
+      </button>
+
+      <div class="titulo-header">
+        <i data-lucide="boxes" class="w-6 h-6 text-white"></i>
+        <h1>Inventario</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================
+  📦 TARJETAS PRINCIPALES (MISMO ESTILO QUE CORTE)
+  =========================================================== -->
+  <main>
+    <div class="grid-inventario">
+      <button onclick="window.location.href='/inventario/inventario-alta.html'"
+        class="btn-menu from-fuchsia-600 to-purple-600"
+        data-tooltip="Dar de alta nuevos productos al inventario.">
+        <i data-lucide="database"></i><span>Alta</span>
+      </button>
+
+      <button onclick="window.location.href='/inventario/entradas.html'"
+        class="btn-menu from-blue-600 to-sky-500"
+        data-tooltip="Registrar entradas de mercancía.">
+        <i data-lucide="log-in"></i><span>Entradas</span>
+      </button>
+
+      <button onclick="window.location.href='/inventario/conteo.html'"
+        class="btn-menu from-emerald-600 to-teal-500"
+        data-tooltip="Realizar conteo físico de existencias.">
+        <i data-lucide="check-square"></i><span>Conteo</span>
+      </button>
+
+      <button onclick="window.location.href='/inventario/ajustes.html'"
+        class="btn-menu from-orange-600 to-amber-500"
+        data-tooltip="Ajustar existencias o corregir diferencias.">
+        <i data-lucide="sliders"></i><span>Ajustes</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- ==========================================================
+  👣 FOOTER
+  =========================================================== -->
+  <footer class="estado-inventario">
+    <i data-lucide="info" class="inline w-4 h-4 text-fuchsia-400"></i>
+    Selecciona una acción para continuar...
+  </footer>
+
+  <!-- ⚙️ Inicialización -->
+  <script>
+    // 💬 Tooltips flotantes tipo navegador
+    const tooltip = document.createElement("div");
+    tooltip.className = "tooltip-bubble";
+    document.body.appendChild(tooltip);
+
+    document.addEventListener("mouseover", (e) => {
+      const target = e.target.closest("[data-tooltip]");
+      if (target) {
+        tooltip.textContent = target.getAttribute("data-tooltip");
+        tooltip.style.opacity = "1";
+        tooltip.style.transform = "scale(1)";
+      }
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      const target = e.target.closest("[data-tooltip]");
+      if (target) {
+        const offset = 15;
+        tooltip.style.left = e.pageX + offset + "px";
+        tooltip.style.top = e.pageY + offset + "px";
+      }
+    });
+
+    document.addEventListener("mouseout", (e) => {
+      if (e.target.closest("[data-tooltip]")) {
+        tooltip.style.opacity = "0";
+        tooltip.style.transform = "scale(0.95)";
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => lucide.createIcons());
+  </script>
+</body>
+</html>

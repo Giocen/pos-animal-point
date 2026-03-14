@@ -1,0 +1,117 @@
+/* ==========================================================
+💜 SmartPOS | Sistema (Flat sincronizado con lógica JS)
+========================================================== */
+
+/* --- Fondo animado --- */
+body {
+  background: linear-gradient(135deg, #7e22ce, #a21caf, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  font-family: "Inter", sans-serif;
+  color: #1f1f1f;
+  margin: 0;
+  min-height: 100vh;
+}
+
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ==========================================================
+💎 HEADER FIJO
+========================================================== */
+.header-config {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  z-index: 50;
+  padding: 0.9rem 0;
+}
+
+.header-content {
+  width: 95%;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.25s ease;
+}
+.btn-volver:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ==========================================================
+🔘 BOTONES PRINCIPALES (tab-btn sincronizados con JS)
+========================================================== */
+.tab-btn {
+  transition: all 0.25s ease;
+}
+.tab-btn.active {
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.8);
+  filter: brightness(1.15);
+}
+.tab-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* ==========================================================
+📦 CONTENEDOR PRINCIPAL
+========================================================== */
+.contenedor-sistema {
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(8px);
+  border-radius: 1rem;
+  border: 1px solid rgba(162, 28, 175, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 95%;
+  max-width: 1100px;
+  transition: all 0.3s ease;
+  min-height: 280px;
+  margin: 0 auto;
+}
+
+/* ==========================================================
+📱 RESPONSIVO
+========================================================== */
+@media (max-width: 900px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .btn-volver {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tab-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .contenedor-sistema {
+    padding: 1.2rem;
+  }
+}

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Detalle del Negocio | SmartPOS</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="/admin/admin.js"></script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #1A042D, #4b005f);
+      font-family: "Inter", sans-serif;
+      color: white;
+    }
+    .card {
+      background: rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: .2s;
+    }
+    .card:hover {
+      background: rgba(255,255,255,0.22);
+      transform: translateY(-3px);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen p-6">
+
+  <button onclick="location.href='/admin/negocios.html'" 
+    class="text-white/70 hover:text-white mb-4 flex items-center gap-2">
+    <i data-lucide="arrow-left"></i> Regresar
+  </button>
+
+  <h1 class="text-3xl font-bold mb-4">Negocio</h1>
+
+  <div id="info" class="card mb-6"></div>
+
+  <h2 class="text-2xl font-semibold mb-3">Usuarios del negocio</h2>
+
+  <div id="usuarios" class="space-y-3"></div>
+
+  <script type="module">
+    import { supabaseAdmin as supabase } from "/admin/supabase-admin.js";
+
+    // Obtener ID desde la URL
+    const params = new URLSearchParams(location.search);
+    const negocioID = params.get("id");
+
+    if (!negocioID) {
+      Swal.fire("Error", "ID de negocio inválido", "error");
+    }
+
+    /* ======================================================
+       🟣 Cargar datos del negocio
+    ====================================================== */
+    async function cargarNegocio() {
+      const { data, error } = await supabase
+        .from("negocios")
+        .select("*")
+        .eq("id", negocioID)
+        .single();
+
+      if (error) return Swal.fire("Error", error.message, "error");
+
+      document.getElementById("info").innerHTML = `
+        <h2 class="text-xl font-bold">${data.nombre}</h2>
+        <p class="text-white/70 text-sm">ID: ${data.id}</p>
+        <p class="text-white/60 text-sm">Teléfono: ${data.telefono || "-"}</p>
+        <p class="text-white/60 text-sm">Correo: ${data.correo || "-"}</p>
+        <p class="text-white/60 text-sm">Dirección: ${data.direccion || "-"}</p>
+        <p class="text-white/60 text-sm">Creado: ${data.creado_en?.split("T")[0]}</p>
+
+        <div class="mt-4 flex gap-3">
+          <button onclick="editarNegocio()"
+            class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500">
+            Editar
+          </button>
+
+          <button onclick="eliminarNegocio()"
+            class="px-3 py-1 rounded bg-red-600 hover:bg-red-500">
+            Eliminar
+          </button>
+
+          <button onclick="crearUsuario()"
+            class="px-3 py-1 rounded bg-fuchsia-600 hover:bg-fuchsia-500">
+            Agregar usuario
+          </button>
+        </div>
+      `;
+
+      lucide.createIcons();
+    }
+
+    window.editarNegocio = () => {
+      location.href = `/admin/editar-negocio.html?id=${negocioID}`;
+    };
+
+    window.crearUsuario = () => {
+      location.href = `/admin/crear-usuario.html?negocio_id=${negocioID}`;
+    };
+
+    /* ======================================================
+       🟣 Cargar usuarios del negocio
+    ====================================================== */
+ async function cargarUsuarios() {
+  const { data, error } = await supabase
+    .from("usuarios_negocios")
+    .select(`
+      usuario_id,
+      activo,
+      rol,
+      usuarios:usuario_id (
+        id,
+        nombre,
+        correo,
+        rol_id,
+        activo
+      )
+    `)
+    .eq("negocio_id", negocioID);
+
+  const cont = document.getElementById("usuarios");
+  cont.innerHTML = "";
+
+  if (error) {
+    cont.innerHTML = `<p class='text-red-400'>Error al cargar usuarios: ${error.message}</p>`;
+    return;
+  }
+
+  if (!data.length) {
+    cont.innerHTML = `<p class="text-white/70">No hay usuarios registrados.</p>`;
+    return;
+  }
+
+  data.forEach(u => {
+    const info = u.usuarios;
+    const estado = u.activo ? "text-green-400" : "text-red-400";
+
+    cont.innerHTML += `
+      <div class="card flex justify-between items-center">
+        <div>
+          <p class="font-semibold">${info.nombre}</p>
+          <p class="text-xs text-white/60">${info.correo}</p>
+          <p class="text-xs text-white/60">Rol ID: ${info.rol_id}</p>
+          <p class="text-xs ${estado}">${u.activo ? "Activo" : "Suspendido"}</p>
+        </div>
+
+        <button 
+          onclick="location.href='/admin/usuario-detalle.html?id=${u.usuario_id}&negocio_id=${negocioID}'"
+          class="px-3 py-1 rounded bg-fuchsia-600 hover:bg-fuchsia-500">
+          Administrar
+        </button>
+      </div>
+    `;
+  });
+
+  lucide.createIcons();
+}
+
+    /* ======================================================
+       🟥 Eliminar negocio
+    ====================================================== */
+    window.eliminarNegocio = async () => {
+      const r = await Swal.fire({
+        title: "¿Eliminar negocio?",
+        html: `
+          Esta acción eliminará <b>usuarios, inventario, ventas, productos y configuraciones</b>.
+          <br><br>Es irreversible.
+        `,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Eliminar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#dc2626"
+      });
+
+      if (!r.isConfirmed) return;
+
+      Swal.fire({ title: "Eliminando...", didOpen: () => Swal.showLoading() });
+
+      const { error } = await supabase.rpc("eliminar_negocio", {
+        p_negocio_id: negocioID
+      });
+
+      Swal.close();
+
+      if (error) {
+        return Swal.fire("Error", error.message, "error");
+      }
+
+      Swal.fire("Eliminado", "El negocio fue eliminado correctamente", "success")
+        .then(() => location.href = "/admin/negocios.html");
+    };
+
+    cargarNegocio();
+    cargarUsuarios();
+  </script>
+
+</body>
+</html>

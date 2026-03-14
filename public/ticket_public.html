@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ticket | SmartPOS</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    body {
+      background: #f7f3ff;
+      font-family: "Inter", sans-serif;
+      padding: 25px;
+    }
+    .ticket-box {
+      width: 82mm;
+      max-width: 95vw;
+      background: white;
+      border-radius: 18px;
+      padding: 18px 16px;
+      box-shadow: 0 8px 30px rgba(130,0,160,0.15);
+      border: 1px solid #f5d7fa;
+    }
+    .divider {
+      border-bottom: 1px dashed #c77dff;
+      margin: 12px 0;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+
+<body class="flex justify-center">
+
+<div class="flex flex-col items-center w-full max-w-lg">
+
+  <h2 class="text-xl font-bold text-fuchsia-700 mb-4">Ticket de compra</h2>
+
+  <div id="estado" class="text-fuchsia-700 font-semibold mt-4">
+    Cargando ticket…
+  </div>
+
+  <div id="ticketBox" class="hidden ticket-box text-gray-800"></div>
+
+  <button id="btnPNG"
+    class="hidden mt-5 px-4 py-3 bg-purple-600 text-white text-sm font-semibold rounded-lg shadow-md w-full text-center">
+    📥 Descargar Ticket
+  </button>
+
+</div>
+
+<script type="module">
+  import { supabaseClient } from "./js/supabase.js";
+  import { obtenerDatosNegocioPublic } from "/js/tickets/datosNegocioPublic.js";
+  import { formatoMX } from "/js/venta/utilidades.js";
+  
+async function obtenerLogoNegocioPublic(negocioId) {
+  const { data, error } = await supabaseClient
+    .from("v_negocio_publico")
+    .select("logo_url")
+    .eq("negocio_id", negocioId)
+    .single();
+
+  if (error) {
+    console.warn("Logo público no disponible:", error);
+    return "";
+  }
+
+  return data?.logo_url || "";
+}
+
+  const folio = new URLSearchParams(window.location.search).get("f");
+
+  const estado = document.getElementById("estado");
+  const ticketBox = document.getElementById("ticketBox");
+  const btnPNG = document.getElementById("btnPNG");
+
+  if (!folio) {
+    estado.innerText = "Folio inválido.";
+  } else {
+    cargarTicketReal();
+  }
+
+  async function cargarTicketReal() {
+
+    const negocio = await obtenerDatosNegocioPublic(folio);
+
+    const { data: ventas, error } = await supabaseClient
+      .from("v_ticket_publico")
+      .select("*")
+      .eq("folio", folio);
+
+    if (error || !ventas?.length) {
+      estado.innerText = "No existe el ticket.";
+      return;
+    }
+
+    const row = ventas[0];
+    const logoUrl = await obtenerLogoNegocioPublic(row.negocio_id);
+
+    const productos = ventas.map(v => ({
+      nombre: v.producto_nombre,
+      descripcion: v.producto_descripcion,
+      cantidad: Number(v.cantidad),
+      unidad: v.unidad,
+      total: Number(v.total_final),
+      descuento: Number(v.descuento)
+    }));
+
+    const subtotal = productos.reduce((s, i) => s + (i.total + i.descuento), 0);
+    const descuentoTotal = productos.reduce((s, i) => s + i.descuento, 0);
+    const totalFinal = productos.reduce((s, i) => s + i.total, 0);
+
+    const fecha = new Date(row.fecha).toLocaleString("es-MX");
+
+    const filas = productos.map(i => {
+      const cant = i.unidad === "kg"
+        ? (i.cantidad < 1 ? `${(i.cantidad * 1000).toFixed(0)} g` : `${i.cantidad.toFixed(3)} kg`)
+        : `${i.cantidad} pz`;
+
+      return `
+        <div class="py-1 border-b border-dotted border-gray-300">
+          <div class="flex justify-between text-sm font-mono">
+            <span class="font-semibold">${i.nombre}</span>
+            <span>$${formatoMX.format(i.total)}</span>
+          </div>
+
+          <div class="text-xs text-gray-500 flex justify-between">
+            <span>${cant}</span>
+            ${i.descripcion ? `<span>${i.descripcion}</span>` : ""}
+          </div>
+
+          ${i.descuento > 0 ? `
+            <div class="text-xs text-rose-600 mt-1">
+              Descuento: -$${formatoMX.format(i.descuento)}
+            </div>` 
+          : ""}
+        </div>
+      `;
+    }).join("");
+
+    ticketBox.innerHTML = `
+      <div class="flex justify-center mb-2">
+        ${logoUrl ? `
+          <img 
+            src="${logoUrl}" 
+            class="h-14 mx-auto"
+            crossorigin="anonymous"
+          >
+        ` : ""}
+      </div>
+
+      <div class="text-center text-sm mb-3 font-mono">
+        <strong>${negocio.ticket_nombre_negocio}</strong><br>
+        ${negocio.ticket_direccion || ""}<br>
+        ${negocio.ticket_telefono ? `📞 ${negocio.ticket_telefono}<br>` : ""}
+        ${negocio.ticket_correo ? `✉️ ${negocio.ticket_correo}<br>` : ""}
+      </div>
+
+      <div class="flex justify-between text-xs font-mono mb-1">
+        <span><b>Folio:</b> ${folio}</span>
+        <span><b>Fecha:</b> ${fecha}</span>
+      </div>
+
+      ${row.cliente_nombre ? `
+        <div class="text-xs font-mono mb-2">👤 Cliente: ${row.cliente_nombre}</div>
+      ` : ""}
+
+      <div class="divider"></div>
+
+      ${filas}
+
+      <div class="divider"></div>
+
+      <div class="text-right text-sm font-mono space-y-1">
+        <div>Subtotal: <span>$${formatoMX.format(subtotal)}</span></div>
+        ${descuentoTotal > 0 ? `
+          <div class="text-rose-600">Descuento: -$${formatoMX.format(descuentoTotal)}</div>
+        ` : ""}
+        <div class="font-bold">Total: 
+          <span class="text-fuchsia-600 font-bold">
+            $${formatoMX.format(totalFinal)}
+          </span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="text-xs font-mono space-y-1">
+        <div><b>Método:</b> ${row.metodo_pago?.toUpperCase()}</div>
+
+        ${row.pago_efectivo ? `<div>Pago efectivo: $${formatoMX.format(row.pago_efectivo)}</div>` : ""}
+        ${row.pago_tarjeta ? `<div>Pago tarjeta: $${formatoMX.format(row.pago_tarjeta)}</div>` : ""}
+        ${row.pago_transferencia ? `<div>Transferencia: $${formatoMX.format(row.pago_transferencia)}</div>` : ""}
+
+        ${row.cambio ? `<div><b>Cambio:</b> $${formatoMX.format(row.cambio)}</div>` : ""}
+        ${row.voucher ? `
+          <div class="mt-2 p-2 bg-gray-100 border rounded text-[10px]">
+            Voucher:<br>${row.voucher}
+          </div>
+        ` : ""}
+      </div>
+
+      <div class="mt-4 text-xs italic text-center text-gray-600">
+        ${negocio.ticket_mensaje_final}
+      </div>
+    `;
+
+    estado.classList.add("hidden");
+    ticketBox.classList.remove("hidden");
+    btnPNG.classList.remove("hidden");
+
+    lucide.createIcons();
+  }
+
+  btnPNG.addEventListener("click", async () => {
+    const canvas = await html2canvas(ticketBox, {
+      scale: 3,
+      useCORS: true,
+      allowTaint: false
+    });
+    const a = document.createElement("a");
+    a.download = `ticket_${folio}.png`;
+    a.href = canvas.toDataURL();
+    a.click();
+  });
+
+</script>
+
+</body>
+</html>

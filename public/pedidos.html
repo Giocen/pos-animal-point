@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Pedidos de Reabastecimiento</title>
+
+  <!-- 🎨 Librerías base -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+
+  <!-- 💅 Estilos -->
+  <link rel="stylesheet" href="css/pedidos.css">
+</head>
+
+<body class="min-h-screen flex flex-col font-inter text-gray-900">
+
+  <!-- ==========================================================
+  💎 Encabezado fijo
+  =========================================================== -->
+  <header class="header-pedidos">
+    <div class="header-content">
+      <button onclick="window.location.href='/venta.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver a venta 
+      </button>
+
+      <div class="flex items-center gap-2">
+        <i data-lucide="shopping-cart" class="w-6 h-6 text-white"></i>
+        <h1 class="text-xl font-semibold text-white">Pedidos de Reabastecimiento</h1>
+      </div>
+
+      <button id="btnExport"
+        class="btn-base from-fuchsia-600 to-purple-600">
+        <i data-lucide="download" class="w-5 h-5"></i> Exportar a Excel
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================================
+  📦 Contenido principal
+  =========================================================== -->
+  <main class="flex-1 w-full mx-auto px-6 mt-[6rem]">
+    <section class="tabla-container">
+      <table class="tabla-pedidos w-full text-sm border-separate border-spacing-y-1">
+        <thead>
+          <tr>
+            <th>Código de barras</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th class="text-center">Existencias</th>
+            <th class="text-center">Stock mínimo</th>
+            <th class="text-center">Cantidad sugerida</th>
+            <th class="text-center">Fecha</th>
+            <th class="text-center">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyPedidos"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- ⚙️ Scripts -->
+  <script type="module" src="/js/localdb.js"></script>
+  <script type="module" src="js/pedidos.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => lucide.createIcons());
+  </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Corte de Caja</title>
+
+  <!-- 🎨 Librerías base -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+  <!-- 💅 Estilos -->
+  <link rel="stylesheet" href="/css/corte-caja.css">
+  <link rel="icon" type="image/png" href="/img/favicon-pos.png">
+
+  <!-- 💬 Tooltip flotante tipo navegador -->
+  <style>
+    .tooltip-bubble {
+      position: fixed;
+      background: #f9fafb;
+      color: #111827;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      white-space: nowrap;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      z-index: 999999;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity .12s ease-out, transform .12s ease-out;
+    }
+  </style>
+</head>
+
+<body class="index-body">
+  <!-- ==========================================================
+  💎 ENCABEZADO
+  =========================================================== -->
+  <header class="header-corte">
+    <div class="header-content">
+      <button onclick="window.location.href='/index.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver al Menú
+      </button>
+
+      <div class="titulo-header">
+        <i data-lucide="archive" class="w-6 h-6 text-white"></i>
+        <h1>Corte de Caja</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================
+  💰 TARJETAS PRINCIPALES CON TOOLTIP
+  =========================================================== -->
+  <main>
+    <div class="grid-corte">
+      <button id="btnAbrirCorte" class="btn-menu from-emerald-600 to-teal-500" 
+        data-tooltip="Inicia un nuevo corte de caja registrando el efectivo inicial.">
+        <i data-lucide="log-in"></i><span>Abrir</span>
+      </button>
+
+      <button id="btnCerrarCorte" class="btn-menu from-rose-600 to-pink-500"
+        data-tooltip="Cierra el corte actual calculando las ventas, entradas y salidas.">
+        <i data-lucide="log-out"></i><span>Cerrar</span>
+      </button>
+
+      <button id="btnArqueo" class="btn-menu from-blue-600 to-sky-500"
+        data-tooltip="Genera un arqueo de caja mostrando los totales actuales.">
+        <i data-lucide="clipboard-list"></i><span>Arqueo</span>
+      </button>
+
+      <button id="btnEntrada" class="btn-menu from-fuchsia-600 to-purple-600"
+        data-tooltip="Registra un ingreso adicional de efectivo a la caja.">
+        <i data-lucide="plus-circle"></i><span>Entrada</span>
+      </button>
+
+      <button id="btnSalida" class="btn-menu from-amber-600 to-orange-500"
+        data-tooltip="Registra una salida o retiro de efectivo.">
+        <i data-lucide="minus-circle"></i><span>Salida</span>
+      </button>
+    </div>
+
+    <div id="estadoCorte" class="estado-corte">
+      <i data-lucide="info" class="inline w-4 h-4 text-fuchsia-400"></i>
+      Esperando acción del usuario...
+    </div>
+  </main>
+
+  <!-- ⚙️ Scripts -->
+  <script type="module" defer src="/js/proteccion.js"></script>
+  <script type="module" defer src="/js/localdb.js"></script>
+  <script type="module" defer src="/js/venta/corte.js"></script>
+
+  <script>
+    /* ==========================================================
+    💬 Sistema de tooltip flotante tipo navegador
+    =========================================================== */
+    const tooltip = document.createElement("div");
+    tooltip.className = "tooltip-bubble";
+    document.body.appendChild(tooltip);
+
+    document.addEventListener("mouseover", (e) => {
+      const target = e.target.closest("[data-tooltip]");
+      if (target) {
+        tooltip.textContent = target.getAttribute("data-tooltip");
+        tooltip.style.opacity = "1";
+        tooltip.style.transform = "scale(1)";
+      }
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      const target = e.target.closest("[data-tooltip]");
+      if (target) {
+        const offset = 15;
+        tooltip.style.left = e.pageX + offset + "px";
+        tooltip.style.top = e.pageY + offset + "px";
+      }
+    });
+
+    document.addEventListener("mouseout", (e) => {
+      if (e.target.closest("[data-tooltip]")) {
+        tooltip.style.opacity = "0";
+        tooltip.style.transform = "scale(0.95)";
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => lucide.createIcons());
+  </script>
+</body>
+</html>

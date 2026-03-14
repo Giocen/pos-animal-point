@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crear Cliente | SmartPOS</title>
+
+  <!-- 📌 Librerías -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Protección del panel -->
+  <script src="/admin/admin.js"></script>
+
+  <!-- 🎨 Estilos -->
+  <style>
+    body { 
+      background: linear-gradient(135deg, #1A042D, #4b005f);
+      font-family: "Inter", sans-serif;
+      color: white;
+    }
+    .card {
+      background: rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(12px);
+    }
+    input {
+      background: rgba(255,255,255,0.20);
+      border: 1px solid rgba(255,255,255,0.30);
+      color: white;
+      outline: none;
+    }
+    input::placeholder { color: rgba(255,255,255,0.65); }
+  </style>
+
+  <script type="module">
+    import { supabaseAdmin as supabase } from "/admin/supabase-admin.js";
+
+    function loading(t="Procesando...") {
+      Swal.fire({ title:t, didOpen:()=>Swal.showLoading(), allowOutsideClick:false });
+    }
+
+    function safeJson(raw) {
+      try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    async function buscarUsuarioPorCorreo(correo) {
+      const { data, error } = await supabase
+        .from("usuarios")
+        .select("id,nombre,correo,negocio_id,activo,rol_id")
+        .eq("correo", correo)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data; // null si no existe
+    }
+
+    async function crearNegocioYAsignar({ negocio, usuarioId }) {
+      // 1) crear negocio (dispara trigger)
+      const { data: n, error: e1 } = await supabase
+        .from("negocios")
+        .insert([{ nombre: negocio, created_by: usuarioId, correo: null }])
+        .select("id,nombre,creado_en")
+        .single();
+
+      if (e1) throw e1;
+
+      // 2) link en usuarios_negocios (requiere unique(usuario_id, negocio_id))
+      const { error: e2 } = await supabase
+        .from("usuarios_negocios")
+        .upsert([{
+          usuario_id: usuarioId,
+          negocio_id: n.id,
+          rol: "admin",
+          activo: true
+        }], { onConflict: "usuario_id,negocio_id" });
+
+      if (e2) throw e2;
+
+      // 3) actualizar usuarios.negocio_id si está null
+      const { error: e3 } = await supabase
+        .from("usuarios")
+        .update({ negocio_id: n.id, activo: true })
+        .eq("id", usuarioId)
+        .is("negocio_id", null);
+
+      if (e3) throw e3;
+
+      return n;
+    }
+
+    async function crearCliente() {
+      const negocio = document.getElementById("negocio").value.trim();
+      const nombre  = document.getElementById("nombreInput").value.trim();
+      const correo  = document.getElementById("emailInput").value.trim();
+      const pass    = document.getElementById("passInput").value.trim();
+
+      if (!negocio || !nombre || !correo || !pass) {
+        return Swal.fire("Faltan datos", "Completa todo el formulario", "warning");
+      }
+
+      loading("Creando cliente...");
+
+      let resp, raw, result;
+      try {
+        resp = await fetch(
+          "https://yssihgpqlnekrkjmefkz.supabase.co/functions/v1/crear-cliente",
+          {
+            method: "POST",
+            headers: { "Content-Type":"application/json" },
+            body: JSON.stringify({ negocio, nombre, correo, pass })
+          }
+        );
+
+        raw = await resp.text();
+        console.log("RESPUESTA RAW:", raw);
+        result = safeJson(raw) || {};
+      } catch (e) {
+        Swal.close();
+        return Swal.fire("Error", "No se pudo conectar al servidor", "error");
+      }
+
+      // ✅ si fue OK normal
+      if (resp.ok) {
+        Swal.close();
+        return Swal.fire({
+          icon: "success",
+          title: "Cliente creado con éxito",
+          html: `
+            <b>Negocio:</b> ${negocio}<br>
+            <b>Administrador:</b> ${nombre}<br><br>
+            SmartPOS está listo para usarse.
+          `,
+          confirmButtonColor: "#a21caf"
+        });
+      }
+
+      // ❌ si falló
+      Swal.close();
+
+      const msg = (result?.error || result?.mensaje || "").toLowerCase();
+
+      // ✅ CASO 409 / correo existente → rescate
+      if (resp.status === 409 || msg.includes("correo ya existe")) {
+
+        let usr = null;
+        try {
+          usr = await buscarUsuarioPorCorreo(correo);
+        } catch (e) {
+          return Swal.fire("Error", "El correo existe pero no pude leer public.usuarios (revisa RLS/permiso).", "error");
+        }
+
+        if (!usr) {
+          return Swal.fire({
+            icon: "warning",
+            title: "Alta incompleta",
+            html: `
+              El correo <b>${correo}</b> ya existe en AUTH, pero no está en <b>public.usuarios</b>.<br><br>
+              Solución rápida: elimina ese usuario en <b>Auth → Users</b> y vuelve a crearlo,
+              o crea la fila faltante en <b>public.usuarios</b>.
+            `,
+            confirmButtonColor: "#a21caf"
+          });
+        }
+
+        const ask = await Swal.fire({
+          icon: "question",
+          title: "El correo ya existe",
+          html: `
+            Usuario encontrado: <b>${usr.nombre || "Sin nombre"}</b><br>
+            Correo: <b>${correo}</b><br><br>
+            ¿Quieres crear el negocio <b>${negocio}</b> y asignárselo como <b>admin</b>?
+          `,
+          showCancelButton: true,
+          confirmButtonText: "Sí, asignar",
+          cancelButtonText: "Cancelar",
+          confirmButtonColor: "#a21caf",
+          cancelButtonColor: "#6b7280"
+        });
+
+        if (!ask.isConfirmed) return;
+
+        try {
+          loading("Creando negocio y asignando...");
+          const n = await crearNegocioYAsignar({ negocio, usuarioId: usr.id });
+          Swal.close();
+
+          return Swal.fire({
+            icon: "success",
+            title: "Negocio asignado",
+            html: `
+              Se creó <b>${n.nombre}</b> y se asignó a <b>${usr.nombre}</b>.<br><br>
+              <b>negocio_id:</b> ${n.id}
+            `,
+            confirmButtonColor: "#a21caf"
+          });
+
+        } catch (e) {
+          Swal.close();
+          return Swal.fire("Error", e.message || "No se pudo crear/asignar el negocio", "error");
+        }
+      }
+
+      // otros errores
+      return Swal.fire("Error", result.error || `No se pudo crear el cliente (${resp.status})`, "error");
+    }
+
+    window.crearCliente = crearCliente;
+  </script>
+</head>
+
+<body class="min-h-screen">
+
+  <!-- ✅ HEADER con botón regresar -->
+  <div class="p-6">
+    <button onclick="location.href='/admin/index.html'"
+      class="text-white/70 hover:text-white flex gap-2 items-center">
+      <i data-lucide="arrow-left" class="w-5 h-5"></i> Regresar al Panel
+    </button>
+  </div>
+
+  <!-- ✅ FORM -->
+  <div class="flex items-center justify-center px-6 pb-10">
+    <div class="card w-full max-w-md text-center">
+      <h1 class="text-white text-2xl font-bold mb-6">Crear Nuevo Cliente</h1>
+
+      <input id="negocio" class="w-full rounded-lg px-3 py-2 mb-4" placeholder="Nombre del negocio">
+      <input id="nombreInput" class="w-full rounded-lg px-3 py-2 mb-4" placeholder="Nombre del administrador">
+      <input id="emailInput" type="email" class="w-full rounded-lg px-3 py-2 mb-4" placeholder="Correo">
+      <input id="passInput" type="password" class="w-full rounded-lg px-3 py-2 mb-6" placeholder="Contraseña">
+
+      <button onclick="crearCliente()"
+        class="w-full py-2 rounded-lg bg-gradient-to-r from-fuchsia-600 to-pink-500 text-white font-semibold shadow-lg hover:opacity-90">
+        Crear Cliente
+      </button>
+
+      <p class="text-white/60 text-xs mt-4">
+        Si el correo ya existe, podrás asignarlo a un nuevo negocio.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>

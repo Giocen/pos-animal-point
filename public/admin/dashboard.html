@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel Administrador | SmartPOS</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Protección del panel -->
+  <script src="/admin/admin.js"></script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg,#1A042D,#4b005f);
+      font-family: "Inter", sans-serif;
+      color: white;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.15);
+      border:1px solid rgba(255,255,255,0.2);
+      border-radius:16px;
+      padding:24px;
+      backdrop-filter:blur(12px);
+      transition:.25s ease;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .card:hover {
+      background: rgba(255,255,255,0.25);
+      transform: translateY(-4px);
+    }
+  </style>
+
+</head>
+
+<body class="p-8">
+
+  <h1 class="text-3xl font-bold mb-2">Panel Administrador</h1>
+  <p class="text-white/70 mb-8">Opciones principales del sistema</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl">
+
+    <!-- Crear negocio -->
+    <div class="card" onclick="location.href='/admin/crear-cliente.html'">
+      <i data-lucide="building-2" class="w-12 h-12 text-fuchsia-300"></i>
+      <h2 class="text-xl font-semibold">Crear Negocio</h2>
+      <p class="text-white/70 text-sm">Crea un nuevo negocio con su usuario administrador.</p>
+    </div>
+
+    <!-- Ver negocios -->
+    <div class="card" onclick="location.href='/admin/negocios.html'">
+      <i data-lucide="list" class="w-12 h-12 text-fuchsia-300"></i>
+      <h2 class="text-xl font-semibold">Negocios Registrados</h2>
+      <p class="text-white/70 text-sm">Lista completa de negocios creados.</p>
+    </div>
+
+    <!-- Usuarios del sistema -->
+    <div class="card" onclick="location.href='/admin/usuarios.html'">
+      <i data-lucide="users" class="w-12 h-12 text-fuchsia-300"></i>
+      <h2 class="text-xl font-semibold">Usuarios del Sistema</h2>
+      <p class="text-white/70 text-sm">Listado general de todos los usuarios.</p>
+    </div>
+
+    <!-- Configuración admin -->
+    <div class="card" onclick="location.href='/admin/config-admin.html'">
+      <i data-lucide="settings" class="w-12 h-12 text-fuchsia-300"></i>
+      <h2 class="text-xl font-semibold">Configuración Admin</h2>
+      <p class="text-white/70 text-sm">Editar contraseña maestra u opciones internas.</p>
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>

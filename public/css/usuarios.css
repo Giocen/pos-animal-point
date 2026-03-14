@@ -1,0 +1,174 @@
+/* ==========================================================
+💜 SmartPOS | Usuarios (v4.6 Unificado)
+========================================================== */
+
+/* --- Fondo animado --- */
+body {
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  font-family: "Inter", sans-serif;
+  color: #1f1f1f;
+  margin: 0;
+}
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ==========================================================
+💎 HEADER FIJO
+========================================================== */
+.header-config {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  padding: 0.9rem 0;
+  z-index: 50;
+}
+.header-content {
+  width: 95%;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.25s ease;
+}
+.btn-volver:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ==========================================================
+📦 CONTENIDO PRINCIPAL
+========================================================== */
+main {
+  margin-top: 5rem;
+}
+
+/* ==========================================================
+🧾 TARJETAS
+========================================================== */
+.card-section {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  border: 1px solid rgba(162, 28, 175, 0.15);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+.card-section:hover { transform: translateY(-2px); }
+
+/* ==========================================================
+🔤 INPUTS Y SELECTS
+========================================================== */
+.input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  font-size: 0.9rem;
+  color: #333;
+  transition: all 0.25s ease;
+}
+.input:focus {
+  outline: none;
+  border-color: #a21caf;
+  box-shadow: 0 0 0 3px rgba(162, 28, 175, 0.25);
+}
+
+/* ==========================================================
+🧩 BARRA DE FORTALEZA
+========================================================== */
+.strength-bar {
+  height: 4px;
+  border-radius: 3px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+/* ==========================================================
+🔘 BOTONES
+========================================================== */
+.btn-accion {
+  background: linear-gradient(90deg, #a21caf, #ec4899);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  width: 100%;
+  transition: 0.25s ease;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+.btn-accion:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+.btn-cancelar {
+  background: #9ca3af;
+  color: #fff;
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.9rem;
+  transition: 0.2s ease;
+}
+.btn-cancelar:hover { background: #6b7280; }
+.btn-guardar {
+  background: linear-gradient(90deg, #16a34a, #10b981);
+  color: #fff;
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.9rem;
+  transition: 0.25s ease;
+}
+.btn-guardar:hover { filter: brightness(1.1); }
+
+/* ==========================================================
+🧭 SWITCH
+========================================================== */
+.switch {
+  width: 44px;
+  height: 22px;
+  background: #d1d5db;
+  border-radius: 9999px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.switch.active { background: #10b981; }
+.switch-circle {
+  width: 18px; height: 18px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: all 0.3s ease;
+}
+.switch.active .switch-circle { transform: translateX(22px); }
+
+/* ==========================================================
+📱 RESPONSIVO
+========================================================== */
+@media (max-width: 768px) {
+  .header-content { flex-direction: column; text-align: center; }
+  .btn-volver { width: 100%; justify-content: center; }
+}

@@ -1,0 +1,281 @@
+/* ===========================================================
+💜 SmartPOS | Panel Principal (v5.5 Colorido + Footer Informativo)
+Tarjetas vivas, fondo animado, header fijo, grid 5+4 y footer social
+=========================================================== */
+
+/* --- Fondo general animado --- */
+.index-body {
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ===========================================================
+💎 Header limpio fijo (icono + texto blanco + salir izq.)
+=========================================================== */
+/* ===========================================================
+💎 Header SmartPOS (alineación perfecta 3 columnas)
+=========================================================== */
+/* ===========================================================
+💎 Header SmartPOS (alineación perfecta 3 columnas balanceadas)
+=========================================================== */
+.header-index {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+  z-index: 50;
+  padding: 0.9rem 0;
+}
+
+/* --- Contenedor balanceado --- */
+.header-content {
+  width: 95%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* --- Botón salir (izquierda) --- */
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.25s ease;
+  margin-left: 0.5rem; /* 🔹 Espacio visual */
+}
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* --- Título centrado --- */
+.titulo-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+.titulo-header h1 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+/* --- Botón configuración (derecha) --- */
+.btn-config {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border-radius: 0.45rem;
+  padding: 0.45rem 0.8rem;
+  transition: all 0.25s ease;
+  margin-right: 0.5rem; /* 🔹 Espacio simétrico */
+}
+.btn-config:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+
+/* ===========================================================
+💎 SmartPOS | Tarjetas de acceso (grid 5 + 4)
+=========================================================== */
+main > div {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-auto-rows: auto;
+  gap: 1.8rem 1.5rem;
+  justify-items: center;
+  align-items: center;
+  width: 90%;
+  max-width: 1500px;
+  margin: 0 auto;
+  row-gap: 2.5rem;
+}
+
+/* --- Tarjetas --- */
+.btn-menu {
+  width: 150px;
+  height: 150px;
+  border-radius: 1rem;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+  padding: 1.2rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* --- Íconos --- */
+.btn-menu i {
+  width: 2.3rem;
+  height: 2.3rem;
+  color: #fff;
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.3));
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+/* --- Texto --- */
+.btn-menu span {
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Hover --- */
+.btn-menu:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+.btn-menu:hover i {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+}
+
+/* --- Colores de cada tarjeta --- */
+.btn-menu:nth-child(1) { background: linear-gradient(135deg, #a21caf, #ec4899); }
+.btn-menu:nth-child(2) { background: linear-gradient(135deg, #2563eb, #38bdf8); }
+.btn-menu:nth-child(3) { background: linear-gradient(135deg, #f97316, #f59e0b); }
+.btn-menu:nth-child(4) { background: linear-gradient(135deg, #ef4444, #f87171); }
+.btn-menu:nth-child(5) { background: linear-gradient(135deg, #ec4899, #f472b6); }
+.btn-menu:nth-child(6) { background: linear-gradient(135deg, #7e22ce, #a855f7); }
+.btn-menu:nth-child(7) { background: linear-gradient(135deg, #0f766e, #10b981); }
+.btn-menu:nth-child(8) { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
+.btn-menu:nth-child(9) { background: linear-gradient(135deg, #a21caf, #9333ea); }
+
+main > div a:nth-child(n+6) {
+  grid-column: span 1;
+}
+
+/* ===========================================================
+💜 Footer SmartPOS v5.1 (informativo y social)
+=========================================================== */
+.footer-smartpos {
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  box-shadow: 0 -3px 10px rgba(0,0,0,0.25);
+  z-index: 40;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.footer-info p {
+  margin: 0;
+  line-height: 1.3;
+}
+
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.15);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  transition: all 0.25s ease;
+}
+.social-link:hover {
+  background: rgba(255,255,255,0.35);
+  transform: translateY(-2px);
+}
+.social-link i {
+  width: 16px;
+  height: 16px;
+  color: #fff;
+}
+
+.footer-time {
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* 📱 Responsivo */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.6rem;
+  }
+  .footer-social {
+    justify-content: center;
+  }
+}
+
+/* ===========================================================
+📱 Responsivo grid
+=========================================================== */
+@media (max-width: 1280px) {
+  main > div { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 1024px) {
+  main > div { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+  main > div { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  main > div { grid-template-columns: 1fr; }
+}
+
+.footer-time {
+  margin-top: 0.3rem;
+  text-align: center;
+  letter-spacing: 0.5px;
+}

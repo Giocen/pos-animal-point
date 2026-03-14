@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eliminar Negocio | SmartPOS</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="/admin/admin.js"></script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg,#1A042D,#4b005f);
+      color: white;
+      font-family: "Inter";
+    }
+    .card {
+      background: rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.25);
+      backdrop-filter: blur(10px);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen p-6">
+
+  <button onclick="location.href='/admin/negocios.html'"
+    class="mb-6 text-white/80 hover:text-white flex items-center gap-2">
+    <i data-lucide="arrow-left"></i> Volver
+  </button>
+
+  <h1 class="text-3xl font-bold mb-4">Eliminar Negocio</h1>
+
+  <p class="text-white/70 mb-4">
+    ⚠ Esta acción eliminará el negocio y <b>todos los usuarios vinculados, sus ventas,
+    inventario, productos y configuraciones</b>. No se puede deshacer.
+  </p>
+
+  <div id="info" class="card mb-6"></div>
+
+  <button id="btnEliminar"
+    class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg font-semibold shadow text-white">
+    Eliminar definitivamente
+  </button>
+
+  <script type="module">
+import { supabaseAdmin as supabase } from "/admin/supabase-admin.js";
+
+const negocioID = new URLSearchParams(location.search).get("id");
+if (!negocioID) {
+  Swal.fire("Error", "ID de negocio inválido", "error");
+}
+
+/* ======================================================
+   🟣 Cargar información del negocio
+====================================================== */
+async function cargarNegocio() {
+  const { data, error } = await supabase
+    .from("negocios")
+    .select("*")
+    .eq("id", negocioID)
+    .single();
+
+  if (error || !data) {
+    document.getElementById("info").innerHTML =
+      `<p class='text-red-400'>No se pudo cargar el negocio.</p>`;
+    return;
+  }
+
+  document.getElementById("info").innerHTML = `
+    <p class="text-xl font-semibold">${data.nombre}</p>
+    <p class="text-white/60 text-sm">ID: ${data.id}</p>
+    <p class="text-white/60 text-sm">Creado: ${data.creado_en?.split("T")[0]}</p>
+  `;
+}
+
+cargarNegocio();
+
+/* ======================================================
+   🟥 Eliminar negocio
+====================================================== */
+document.getElementById("btnEliminar").onclick = async () => {
+  const r = await Swal.fire({
+    title: "¿Eliminar definitivamente?",
+    html: `<p class="text-red-300">
+             Se borrará <b>TODOS</b> los datos del negocio.
+           </p>`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc2626",
+    confirmButtonText: "Eliminar",
+  });
+
+  if (!r.isConfirmed) return;
+
+  Swal.fire({
+    title: "Eliminando...",
+    text: "Por favor espera",
+    didOpen: () => Swal.showLoading()
+  });
+
+  const { error } = await supabase.rpc("eliminar_negocio", {
+    p_negocio_id: negocioID
+  });
+
+  if (error) {
+    Swal.close();
+    return Swal.fire("Error", error.message, "error");
+  }
+
+  Swal.fire("Eliminado", "El negocio ha sido borrado correctamente", "success")
+    .then(() => location.href = "/admin/negocios.html");
+};
+
+lucide.createIcons();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,168 @@
+/* ==========================================================
+💜 SmartPOS | pedidos.css (Flat limpio sin 3D)
+========================================================== */
+
+/* --- Fondo general animado --- */
+body {
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  font-family: "Inter", sans-serif;
+  color: #1f1f1f;
+  margin: 0;
+  min-height: 100vh;
+}
+
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ==========================================================
+💎 HEADER FIJO UNIFICADO
+========================================================== */
+.header-pedidos {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 50;
+  padding: 0.9rem 0;
+}
+
+.header-content {
+  width: 95%;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.25s ease;
+}
+.btn-volver:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+/* ==========================================================
+📦 TABLA DE PEDIDOS (compacta y en una línea)
+========================================================== */
+.tabla-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  border-radius: 1rem;
+  border: 1px solid rgba(162, 28, 175, 0.15);
+  padding: 1.5rem;
+  width: 98%;
+  max-width: 95rem; /* contenedor más ancho */
+  margin: 0 auto;
+  overflow-x: auto;
+  min-height: 70vh; /* más alto */
+}
+
+.tabla-pedidos {
+  font-size: 0.75rem; /* texto más pequeño */
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* evita saltos de línea */
+}
+
+.tabla-pedidos th,
+.tabla-pedidos td {
+  padding: 0.35rem 0.5rem; /* celdas más compactas */
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap; /* todo en una línea */
+  overflow: hidden;
+  text-overflow: ellipsis; /* corta con "..." si es muy largo */
+}
+
+.tabla-pedidos th {
+  background-color: rgba(162, 28, 175, 0.07);
+  color: #6b21a8;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  text-align: left;
+  letter-spacing: 0.3px;
+}
+
+.tabla-pedidos td {
+  font-size: 0.74rem;
+  line-height: 1.1rem;
+}
+
+.tabla-pedidos td.text-center,
+.tabla-pedidos th.text-center {
+  text-align: center;
+}
+
+.tabla-pedidos tbody tr:hover {
+  background: rgba(162, 28, 175, 0.05);
+}
+
+/* ==========================================================
+🔘 BOTONES BASE
+========================================================== */
+.btn-base {
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0.6rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-image: linear-gradient(90deg, var(--tw-gradient-from), var(--tw-gradient-to));
+  transition: all 0.25s ease;
+}
+
+.btn-base:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================
+📱 RESPONSIVO
+========================================================== */
+@media (max-width: 900px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .tabla-container {
+    padding: 0.75rem;
+    overflow-x: auto;
+  }
+
+  .tabla-pedidos {
+    min-width: 900px;
+    font-size: 0.78rem;
+  }
+
+  .tabla-pedidos th, .tabla-pedidos td {
+    padding: 0.4rem;
+  }
+
+  .btn-base {
+    width: 100%;
+    justify-content: center;
+  }
+}

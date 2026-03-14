@@ -1,0 +1,207 @@
+  <!doctype html>
+  <html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartPOS | Panel Principal</title>
+
+    <!-- 🎨 Librerías base -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="icon" type="image/png" href="img/favicon-pos.png" />
+
+    <!-- 💅 Estilos -->
+    <link rel="stylesheet" href="css/index.css" />
+  </head>
+
+  <body class="index-body flex flex-col items-center justify-center min-h-screen select-none">
+
+    <!-- ==========================================================
+    💎 Encabezado unificado
+    =========================================================== -->
+    <header class="header-index">
+      <div class="header-content">
+        <!-- 🔹 Izquierda -->
+        <button id="btnLogout" class="btn-logout">
+          <i data-lucide="log-out"></i> Salir
+        </button>
+
+        <!-- 🔹 Centro -->
+        <div class="titulo-header">
+          <i data-lucide="shopping-cart" class="w-6 h-6 text-white"></i>
+          <h1>Panel Principal</h1>
+        </div>
+
+        <!-- 🔹 Derecha -->
+        <button class="btn-config" title="Configuración del sistema">
+          <i data-lucide="settings"></i> Configuración
+        </button>
+      </div>
+    </header>
+
+    <!-- ==========================================================
+    🟪 Menú principal
+    =========================================================== -->
+    <main>
+      <div>
+        <a href="venta.html" class="btn-menu" title="Módulo de ventas con carrito y ticket">
+          <i data-lucide="shopping-cart"></i><span>Ventas</span>
+        </a>
+        <a href="productos.html" class="btn-menu" title="Gestión de productos y precios">
+          <i data-lucide="package"></i><span>Productos</span>
+        </a>
+        <a href="reportes.html" class="btn-menu" title="Reportes detallados de ventas e ingresos">
+          <i data-lucide="bar-chart-3"></i><span>Reportes</span>
+        </a>
+        <a href="caducidades.html" class="btn-menu" title="Control de productos próximos a vencer">
+          <i data-lucide="alert-triangle"></i><span>Caducidades</span>
+        </a>
+        <a href="pedidos.html" class="btn-menu" title="Gestión de pedidos y compras pendientes">
+          <i data-lucide="shopping-bag"></i><span>Pedidos</span>
+        </a>
+        <a href="inventario/menu-inventario.html" class="btn-menu" title="Inventario general, conteo y ajustes">
+          <i data-lucide="boxes"></i><span>Inventario</span>
+        </a>
+        <a href="proveedores.html" class="btn-menu" title="Registro y administración de proveedores">
+          <i data-lucide="truck"></i><span>Proveedores</span>
+        </a>      
+        <a href="corte.html" class="btn-menu" title="Realizar cortes de caja y control diario">
+          <i data-lucide="archive"></i><span>Corte Caja</span>
+        </a>
+        <a href="usuarios.html" id="cardUsuarios" class="btn-menu" title="Gestión de usuarios y roles">
+          <i data-lucide="users"></i><span>Usuarios</span>
+        </a>
+      </div>
+    </main>
+
+    <!-- ==========================================================
+    👣 FOOTER SMARTPOS v5.2
+    =========================================================== -->
+    <footer class="footer-smartpos">
+      <div class="footer-content">
+        <div class="footer-info">
+          <p class="text-sm font-medium">
+            © <span id="anio"></span> SmartPOS. Todos los derechos reservados.
+          </p>
+        </div>
+
+        <div class="footer-social">
+          <a href="https://wa.me/529999999999" target="_blank" title="WhatsApp" class="social-link"><i data-lucide="message-circle"></i></a>
+          <a href="https://www.facebook.com" target="_blank" title="Facebook" class="social-link"><i data-lucide="facebook"></i></a>
+          <a href="https://www.instagram.com" target="_blank" title="Instagram" class="social-link"><i data-lucide="instagram"></i></a>
+          <a href="https://www.youtube.com" target="_blank" title="YouTube" class="social-link"><i data-lucide="play"></i></a>
+          <a href="https://www.google.com/shopping" target="_blank" title="Google Shopping" class="social-link"><i data-lucide="globe"></i></a>
+        </div>
+
+        <div id="horaFooter" class="footer-time text-sm font-medium text-white/90"></div>
+      </div>
+    </footer>
+
+    <!-- ==========================================================
+    🚀 SCRIPTS
+    =========================================================== -->
+<script type="module">
+  import { supabaseClient, protegerSesion } from "/js/proteccion.js";
+  import { LocalDB } from "/js/localdb.js";
+
+  document.addEventListener("DOMContentLoaded", async () => {
+
+    /* ======================================================
+       🧠 Verificar sesión REAL (sin filtrar roles)
+    ====================================================== */
+    const usuario = await protegerSesion(); 
+    if (!usuario) return; 
+
+    console.log("✅ Sesión activa:", usuario.nombre, "| Rol:", usuario.rol);
+
+    /* ======================================================
+       🕓 Footer
+    ====================================================== */
+    function actualizarFooter() {
+      const ahora = new Date();
+      const fecha = ahora.toLocaleDateString("es-MX", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
+      const hora = ahora.toLocaleTimeString("es-MX", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+      document.getElementById("horaFooter").textContent = `${fecha} • ${hora}`;
+    }
+
+    actualizarFooter();
+    setInterval(actualizarFooter, 1000);
+    document.getElementById("anio").textContent = new Date().getFullYear();
+
+    /* ======================================================
+       🎨 Iconos
+    ====================================================== */
+    if (window.lucide) lucide.createIcons();
+
+    /* ======================================================
+       🔧 Service Worker
+    ====================================================== */
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("SW registrado:", reg.scope))
+        .catch(err => console.error("Error SW:", err));
+    }
+
+    /* ======================================================
+       🔒 Usuarios — Solo Admin
+    ====================================================== */
+    const botonUsuarios = document.getElementById("cardUsuarios");
+
+    if (botonUsuarios) {
+      botonUsuarios.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        if (usuario.rol !== "admin" && usuario.rol !== "administrador") {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso restringido",
+            text: "Solo un administrador puede acceder a este módulo.",
+            confirmButtonColor: "#a21caf"
+          });
+          return;
+        }
+
+        window.location.href = "/usuarios.html";
+      });
+    }
+
+    /* ======================================================
+       ⚙️ Configuración — Solo Admin
+    ====================================================== */
+    const btnConfig = document.querySelector(".btn-config");
+
+    if (btnConfig) {
+      btnConfig.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        if (usuario.rol !== "admin" && usuario.rol !== "administrador") {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso restringido",
+            text: "Solo un administrador puede modificar la configuración.",
+            confirmButtonColor: "#a21caf"
+          });
+          return;
+        }
+
+        window.location.href = "/configuracion.html";
+      });
+    }
+
+  });
+</script>
+
+<script type="module" src="/js/logout.js"></script>
+
+
+  </body>
+  </html>

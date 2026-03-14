@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Proveedores</title>
+
+  <!-- 🎨 Librerías base -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- 💅 Estilos -->
+  <link rel="stylesheet" href="css/proveedores.css">
+</head>
+
+<body class="min-h-screen flex flex-col font-inter text-gray-900">
+
+  <!-- 🔹 Encabezado -->
+  <header class="header-proveedores">
+    <div class="header-content">
+      <button onclick="window.location.href='/venta.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver a venta
+      </button>
+
+      <div class="flex items-center gap-2">
+        <i data-lucide="truck" class="w-6 h-6 text-white"></i>
+        <h1 class="text-xl font-semibold text-white">Gestión de Proveedores</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- 🧾 Contenido principal -->
+  <main class="flex-1 w-full max-w-3xl mx-auto px-6 mt-[6rem]">
+    <form id="formProveedor" class="form-base p-6 space-y-6">
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <label class="block">
+          <span class="text-sm font-semibold text-fuchsia-700 flex items-center gap-1 mb-1">
+            <i data-lucide="tag" class="w-4 h-4"></i> Nombre *
+          </span>
+          <input id="nombreProveedor" required placeholder="Ej. Distribuidora Animal Point"
+            class="input w-full p-2.5">
+        </label>
+
+        <label class="block">
+          <span class="text-sm font-semibold text-fuchsia-700 flex items-center gap-1 mb-1">
+            <i data-lucide="phone" class="w-4 h-4"></i> Teléfono
+          </span>
+          <input id="telefonoProveedor" placeholder="999 123 4567" class="input w-full p-2.5">
+        </label>
+      </div>
+
+      <label class="block">
+        <span class="text-sm font-semibold text-fuchsia-700 flex items-center gap-1 mb-1">
+          <i data-lucide="map-pin" class="w-4 h-4"></i> Dirección
+        </span>
+        <input id="direccionProveedor" placeholder="Ej. Calle 10 #45, Mérida, Yucatán" class="input w-full p-2.5">
+      </label>
+
+      <!-- 🔘 Botones -->
+      <div class="flex justify-center gap-6 pt-4 flex-wrap">
+        <button type="submit" id="btnGuardarProveedor"
+          class="btn-base from-fuchsia-600 to-purple-600">
+          <i data-lucide="save" class="w-5 h-5"></i> Guardar
+        </button>
+
+        <button type="button" id="btnVerProveedores"
+          class="btn-base from-emerald-600 to-teal-500">
+          <i data-lucide="list-check" class="w-5 h-5"></i> Ver Proveedores
+        </button>
+      </div>
+
+      <!-- 🔸 Estado -->
+      <div class="flex justify-center mt-2">
+        <span id="estadoProveedor" class="text-sm text-gray-500"></span>
+      </div>
+    </form>
+  </main>
+
+  <!-- ✅ Scripts -->
+  <script type="module" src="/js/localdb.js"></script>
+  <script type="module" src="js/proveedores.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => lucide.createIcons());
+  </script>
+</body>
+</html>

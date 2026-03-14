@@ -1,0 +1,168 @@
+/* ==========================================================
+💜 SmartPOS | inventario.css (v5.4 Flat con encabezado limpio)
+========================================================== */
+
+/* --- Fondo general animado --- */
+.index-body {
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ==========================================================
+💎 ENCABEZADO IGUAL QUE CORTE DE CAJA
+========================================================== */
+.header-inventario {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  padding: 0.9rem 0;
+  z-index: 50;
+}
+
+.header-content {
+  width: 95%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* --- Botón volver --- */
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.25s ease;
+}
+.btn-volver:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+/* --- Título --- */
+.titulo-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.titulo-header h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #fff;
+}
+
+/* --- Espaciado para el header --- */
+main {
+  margin-top: 6rem;
+  width: 100%;
+  text-align: center;
+}
+
+/* ==========================================================
+📦 GRID PRINCIPAL (4 tarjetas, mismo tamaño que index)
+========================================================== */
+.grid-inventario {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.8rem 1.5rem;
+  justify-items: center;
+  align-items: center;
+  width: 90%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.btn-menu {
+  width: 150px;
+  height: 150px;
+  border-radius: 1rem;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+  padding: 1.2rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background-image: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
+}
+
+.btn-menu i {
+  width: 2.3rem;
+  height: 2.3rem;
+  color: #fff;
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.3));
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.btn-menu span {
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+
+.btn-menu:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+.btn-menu:hover i {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+}
+
+/* ==========================================================
+📄 FOOTER
+========================================================== */
+.estado-inventario {
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+  text-align: center;
+}
+
+/* ==========================================================
+📱 RESPONSIVO
+========================================================== */
+@media (max-width: 1024px) {
+  .grid-inventario { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  .titulo-header h1 { font-size: 1rem; }
+  .grid-inventario { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .grid-inventario { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Inventario Físico</title>
+
+  <!-- 🎨 Librerías base -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- 💅 Estilos -->
+  <link rel="stylesheet" href="../css/conteo.css">
+  <link rel="icon" href="/img/favicon-pos.png">
+</head>
+
+<body class="index-body flex flex-col min-h-screen select-none">
+
+  <!-- 🧭 Encabezado -->
+  <header class="header-conteo">
+    <div class="header-content">
+      <button onclick="window.location.href='/venta.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver
+      </button>
+
+      <div class="titulo-header">
+        <i data-lucide="clipboard-list"></i>
+        <h1>Inventario Físico</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- 📦 Contenido -->
+  <main>
+    <div class="panel-conteo">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <!-- 🔹 Operaciones -->
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-fuchsia-700 flex items-center justify-center md:justify-start gap-2">
+            <i data-lucide="settings"></i> Operaciones
+          </h2>
+
+          <div class="flex flex-col gap-3">
+            <button id="abrirConteo"
+              class="bg-gradient-to-r from-blue-600 to-sky-500 text-white py-3 rounded-md font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition">
+              <i data-lucide="package"></i> Escanear Conteo
+            </button>
+
+            <button id="abrirRevision"
+              class="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white py-3 rounded-md font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition">
+              <i data-lucide="search"></i> Revisión Contado
+            </button>
+          </div>
+        </div>
+
+        <!-- 🔹 Exportar -->
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-emerald-700 flex items-center justify-center md:justify-start gap-2">
+            <i data-lucide="download"></i> Exportar
+          </h2>
+
+          <div class="flex flex-col gap-3">
+            <button id="btnExportExcel"
+              class="bg-gradient-to-r from-emerald-600 to-teal-500 text-white py-3 rounded-md font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition">
+              <i data-lucide="file-spreadsheet"></i> Exportar a Excel
+            </button>
+
+            <button id="btnExportPDF"
+              class="bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 rounded-md font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition">
+              <i data-lucide="file-text"></i> Exportar a PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 💾 Dexie (IndexedDB offline) -->
+  <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+
+  <!-- ⚙️ Scripts principales -->
+  <script type="module" src="../js/localdb.js"></script>  
+  <script type="module" src="../js/proteccion.js"></script>
+  <script type="module" src="../js/inventario/conteo.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
+

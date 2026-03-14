@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Negocios | SmartPOS</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/admin/admin.js"></script>
+
+  <style>
+    body { background:#1A042D; color:white; font-family:"Inter"; }
+    .card {
+      background: rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      transition: .2s;
+    }
+    .card:hover { background: rgba(255,255,255,0.25); }
+  </style>
+</head>
+
+<body class="p-6">
+
+  <div class="flex items-center justify-between gap-3 mb-4">
+    <button onclick="location.href='/admin/dashboard.html'"
+      class="text-white/70 hover:text-white flex gap-2">
+      <i data-lucide="arrow-left"></i> Regresar
+    </button>
+
+    <!-- ✅ OPCIONAL: botón para crear negocio (si ya tienes la función en DB) -->
+    <button id="btnNuevo"
+      class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center gap-2">
+      <i data-lucide="plus"></i> Nuevo Negocio
+    </button>
+  </div>
+
+  <h1 class="text-3xl font-bold mb-6">Negocios Registrados</h1>
+
+  <div id="lista" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3"></div>
+
+  <script type="module">
+    import { supabaseAdmin as supabase } from "/admin/supabase-admin.js";
+
+    function renderVacio() {
+      const cont = document.getElementById("lista");
+      cont.innerHTML = `<p class="text-white/70">No hay negocios registrados todavía.</p>`;
+    }
+
+    function renderLoading() {
+      const cont = document.getElementById("lista");
+      cont.innerHTML = `
+        <div class="col-span-full text-white/70 flex items-center gap-2">
+          <span class="inline-block w-4 h-4 rounded-full border border-white/40 border-t-transparent animate-spin"></span>
+          Cargando negocios...
+        </div>
+      `;
+    }
+
+    async function cargarNegocios() {
+      renderLoading();
+
+      const { data, error } = await supabase
+        .from("negocios")
+        .select("id,nombre,creado_en")
+        .order("creado_en", { ascending: false });
+
+      if (error) {
+        // Si se te vence auth / token / RLS
+        return Swal.fire("Error", error.message, "error");
+      }
+
+      const cont = document.getElementById("lista");
+      cont.innerHTML = "";
+
+      if (!data || data.length === 0) {
+        renderVacio();
+        return;
+      }
+
+      data.forEach(n => {
+        const fecha = n.creado_en ? n.creado_en.split("T")[0] : "Sin fecha";
+        cont.innerHTML += `
+          <div class="card">
+            <h2 class="text-xl font-semibold">${n.nombre}</h2>
+            <p class="text-white/60">ID: ${n.id}</p>
+            <p class="text-white/60 text-xs mb-3">Creado: ${fecha}</p>
+
+            <button onclick="location.href='/admin/negocio-detalle.html?id=${n.id}'"
+              class="px-4 py-2 bg-fuchsia-600 rounded hover:opacity-90">
+              Ver Detalles
+            </button>
+          </div>`;
+      });
+
+      lucide.createIcons();
+    }
+
+    // ✅ OPCIONAL: crear negocio desde aquí (requiere tu función en DB)
+    async function crearNegocioDesdeUI() {
+      const usuarioId = localStorage.getItem("usuario_id"); 
+      // 👆 Ajusta esto: pon de donde guardas el id del admin (uuid).
+      // Si no lo tienes en localStorage, dime dónde lo guardas y te lo adapto.
+
+      if (!usuarioId) {
+        return Swal.fire("Falta usuario_id", "No encontré usuario_id para crear el negocio.", "warning");
+      }
+
+      const { value: nombre } = await Swal.fire({
+        title: "Nuevo negocio",
+        input: "text",
+        inputPlaceholder: "Nombre del negocio",
+        showCancelButton: true,
+        confirmButtonText: "Crear",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#a21caf",
+        inputValidator: (v) => (!v || !v.trim()) ? "Escribe el nombre del negocio" : null
+      });
+
+      if (!nombre) return;
+
+      Swal.fire({ title: "Creando...", didOpen: () => Swal.showLoading(), allowOutsideClick:false });
+
+      const { data, error } = await supabase.rpc("crear_negocio_para_usuario", {
+        p_nombre_negocio: nombre.trim(),
+        p_usuario_id: usuarioId
+      });
+
+      Swal.close();
+
+      if (error) {
+        return Swal.fire("Error", error.message, "error");
+      }
+
+      if (!data?.ok) {
+        return Swal.fire("No se pudo", data?.mensaje || "Error desconocido", "error");
+      }
+
+      Swal.fire("Listo", "Negocio creado correctamente", "success");
+      cargarNegocios();
+    }
+
+    document.getElementById("btnNuevo")?.addEventListener("click", crearNegocioDesdeUI);
+
+    cargarNegocios();
+  </script>
+
+</body>
+</html>

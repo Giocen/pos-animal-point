@@ -1,0 +1,125 @@
+/* ==========================================================
+💜 SmartPOS | Alta de Producto (v5.8 con íconos Lucide en labels)
+========================================================== */
+
+/* --- Fondo animado --- */
+.index-body {
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* --- Header SmartPOS --- */
+.header-alta {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  padding: 0.6rem 0;
+  z-index: 50;
+}
+.header-content {
+  width: 95%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.45rem;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+.btn-volver:hover { background: rgba(255,255,255,0.3); }
+.titulo-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* --- Main --- */
+main {
+  padding-top: 6.5rem;
+  display: flex;
+  justify-content: center;
+  padding-inline: 1.5rem;
+}
+.form-alta {
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(162,28,175,0.25);
+  border-radius: 1rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  color: #1f1f1f;
+  max-width: 650px;
+  width: 100%;
+  padding: 1.8rem;
+}
+
+/* --- Inputs --- */
+.input {
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 0.55rem 0.75rem;
+  width: 100%;
+  color: #111827;
+  transition: all 0.25s ease;
+}
+.input:focus {
+  outline: none;
+  border-color: #a21caf;
+  box-shadow: 0 0 0 3px rgba(162,28,175,0.15);
+}
+
+/* ==========================================================
+🏷️ LABELS CON ICONOS
+========================================================== */
+.label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+.label i {
+  color: #a21caf;
+  width: 1rem;
+  height: 1rem;
+}
+
+/* --- Botones --- */
+button {
+  transition: all 0.25s ease;
+}
+button:hover {
+  transform: translateY(-2px);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .header-content { flex-direction: column; text-align: center; }
+  .titulo-header { justify-content: center; }
+  .form-alta { padding: 1.2rem; }
+}

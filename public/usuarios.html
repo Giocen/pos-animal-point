@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Usuarios</title>
+
+  <!-- 🎨 Librerías base -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- 💅 Estilos SmartPOS -->
+  <link rel="stylesheet" href="css/usuarios.css">
+  <link rel="icon" href="/img/favicon-pos.png">
+</head>
+
+<body class="min-h-screen flex flex-col font-inter text-gray-900">
+
+  <!-- ==========================================================
+  💎 ENCABEZADO FIJO ESTILO SMARTPOS
+  =========================================================== -->
+  <header class="header-config">
+    <div class="header-content">
+      <button onclick="window.location.href='/index.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver al Menú
+      </button>
+
+      <div class="flex items-center gap-2 ml-auto">
+        <i data-lucide="users" class="w-6 h-6 text-white"></i>
+        <h1 class="text-xl font-semibold text-white">Gestión de Usuarios</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================
+  📦 CONTENIDO PRINCIPAL
+  =========================================================== -->
+  <main class="flex-1 w-full px-6 mt-[5rem] pb-10">
+    <div class="max-w-3xl mx-auto space-y-10 animate-fadeIn">
+
+      <!-- 🟣 Registrar usuario -->
+      <section class="card-section border-fuchsia-200">
+        <h2 class="text-lg font-semibold text-fuchsia-700 flex items-center gap-2 mb-4">
+          <i data-lucide="user-plus"></i> Registrar Nuevo Usuario
+        </h2>
+
+        <div class="grid gap-3 sm:grid-cols-2">
+          <input id="nombre" type="text" placeholder="Nombre completo" class="input text-sm">
+          <input id="email" type="email" placeholder="Correo electrónico" class="input text-sm">
+
+          <div class="sm:col-span-2 relative">
+            <input id="password" type="password" placeholder="Contraseña" class="input w-full pr-10 text-sm">
+            <i id="togglePassword" data-lucide="eye" class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 cursor-pointer hover:text-fuchsia-600 transition"></i>
+          </div>
+
+          <div class="sm:col-span-2">
+            <div id="passwordStrength" class="h-1 w-full bg-gray-200 rounded-full">
+              <div id="passwordStrengthBar" class="strength-bar w-0 bg-gray-300"></div>
+            </div>
+            <p id="passwordStrengthText" class="text-xs mt-1 text-gray-500"></p>
+          </div>
+
+          <select id="rol" class="input text-sm sm:col-span-2">
+            <option value="">Seleccionar Rol</option>
+            <option value="1">Administrador</option>
+            <option value="2">Cajero</option>
+          </select>
+        </div>
+
+        <button id="btnRegistrar" class="btn-accion mt-5">
+          <i data-lucide="user-plus" class="w-4 h-4"></i> Registrar Usuario
+        </button>
+        <p id="mensaje" class="text-center text-xs text-red-500 mt-2"></p>
+      </section>
+
+      <!-- 🟣 Lista de usuarios -->
+      <section class="card-section border-fuchsia-200">
+        <h3 class="text-lg font-semibold text-fuchsia-700 flex items-center gap-2 mb-3">
+          <i data-lucide="users"></i> Usuarios Existentes
+        </h3>
+        <div id="listaUsuarios" class="space-y-2 text-sm text-gray-700 overflow-x-auto">
+          <!-- 🧾 Se carga dinámicamente -->
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ==========================================================
+  🪟 MODAL EDICIÓN
+  =========================================================== -->
+  <div id="modalEditar" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center hidden">
+    <div class="bg-white/95 rounded-lg p-6 shadow-xl w-[90%] max-w-md border border-fuchsia-100">
+      <h3 class="text-lg font-bold text-fuchsia-700 mb-4">Editar Usuario</h3>
+
+      <input id="editNombre" type="text" class="input w-full mb-2 text-sm" placeholder="Nombre completo">
+      <input id="editEmail" type="email" class="input w-full mb-2 text-sm" placeholder="Correo electrónico">
+
+      <div class="relative mb-2">
+        <input id="editPassword" type="password" placeholder="Nueva contraseña (opcional)" class="input w-full pr-10 text-sm">
+        <i id="toggleEditPassword" data-lucide="eye" class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 cursor-pointer hover:text-fuchsia-600 transition"></i>
+      </div>
+
+      <div>
+        <div id="editPasswordStrength" class="h-1 w-full bg-gray-200 rounded-full">
+          <div id="editPasswordStrengthBar" class="strength-bar w-0 bg-gray-300"></div>
+        </div>
+        <p id="editPasswordStrengthText" class="text-xs mt-1 text-gray-500"></p>
+      </div>
+
+      <select id="editRol" class="input w-full mb-3 text-sm">
+        <option value="1">Administrador</option>
+        <option value="2">Cajero</option>
+      </select>
+
+      <div class="flex justify-between items-center mb-4">
+        <label class="font-semibold text-gray-700 text-sm">Estado:</label>
+        <div id="switchActivo" class="switch"><div class="switch-circle"></div></div>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button id="btnCancelar" class="btn-cancelar">Cancelar</button>
+        <button id="btnGuardar" class="btn-guardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ✅ Scripts -->
+  <script type="module" src="/js/localdb.js"></script>
+  <script type="module" src="js/usuarios.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+
+      const togglePassword = document.getElementById("togglePassword");
+      const passwordInput = document.getElementById("password");
+      const toggleEditPassword = document.getElementById("toggleEditPassword");
+      const editPasswordInput = document.getElementById("editPassword");
+
+      const bar = document.getElementById("passwordStrengthBar");
+      const text = document.getElementById("passwordStrengthText");
+      const editBar = document.getElementById("editPasswordStrengthBar");
+      const editText = document.getElementById("editPasswordStrengthText");
+
+      const alternarOjo = (toggleBtn, input) => {
+        if (!toggleBtn || !input) return;
+        const mostrando = input.type === "password";
+        input.type = mostrando ? "text" : "password";
+        toggleBtn.innerHTML = `<i data-lucide="${mostrando ? "eye-off" : "eye"}"
+           class="w-5 h-5 ${mostrando ? 'text-fuchsia-600' : 'text-gray-400'}"></i>`;
+        lucide.createIcons();
+      };
+
+      if (togglePassword && passwordInput)
+        togglePassword.addEventListener("click", () => alternarOjo(togglePassword, passwordInput));
+
+      if (toggleEditPassword && editPasswordInput)
+        toggleEditPassword.addEventListener("click", () => alternarOjo(toggleEditPassword, editPasswordInput));
+
+      const evaluarFortaleza = (valor, bar, text) => {
+        if (!bar || !text) return;
+        let fuerza = 0;
+        if (valor.length >= 8) fuerza++;
+        if (/[A-Z]/.test(valor)) fuerza++;
+        if (/[a-z]/.test(valor)) fuerza++;
+        if (/[0-9]/.test(valor)) fuerza++;
+        if (/[^A-Za-z0-9]/.test(valor)) fuerza++;
+
+        const porcentaje = (fuerza / 5) * 100;
+        let color = "bg-gray-300";
+        let nivel = "Débil";
+        if (porcentaje >= 80) { color = "bg-green-500"; nivel = "Fuerte"; }
+        else if (porcentaje >= 50) { color = "bg-yellow-400"; nivel = "Media"; }
+        else { color = "bg-red-500"; nivel = "Débil"; }
+
+        bar.style.width = `${porcentaje}%`;
+        bar.className = `strength-bar ${color}`;
+        text.textContent = valor ? `Fortaleza: ${nivel}` : "";
+        text.className = `text-xs mt-1 ${color.replace("bg-", "text-")}`;
+      };
+
+      if (passwordInput)
+        passwordInput.addEventListener("input", e => evaluarFortaleza(e.target.value, bar, text));
+      if (editPasswordInput)
+        editPasswordInput.addEventListener("input", e => evaluarFortaleza(e.target.value, editBar, editText));
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPOS | Comparar Precios</title>
+
+  <!-- 🎨 Librerías -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- 💅 Estilos SmartPOS -->
+  <link rel="stylesheet" href="css/comparar-precios.css">
+  <link rel="icon" href="img/favicon-pos.png">
+</head>
+
+<body class="min-h-screen flex flex-col font-inter text-gray-900">
+
+  <!-- ==========================================================
+  💎 ENCABEZADO FIJO SMARTPOS
+  =========================================================== -->
+  <header class="header-config">
+    <div class="header-content">
+      <button onclick="window.location.href='venta.html'" class="btn-volver">
+        <i data-lucide="arrow-left"></i> Volver a Venta
+      </button>
+
+      <div class="flex items-center gap-2 ml-auto">
+        <i data-lucide="shopping-bag" class="w-6 h-6 text-white"></i>
+        <h1 class="text-xl font-semibold text-white">Comparar Precios</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================
+  📦 CONTENIDO PRINCIPAL
+  =========================================================== -->
+  <main class="flex-1 w-full px-6 mt-[5rem] pb-10">
+    <div class="max-w-3xl mx-auto space-y-10 animate-fadeIn text-center">
+
+      <!-- 🧩 Producto a comparar -->
+      <section class="card-section border-fuchsia-200">
+        <h2 class="text-lg font-semibold text-fuchsia-700 flex items-center justify-center gap-2 mb-3">
+          <i data-lucide="tag"></i> Producto a comparar
+        </h2>
+        <p id="nombreProducto" class="text-gray-700 font-bold text-base"></p>
+      </section>
+
+      <!-- 🏪 Tiendas -->
+      <section class="card-section border-fuchsia-200">
+        <h2 class="text-lg font-semibold text-fuchsia-700 flex items-center justify-center gap-2 mb-4">
+          <i data-lucide="store"></i> Selecciona una tienda
+        </h2>
+
+        <div id="enlaces" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ⚙️ Scripts -->
+  <script type="module">
+    import { protegerSesion } from "./js/proteccion.js";
+    await protegerSesion();
+
+    lucide.createIcons();
+
+    // 🔍 Obtener producto desde la URL
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q") || "Sin producto seleccionado";
+    document.getElementById("nombreProducto").textContent = q;
+
+    // 🏪 Tiendas
+    const tiendas = [
+      { nombre: "Google Shopping", icono: "shopping-bag", color: "text-fuchsia-500", url: `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(q)}` },
+      { nombre: "Mercado Libre", icono: "store", color: "text-yellow-400", url: `https://listado.mercadolibre.com.mx/${encodeURIComponent(q)}` },
+      { nombre: "Amazon México", icono: "package", color: "text-purple-500", url: `https://www.amazon.com.mx/s?k=${encodeURIComponent(q)}` },
+      { nombre: "Walmart", icono: "shopping-cart", color: "text-blue-500", url: `https://www.walmart.com.mx/productos?Ntt=${encodeURIComponent(q)}` },
+      { nombre: "Liverpool", icono: "heart", color: "text-pink-500", url: `https://www.liverpool.com.mx/tienda?s=${encodeURIComponent(q)}` },
+      { nombre: "Chedraui", icono: "percent", color: "text-orange-500", url: `https://www.chedraui.com.mx/search?q=${encodeURIComponent(q)}` },
+      { nombre: "Soriana", icono: "basket", color: "text-green-600", url: `https://www.soriana.com/s?dy=1&Ntt=${encodeURIComponent(q)}` },
+      { nombre: "Petco México", icono: "paw-print", color: "text-fuchsia-500", url: `https://www.petco.com.mx/search?text=${encodeURIComponent(q)}` },
+      { nombre: "La Comer", icono: "apple", color: "text-orange-500", url: `https://www.lacomer.com.mx/lacomer/buscar?Ntt=${encodeURIComponent(q)}` },
+      { nombre: "Bodega Aurrera", icono: "warehouse", color: "text-green-500", url: `https://www.bodegaaurrera.com.mx/productos?Ntt=${encodeURIComponent(q)}` },
+      { nombre: "Costco México", icono: "truck", color: "text-red-500", url: `https://www.costco.com.mx/search?text=${encodeURIComponent(q)}` },
+    ];
+
+    // 🧩 Generar enlaces
+    const cont = document.getElementById("enlaces");
+    tiendas.forEach(t => {
+      const a = document.createElement("a");
+      a.href = t.url;
+      a.target = "_blank";
+      a.className =
+        "btn-accion flex items-center justify-center gap-2 text-white text-sm font-semibold py-2";
+      a.innerHTML = `<i data-lucide="${t.icono}" class="w-4 h-4 ${t.color}"></i> ${t.nombre}`;
+      cont.appendChild(a);
+    });
+
+    lucide.createIcons();
+  </script>
+
+  <!-- ✨ Animación -->
+  <style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fadeIn { animation: fadeIn 0.6s ease-out forwards; }
+  </style>
+</body>
+</html>

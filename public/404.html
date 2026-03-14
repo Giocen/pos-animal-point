@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Página no encontrada | SmartPOS</title>
+
+  <!-- 🪙 Favicon -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <!-- 💜 Estilos SmartPOS -->
+  <style>
+    body {
+      font-family: "Poppins", system-ui, sans-serif;
+      background: linear-gradient(135deg, #a21caf, #701a75, #3b0764);
+      background-size: 300% 300%;
+      animation: gradientMove 10s ease infinite;
+      color: white;
+      text-align: center;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    img {
+      width: 120px;
+      margin: 0 auto 1.5rem;
+      border-radius: 1rem; /* 🔹 Esquinas redondeadas */
+      box-shadow:
+        6px 6px 12px rgba(0,0,0,0.4),
+        -6px -6px 12px rgba(255,255,255,0.1);
+      animation: fadeIn 1.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    p {
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-bottom: 1.5rem;
+    }
+
+    a {
+      display: inline-block;
+      background: white;
+      color: #a21caf;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0.8rem 1.8rem;
+      border-radius: 2rem;
+      text-decoration: none;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+      transition: all 0.25s ease-in-out;
+    }
+
+    a:hover {
+      background: #f5e1ff;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.45);
+    }
+
+    footer {
+      position: absolute;
+      bottom: 12px;
+      width: 100%;
+      text-align: center;
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 🖼️ Logo central redondeado -->
+  <img src="img/favicon-pos.png" alt="SmartPOS Logo">
+
+  <h1>¡Ups! Página no encontrada</h1>
+  <p>El enlace que abriste no existe o fue movido.</p>
+
+  <!-- 🔁 Botón redirige al login -->
+  <a href="login">Volver a SmartPOS</a>
+
+  <footer>© <span id="year"></span> SmartPOS</footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

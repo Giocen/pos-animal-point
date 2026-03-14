@@ -1,0 +1,326 @@
+/* ==========================================================
+💜 SmartPOS | reportes.css (v3.5 estilo Productos Unificado Compacto)
+========================================================== */
+
+/* --- Fondo general animado --- */
+body {
+  background: linear-gradient(135deg, #a21caf, #7e22ce, #3b0764);
+  background-size: 300% 300%;
+  animation: fondoSmartPOS 12s ease infinite;
+  font-family: "Inter", sans-serif;
+  color: #1f1f1f;
+  margin: 0;
+  min-height: 100vh;
+}
+
+@keyframes fondoSmartPOS {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ==========================================================
+💎 HEADER UNIFICADO REPORTES (100% ancho)
+========================================================== */
+.header-reportes {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+  z-index: 50;
+  padding: 0.9rem 0;
+}
+
+.header-content {
+  width: 95%;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.25s ease;
+}
+.btn-volver:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================
+📦 CONTENEDOR PRINCIPAL
+========================================================== */
+main {
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 2rem;
+  margin-top: 5.5rem; /* justo debajo del header fijo */
+  max-width: 1600px;
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #a21caf, #ec4899);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ==========================================================
+📊 BOTONES PRINCIPALES DE REPORTES
+========================================================== */
+.reporte-btn {
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0.6rem;
+  padding: 0.7rem 1.1rem;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.reporte-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+/* ==========================================================
+🔍 FILTROS COMPACTOS Y DISCRETOS
+========================================================== */
+#filtros {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 0.7rem;
+  border: 1px solid rgba(162, 28, 175, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 0.8rem 1rem; /* 🔹 más delgado */
+  backdrop-filter: blur(3px);
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+#filtroContenedor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.8rem;
+}
+
+#filtros label {
+  font-size: 0.8rem;
+  color: #a21caf;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.input-filtro {
+  border: 1.3px solid #d1d5db;
+  border-radius: 0.45rem;
+  padding: 0.45rem 0.7rem;
+  background: #fff;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+.input-filtro:focus {
+  outline: none;
+  border-color: #a21caf;
+  box-shadow: 0 0 0 2px rgba(162, 28, 175, 0.25);
+}
+
+#btnAplicarFiltro {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 0.45rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: linear-gradient(90deg, #a21caf, #ec4899);
+  color: #fff;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+#btnAplicarFiltro:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================
+📋 RESULTADOS Y TABLA AJUSTADA
+========================================================== */
+#resultado {
+  width: 98%;
+  max-width: 1400px;
+  margin: 0 auto;
+  border-radius: 0.8rem;
+  overflow-x: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(162, 28, 175, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1rem 1.25rem;
+}
+
+/* --- Tabla interna --- */
+#resultado table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+  background: #fff;
+  table-layout: auto;
+  word-break: break-word;
+}
+
+/* --- Encabezado sticky --- */
+#resultado thead {
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+#resultado th {
+  padding: 0.7rem 0.5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.25);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* --- Filas --- */
+#resultado td {
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid rgba(162, 28, 175, 0.1);
+  background: rgba(255, 255, 255, 0.97);
+  color: #1f1f1f;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#resultado tbody tr:nth-child(even) td {
+  background: rgba(249, 245, 255, 0.85);
+}
+#resultado tbody tr:hover td {
+  background: rgba(236, 72, 153, 0.08);
+  transition: background 0.25s ease;
+}
+
+/* ==========================================================
+📱 RESPONSIVO
+========================================================== */
+@media (max-width: 1024px) {
+  .header-content h1 { font-size: 1.3rem; }
+  main { padding-top: 7rem; }
+  #resultado table { font-size: 0.8rem; }
+  #resultado th, #resultado td { padding: 0.5rem; }
+}
+
+@media (max-width: 768px) {
+  .header-content { flex-direction: column; gap: 0.6rem; text-align: center; }
+  .reporte-btn { width: 100%; justify-content: center; }
+  #filtroContenedor { flex-direction: column; }
+  #resultado { padding: 0.8rem; }
+  #resultado table { font-size: 0.75rem; }
+  #resultado th, #resultado td { padding: 0.4rem; }
+  #btnAplicarFiltro { width: 100%; justify-content: center; }
+}
+
+/* ==========================================================
+🎚️ BOTÓN MOSTRAR / OCULTAR FILTROS
+========================================================== */
+.btn-filtros-toggle {
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.55rem 1rem;
+  border-radius: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+.btn-filtros-toggle:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+/* 🔹 Animación al mostrar */
+.fadeIn {
+  animation: aparecer 0.35s ease forwards;
+}
+@keyframes aparecer {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================
+   🎯 PRODUCTOS NO VENDIDOS – TABLA ESTÉTICA
+   ========================================================== */
+
+/* Contenedor blanco */
+.contenedor-pnv {
+  width: 98%;
+  max-width: 1300px;
+  margin: 1.5rem auto;
+  background: white;
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+  border: 1px solid rgba(162,28,175,0.20);
+}
+
+/* Tabla */
+.tabla-pnv {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+/* Encabezado */
+.tabla-pnv thead {
+  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
+  color: white;
+}
+
+.tabla-pnv th {
+  padding: 10px;
+  font-size: 0.85rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Filas */
+.tabla-pnv td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.tabla-pnv tr:nth-child(even) td {
+  background: #faf5ff;
+}
+
+.tabla-pnv tr:hover td {
+  background: #fdf2f8;
+  transition: 0.2s;
+}

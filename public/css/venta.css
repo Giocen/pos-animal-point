@@ -1,0 +1,1401 @@
+/* ==========================================================
+   💜 SMARTPOS — ESTILO C OSCURO + GLASS INTERMEDIO (FINAL)
+   PARTE 1/3 — GLOBAL, HEADER, PANEL IZQUIERDO, LAYOUT 3 COLUMNAS
+========================================================== */
+
+/* ==============================
+   GLOBAL
+============================== */
+body.ventas {
+  background: #1A042D;
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  padding-bottom: 70px;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Eliminamos márgenes de body para layout full */
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+/* ==============================
+   HEADER
+============================== */
+.header-pos {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 54px;
+  background: rgba(34,13,52,0.55);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  padding: 0 18px;
+  z-index: 99999;
+}
+
+.titulo-pos {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: .5px;
+  color: #fff;
+}
+
+.btn-icon,
+.btn-icon-red {
+  padding: 6px;
+  border-radius: 8px;
+  color: #fff;
+  transition: background .25s;
+}
+
+.btn-icon:hover { background: rgba(255,255,255,0.10); }
+.btn-icon-red:hover { background: rgba(255,0,0,0.25); }
+
+/* ==============================
+   PANEL LATERAL IZQUIERDO (OCULTO)
+============================== */
+
+.panel-lateral {
+  position: fixed;
+  top: 54px;
+  left: 0;
+  width: 260px;
+  height: calc(100vh - 54px);
+  background: rgba(30,10,45,0.85);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(255,255,255,0.15);
+  transform: translateX(-100%);
+  transition: transform .28s ease;
+  z-index: 9001;
+}
+
+.panel-lateral.open {
+  transform: translateX(0);
+}
+
+.panel-lateral-header {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.panel-lateral-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.panel-close-btn {
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 8px;
+  color: #fff;
+  transition: .25s;
+}
+.panel-close-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.panel-lateral-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel-btn-left {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  transition: transform .18s ease;
+}
+
+.panel-btn-left:hover {
+  transform: scale(1.05);
+}
+
+.panel-btn-left i {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.2;
+  color: #fff;
+}
+
+
+/* Cada columna con scroll independiente */
+.venta-panel-izquierdo,
+#panelPago,
+.panel-derecho {
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* Scroll suave */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.08);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.25);
+  border-radius: 4px;
+}
+
+
+/* ==============================
+   AJUSTES DE ESPACIADO COLUMNAS
+============================== */
+
+#panelPago {
+  padding: 26px;
+  border-left: none !important;
+  border-right: none !important;
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(14px);
+}
+
+
+.panel-derecho {
+  padding-left: 14px;
+  background: rgba(40,16,66,0.45);
+  backdrop-filter: blur(12px);
+  border-left: none !important;
+}
+
+
+/* ==============================
+   CARDS BASE GLASS
+============================== */
+.card {
+  background: rgba(40,16,66,0.35);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 18px;
+}
+
+/* ==========================================================
+   💜 SMARTPOS — PARTE 2/3
+   CARRITO COMPLETO (50%)
+========================================================== */
+
+/* ==============================================
+   CONTENEDOR DEL CARRITO (BLANCO ELEGANTE)
+============================================== */
+.carrito-card {
+  background: #ffffff !important;
+  border: 2px solid #c7d2fe !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
+  border-radius: 0 !important;
+  padding: 22px !important;
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==============================================
+   BUSCADOR — INPUTS GRANDES
+============================================== */
+
+.buscador-carrito {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e7ff;
+}
+
+.buscador-carrito .row {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: nowrap !important;
+}
+
+/* Input base */
+.input-lg {
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  background: #ffffff;
+  color: #1e3a8a;
+  border: 2px solid #c7d2fe;
+  transition: .25s;
+  height: 48px;
+}
+
+.input-lg::placeholder {
+  color: #60a5fa;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.input-lg:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 6px rgba(129,140,248,0.35);
+  outline: none;
+}
+
+/* SKU ancho para escáner */
+#sku {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+/* Cantidad */
+.input-cantidad {
+  width: 90px;
+  text-align: center;
+  color: #1e3a8a !important;
+}
+
+/* Label */
+.label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e3a8a !important;
+  display: flex;
+  gap: 4px;
+}
+
+/* ==============================================
+   BOTÓN AGREGAR
+============================================== */
+.btn-agregar {
+  background: linear-gradient(135deg, #9333ea, #a21caf);
+  color: #fff !important;
+  font-weight: 700;
+  padding: 10px 22px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 48px;
+  border: 1px solid rgba(255,255,255,0.18);
+  transition: .25s;
+  box-shadow: 0 4px 12px rgba(162, 28, 175, 0.25);
+  margin-top: 22px !important;
+}
+
+.btn-agregar:hover {
+  background: linear-gradient(135deg, #a855f7, #c026d3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(192, 38, 211, 0.25);
+}
+
+/* ==============================================
+   BOTÓN ABRIR CAJA (ÁMBAR)
+============================================== */
+#btnAbrirCaja {
+  height: 48px !important;
+  padding: 0 22px !important;
+  border-radius: 10px !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  margin-top: 22px !important;
+
+  background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+  color: #000 !important;
+  text-shadow: 0px 0px 2px rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.18);
+}
+
+#btnAbrirCaja i {
+  width: 18px !important;
+  height: 18px !important;
+  color: #000 !important;
+}
+
+/* ==============================================
+   TABLA DEL CARRITO
+============================================== */
+.carrito-card .tabla {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.carrito-card table td {
+  background: #fff !important;
+  color: #1e3a8a !important;
+  padding: 8px !important;
+  border-bottom: 1px solid #e0e7ff !important;
+}
+
+/* Icono borrar */
+.carrito-card table td i {
+  color: #be123c !important;
+}
+
+/* Columnas */
+.carrito-card table th:nth-child(1),
+.carrito-card table td:nth-child(1) { width: 45% !important; }
+
+.carrito-card table th:nth-child(2),
+.carrito-card table td:nth-child(2) { width: 15% !important; }
+
+.carrito-card table th:nth-child(3),
+.carrito-card table td:nth-child(3) { width: 15% !important; }
+
+.carrito-card table th:nth-child(4),
+.carrito-card table td:nth-child(4) { width: 20% !important; }
+
+/* ==============================================
+   SECCIÓN PESO + TOTAL (BLANCO)
+============================================== */
+
+/* Total */
+.total-texto {
+  height: 48px;
+  padding: 0 20px;
+  min-width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  background: #ffffff;
+  border: 2px solid #c7d2fe;
+  border-radius: 10px;
+
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #1e3a8a;
+}
+
+.label-total,
+.simbolo-total {
+  font-weight: 900;
+  color: #1e3a8a;
+}
+
+/* ==========================================================
+   💜 SMARTPOS — PARTE 3/3
+   PANEL DE PAGO (30%) + PANEL DERECHO (20%)
+   FOOTER + TOOLTIP + LAYOUT FINAL
+========================================================== */
+
+
+/* scroll independiente en cada columna */
+.venta-panel-izquierdo,
+#panelPago,
+.panel-derecho {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* PANEL IZQUIERDO SIN PADDING — UNIFICADO AL HEADER Y BORDES */
+.venta-panel-izquierdo {
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+}
+
+/* La tarjeta blanca del carrito mantiene su padding interno */
+.carrito-card {
+  padding: 22px !important;
+}
+
+
+
+/* ==========================================================
+   🟣 PANEL DE PAGO (30%) — Glass + Colores SmartPOS
+========================================================== */
+
+#panelPago {
+  height: 100%;
+  overflow-y: auto;
+  padding: 30px 24px;
+  border-left: none !important;
+  border-right: none !important;
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(14px);
+}
+
+
+/* Contenido del panel de pago */
+.panel-pago {
+  background: rgba(255,255,255,0.12);
+  border-left: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(18px);
+  padding: 30px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* TÍTULO */
+.pago-title {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 6px !important;
+  color: #fff;
+} 
+
+/* GRID DE MÉTODOS */
+.pago-metodos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* BOTÓN MÉTODO */
+.pago-metodo-btn {
+  background: rgba(255,255,255,0.14);
+  padding: 18px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: .2s;
+}
+
+.pago-metodo-btn i {
+  width: 30px;
+  height: 30px;
+}
+
+/* Método activo */
+.pago-metodo-btn.active {
+  background: linear-gradient(90deg, #a21caf, #ff00a6);
+  border-color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 0 18px rgba(255,0,150,0.5);
+}
+
+/* FORMULARIO */
+.pago-formulario {
+  background: rgba(0,0,0,0.35);
+  padding: 22px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pago-formulario label {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.pago-input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.35);
+}
+
+/* TOTAL */
+.panel-pago-total {
+  background: rgba(255,255,255,0.15);
+  padding: 12px 16px;
+  border-radius: 12px;
+
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #fff;
+
+  display: flex;
+  justify-content: space-between;
+  letter-spacing: 1px;
+}
+
+/* BOTÓN FINALIZAR */
+.btn-finalizar-pago {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  padding: 20px;
+  height: 68px;
+  border-radius: 14px;
+  font-size: 1.3rem;
+  font-weight: 900;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+  transition: .2s;
+}
+
+.btn-finalizar-pago:hover {
+  transform: scale(1.04);
+  background: linear-gradient(90deg, #16a34a, #0c7a33);
+}
+
+/* ==========================================================
+   🟦 PANEL DERECHO (20%) — Botones de acciones SmartPOS
+========================================================== */
+
+/* PANEL DERECHO  */
+.panel-derecho {
+  height: 100%;
+  overflow-y: auto;
+  padding: 22px;
+  padding-left: 14px;
+  background: rgba(255,255,255,0.10) !important;
+  backdrop-filter: blur(14px) !important;
+  border-left: 1px solid rgba(255,255,255,0.12);
+}
+
+
+/* GRID de botones */
+.panel-derecho .panel-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+/* Botón */
+.panel-derecho .panel-btn {
+  padding: 18px 10px;
+  border-radius: 14px;
+
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.90rem;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+
+  border: none;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  backdrop-filter: blur(6px);
+  background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+
+  transition: transform .15s ease;
+}
+
+.panel-derecho .panel-btn:hover {
+  transform: scale(1.07);
+}
+
+/* Icono */
+.panel-derecho .panel-btn i {
+  width: 30px;
+  height: 30px;
+  stroke-width: 2.4;
+  stroke: #fff;
+  opacity: 0.95;
+}
+
+/* COLORES OFICIALES */
+.panel-derecho .btn-productos       { background: linear-gradient(135deg,#7c3aed,#a855f7); }
+.panel-derecho .btn-proveedores     { background: linear-gradient(135deg,#0ea5e9,#2563eb); }
+.panel-derecho .btn-pedidos         { background: linear-gradient(135deg,#10b981,#059669); }
+.panel-derecho .btn-alta            { background: linear-gradient(135deg,#ec4899,#db2777); }
+.panel-derecho .btn-entradas        { background: linear-gradient(135deg,#6366f1,#8b5cf6); }
+.panel-derecho .btn-salidas         { background: linear-gradient(135deg,#f59e0b,#d97706); }
+.panel-derecho .btn-abrir-corte     { background: linear-gradient(135deg,#10b981,#059669); }
+.panel-derecho .btn-cerrar-corte    { background: linear-gradient(135deg,#ef4444,#dc2626); }
+.panel-derecho .btn-arqueo          { background: linear-gradient(135deg,#3b82f6,#2563eb); }
+.panel-derecho .btn-entrada-efectivo{ background: linear-gradient(135deg,#a855f7,#7c3aed); }
+.panel-derecho .btn-salida-efectivo { background: linear-gradient(135deg,#f97316,#ea580c); }
+
+/* ==========================================================
+   🎧 TOOLTIP UNIVERSAL SmartPOS
+========================================================== */
+
+.tooltip {
+  position: absolute;
+  background: rgba(0,0,0,0.80);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity .18s ease, transform .18s ease;
+  z-index: 999999 !important;
+}
+
+.tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0,0,0,0.80) transparent transparent transparent;
+}
+
+.has-tooltip {
+  position: relative;
+}
+
+.has-tooltip:hover .tooltip {
+  opacity: 1;
+  transform: translateY(-10px);
+}
+
+/* TOOLTIP ESTILO CHROME */
+.tooltip-chrome {
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2b2b2b;
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  border-radius: 4px;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.35);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity .20s ease, transform .20s ease;
+  z-index: 999999 !important;
+}
+
+.tooltip-chrome::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #2b2b2b transparent transparent transparent;
+}
+
+.group:hover .tooltip-chrome {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-3px);
+}
+
+/* ==========================================================
+   ⭐ FOOTER SMARTPOS
+========================================================== */
+
+.footer-pos {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 54px;
+  width: 100%;
+  background: rgba(30,10,45,0.55);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  z-index: 99999;
+}
+
+.footer-row {
+  width: 100%;
+  padding: 0 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ICONOS IZQUIERDA */
+.footer-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+.footer-left i,
+.footer-right i,
+.footer-pos i {
+  width: 22px !important;
+  height: 22px !important;
+  color: #d1d5db !important;
+  opacity: 0.9 !important;
+}
+
+/* Usuario derecha */
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.footer-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #e5e7eb;
+}
+
+.footer-user-icon {
+  width: 18px;
+  height: 18px;
+  color: #e5e7eb;
+}
+
+/* ==========================================================
+   🔥 FIX FINAL — LAYOUT 3 COLUMNAS 50 / 30 / 20
+========================================================== */
+
+/* === AJUSTE DE COLUMNAS PARA 45 / 33 / 22 === */
+.contenido-ventas {
+  width: 100%;
+  height: calc(100vh - 54px);
+  margin-top: 54px;
+  display: grid !important;
+  grid-template-columns: 45% 30% 25% !important; /* Carrito - Pago - Botones */
+  overflow: visible !important;
+}
+/* === PESO MANUAL — ALINEADO EN UNA SOLA LÍNEA === */
+
+.carrito-card table th {
+  background: #dbeafe !important;
+  color: #1e3a8a !important;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+/* TOTAL */
+.total-texto {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 2px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 0 24px;
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #1e3a8a;
+}
+/* ==========================================================
+   🔧 FIX DEFINITIVO — PESO + TOTAL ALINEADOS
+========================================================== */
+
+/* Contenedor Peso + Total */
+.carrito-info-grid {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;    
+  gap: 10px;                     
+  padding: 10px 10px 0 10px;     
+  margin-top: 0 !important;       
+  border-top: 2px solid #e0e7ff;
+  background: #ffffff !important;
+}
+
+/* ============================  
+   ⚖️ BLOQUE PESO  
+============================ */
+.peso-manual-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eef2ff;
+  border: 2px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 6px 16px;
+  height: 48px;
+  white-space: nowrap !important;
+}
+
+.peso-manual-input {
+  width: 85px !important;
+  font-size: 1.25rem;
+  font-weight: 900;
+  background: transparent !important;
+  border: none !important;
+  text-align: center;
+  color: #1e3a8a !important;
+}
+
+.kg-label {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1e3a8a !important;
+}
+
+/* ============================  
+   💰 TOTAL  
+============================ */
+.total-texto {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 26px;
+  background: #ffffff;
+  border: 2px solid #c7d2fe;
+  border-radius: 10px;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #1e3a8a;
+}
+
+/* ==========================================================
+   🔠 ENCABEZADOS TABLA MÁS GRANDES + FUERTES
+========================================================== */
+.carrito-card table th {
+  background: #dbeafe !important;
+  color: #1e3a8a !important;
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+  padding: 12px 8px !important;
+}
+
+/* Ítems dentro del carrito un poco más grandes */
+.carrito-card table td {
+  font-size: 1rem !important;
+}
+
+/* ==========================================================
+   🔥 FIX GLOBAL: eliminar padding TOTAL del panel izquierdo
+=========================================================== */
+
+.venta-panel-izquierdo {
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+}
+
+/* Quitar separación arriba del carrito dentro del panel */
+.venta-panel-izquierdo .card {
+  margin-top: 0 !important;
+}
+
+/* ==========================================================
+   🔥 PANEL DERECHO EN DOS COLUMNAS — SmartPOS Ventas
+========================================================== */
+
+.panel-derecho .panel-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 14px !important;
+}
+
+/* Los botones deben ocupar todo el ancho de su celda */
+.panel-derecho .panel-btn {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 18px 10px !important;
+  border-radius: 14px !important;
+}
+
+/* ==========================================================
+   🟣 FIX FINAL — Panel carrito ajustado entre header y footer
+========================================================== */
+
+.venta-panel-izquierdo {
+  height: calc(100vh - 108px) !important; /* 54 header + 54 footer */
+  overflow-y: auto !important;
+}
+
+#panelPago,
+.panel-derecho {
+  height: calc(100vh - 108px) !important;
+  overflow-y: auto !important;
+}
+
+/* ==========================================================
+   🟢 BOTÓN BÁSCULA FOOTER — SmartPOS
+========================================================== */
+
+/* Botón base */
+.footer-btn-bascula {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+/* Icono */
+.footer-btn-bascula i {
+  width: 20px;
+  height: 20px;
+  color: #e5e7eb;
+  stroke-width: 2.3;
+  transition: 0.25s;
+}
+
+/* Texto derecha */
+.estado-bascula-footer {
+  font-size: 0.9rem;
+  margin-left: 6px;
+  opacity: 0.9;
+  transition: 0.25s;
+}
+
+/* ESTADO: DESCONECTADA */
+.footer-btn-bascula.off {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.18);
+}
+
+.estado-bascula-footer.off {
+  color: #e5e7eb;
+}
+
+/* ESTADO: CONECTADA */
+.footer-btn-bascula.on {
+  background: rgba(16,185,129,0.2);  /* verde suave */
+  border-color: #10b981;
+}
+
+.footer-btn-bascula.on i {
+  color: #10b981 !important;
+}
+
+.estado-bascula-footer.on {
+  color: #10b981 !important;
+  font-weight: 700;
+}
+
+.carrito-card table tr:nth-child(even) td {
+  background: #eef2ff !important;
+}
+
+.carrito-card table th {
+  background: #c7d2fe !important;
+  color: #1e1b4b !important;
+  font-size: 1.1rem !important;
+  font-weight: 900 !important;
+  padding: 14px 10px !important;
+}
+
+/* ==========================================================
+   🔹 BOTONES MÉTODO DE PAGO — Tamaño compacto tipo botón
+========================================================== */
+
+.pago-metodos-grid {
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px !important;
+}
+
+.pago-metodo-btn {
+  height: 48px !important;                   /* MISMO ALTO QUE AGREGAR */
+  padding: 0 16px !important;                /* Compacto */
+  border-radius: 10px !important;            /* Igual que agregar */
+  flex-direction: row !important;            /* Ícono + texto en una línea */
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+}
+
+/* Ícono pequeño y alineado */
+.pago-metodo-btn i {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Activo */
+.pago-metodo-btn.active {
+  background: linear-gradient(135deg, #9333ea, #a21caf) !important;
+  border-color: #fff !important;
+  transform: scale(1.03) !important;
+  box-shadow: 0 4px 12px rgba(162, 28, 175, 0.35) !important;
+}
+
+/* =======================================================
+   🔧 FIX — BLOQUE DE CAMBIO INDEPENDIENTE DEL INPUT
+======================================================= */
+
+.pago-cambio-box {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+}
+
+.pago-cambio-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #e5e7eb;
+  margin-bottom: 4px;
+}
+
+.pago-cambio-valor {
+  width: 100%;
+  background: rgba(91, 22, 123, 0.35);
+  border: 1px solid rgba(147, 51, 234, 0.5);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 1.9rem;
+  font-weight: 900;
+  text-align: center;
+  color: #fff;
+}
+
+.carrito-card {
+  background: #ffffff !important;
+  border: 2px solid #c7d2fe !important;
+  border-radius: 16px !important; /* 🔥 ESQUINAS REDONDEADAS */
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
+  padding: 22px !important;
+  height: calc(100% - 10px) !important; /* Ajuste suave */
+  margin: 5px !important; /* Se despega apenas del borde */
+}
+
+
+/* ==========================================================
+   🎨 COLORES SMARTPOS PARA MÉTODOS DE PAGO
+   Asigna el color automáticamente según data-metodo
+========================================================== */
+
+.pago-metodo-btn[data-metodo="efectivo"] {
+  background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+  color: #fff !important;
+}
+
+.pago-metodo-btn[data-metodo="tarjeta"] {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #fff !important;
+}
+
+.pago-metodo-btn[data-metodo="transferencia"] {
+  background: linear-gradient(135deg, #9333ea, #6b21a8) !important;
+  color: #fff !important;
+}
+
+.pago-metodo-btn[data-metodo="mixto"] {
+  background: linear-gradient(135deg, #f97316, #ea580c) !important;
+  color: #fff !important;
+}
+
+/* Íconos blancos siempre */
+.pago-metodo-btn i {
+  stroke: #fff !important;
+}
+
+/* Botón activo (más brillante) */
+.pago-metodo-btn.active {
+  border: 2px solid #fff !important;
+  transform: scale(1.06) !important;
+  box-shadow: 0 0 14px rgba(255,255,255,0.35) !important;
+}
+
+
+/* ==========================================================
+   💜 FIX SWEETALERT POR ENCIMA DEL LOADER
+   Hace que cualquier Swal aparezca arriba del loader
+========================================================== */
+
+.swal2-container {
+  z-index: 999999 !important;  /* MÁS ALTO QUE EL LOADER */
+}
+
+.swal2-popup {
+  z-index: 999999 !important;
+}
+
+.swal-smartpos {
+  z-index: 999999 !important;
+}
+
+
+
+@media (max-width: 1024px) {
+  .contenido-ventas {
+    grid-template-columns: 50% 30% 20% !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .panel-derecho .panel-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+
+  .panel-derecho .panel-btn {
+    padding: 20px 12px !important;
+    font-size: 1rem !important;
+  }
+
+  .panel-derecho .panel-btn i {
+    width: 34px !important;
+    height: 34px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .pago-metodo-btn {
+    height: 54px !important;
+    font-size: 1.05rem !important;
+  }
+
+  .pago-metodo-btn i {
+    width: 22px !important;
+    height: 22px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .carrito-card table th {
+    font-size: 1.05rem !important;
+  }
+
+  .carrito-card table td {
+    font-size: 1.05rem !important;
+  }
+
+  .input-lg {
+    font-size: 1.1rem !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .header-pos,
+  .footer-pos {
+    height: 60px !important;
+  }
+
+  .contenido-ventas {
+    height: calc(100vh - 120px) !important;
+    margin-top: 60px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .panel-lateral {
+    width: 300px !important;
+  }
+
+  .panel-btn-left {
+    font-size: 1.05rem !important;
+    padding: 16px !important;
+  }
+}
+
+
+/* ==========================================================
+   🟢 FIX TABLET — Peso + Total SIEMPRE visibles
+========================================================== */
+@media (max-width: 1024px) {
+
+  /* El panel izquierdo usa flex correctamente */
+  .venta-panel-izquierdo {
+    height: calc(100vh - 108px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  /* El carrito ya no se corta */
+  .carrito-card {
+    flex: 1 1 auto !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  /* La tabla scrollea, no el card completo */
+  .carrito-card .tabla {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* El bloque peso + total queda fijo abajo */
+  .carrito-info-grid {
+    flex-shrink: 0 !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 5 !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .carrito-info-grid {
+    box-shadow: 0 -6px 14px rgba(0,0,0,0.08);
+  }
+}
+
+/* 🔥 FIX CALENDARIO INPUT DATE */
+input[type="date"] {
+  position: relative;
+  z-index: 999999 !important;
+}
+
+.card-3d,
+#panelPersonalizado,
+#panelContent {
+  overflow: visible !important;
+}
+
+/* ==========================================================
+   🔎 AUTOCOMPLETE POS — FIX VISUAL
+========================================================== */
+
+.buscador-carrito {
+  position: relative;
+  overflow: visible !important;
+}
+
+.buscador-carrito .row {
+  overflow: visible !important;
+}
+
+#autocompleteProductos{
+  position:absolute;
+  left:0;
+  top:100%;
+  margin-top:6px;
+
+  width:520px;          /* 🔥 ancho real del dropdown */
+  max-width:520px;
+
+  background:#ffffff;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  box-shadow:0 14px 28px rgba(0,0,0,.18);
+
+  max-height:320px;
+  overflow-y:auto;
+
+  z-index:999999 !important;
+}
+
+#autocompleteProductos div:hover{
+  background:#fdf2f8;
+}
+
+/* ==========================================================
+   🔎 AUTOCOMPLETE POS — FIX TEXTO
+========================================================== */
+
+#autocompleteProductos {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+#autocompleteProductos *{
+  color:#111827 !important;
+}
+
+#autocompleteProductos .autocomplete-item{
+  color: #111827 !important;
+  font-weight: 600;
+}
+
+#autocompleteProductos span {
+  color: #374151 !important;
+}
+
+#autocompleteProductos div:hover {
+  background: #f3f4f6 !important;
+}
+
+.autocomplete-item:hover{
+  background:#f3f4f6;
+}
+
+.autocomplete-nombre{
+  font-weight:600;
+}
+
+.autocomplete-precio{
+  color:#6b7280;
+}
+
+/* ==========================================================
+   🔎 AUTOCOMPLETE POS — TEXTO MULTILINEA
+========================================================== */
+
+.autocomplete-item{
+  padding:10px 12px;
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+  color:#111827;
+}
+
+.autocomplete-nombre{
+  font-weight:600;
+  color:#111827;
+  flex:1;
+
+  white-space:nowrap;
+}
+
+.autocomplete-precio{
+  color:#6b7280;
+  font-weight:700;
+  white-space:nowrap;
+  margin-left:auto;
+}
+
+#autocompleteProductos::-webkit-scrollbar{
+  width:6px;
+}
+
+#autocompleteProductos::-webkit-scrollbar-thumb{
+  background:#c7d2fe;
+  border-radius:4px;
+}
+
+.autocomplete-item.active{
+  background:#ede9fe;
+}
+
+.buscador-carrito .row{
+  display:flex;
+  align-items:flex-end;
+  gap:10px;
+}
+
+#cantidad{
+  width:70px !important;
+}
+.autocomplete-info{
+  flex:1;
+  min-width:0;
+}
+
+.buscador-carrito{
+  position:relative;
+}

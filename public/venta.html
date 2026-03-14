@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SmartPOS | Ventas</title>
+
+  <!-- 🎨 Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- 🔔 Notificaciones -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+  <!-- 📄 PDF / Ticket -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    if (window.jspdf && !window.jsPDF) window.jsPDF = window.jspdf.jsPDF;
+  </script>
+
+  <!-- 🖼 Iconos -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- 💅 Estilos -->
+  <link rel="stylesheet" href="/css/venta.css">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#1A042D" />
+  <link rel="icon" href="/img/favicon-pos.png">
+</head>
+
+<body class="ventas">
+
+  <!-- =======================================================================================
+      🟣 HEADER 
+  ======================================================================================= -->
+  <header class="header-pos">
+    <div class="flex items-center gap-3">
+      <button id="btnTogglePanel" class="btn-icon">
+        <i data-lucide="menu"></i>
+      </button>
+      <h1 class="titulo-pos">SmartPOS Ventas</h1>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button onclick="window.location.href='/index.html'" class="btn-icon">
+        <i data-lucide="home"></i>
+      </button>
+
+      <button id="btnLogout" class="btn-icon-red">
+        <i data-lucide="log-out"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- =======================================================================================
+      🟡 PANEL LATERAL (Izquierdo)
+  ======================================================================================= -->
+  <aside id="panelLateral" class="panel-lateral">
+    <div class="panel-lateral-header">
+      <div class="panel-lateral-title">
+        <i data-lucide="menu"></i><span>Panel SmartPOS</span>
+      </div>
+      <button id="btnCerrarPanel" class="panel-close-btn"><i data-lucide="x"></i></button>
+    </div>
+
+    <div class="panel-lateral-body">
+
+      <button id="btnClientePanel" class="panel-btn-left bg-gradient-to-r from-fuchsia-600 to-pink-500">
+        <i data-lucide="user"></i>Cliente
+      </button>
+
+      <button id="btnTopVendidos" class="panel-btn-left bg-gradient-to-r from-orange-500 to-amber-500">
+        <i data-lucide="flame"></i>Más Vendidos
+      </button>
+
+      <button id="btnResumen" class="panel-btn-left bg-gradient-to-r from-blue-600 to-sky-500">
+        <i data-lucide="calendar"></i>Resumen del Día
+      </button>
+
+      <button class="panel-btn-left bg-gradient-to-r from-purple-600 to-indigo-500"
+        onclick="window.location.href='/reportes/productos-no-vendidos.html'">
+        <i data-lucide="package-x"></i>Sku no vendidos
+      </button>      
+
+      <button class="panel-btn-left bg-gradient-to-r from-rose-600 to-pink-500"
+        onclick="window.location.href='/reportes/reporte-movimientos.html'">
+        <i data-lucide="repeat"></i>Movimientos SKU
+      </button>
+
+    </div>
+  </aside>
+
+  <!-- =======================================================================================
+      🧩 CONTENIDO PRINCIPAL (3 columnas)
+  ======================================================================================= -->
+  <main class="contenido-ventas">
+
+    <!-- 1) CARRITO ========================================================= -->
+    <div class="venta-panel-izquierdo">
+      <section class="card carrito-card">
+
+        <!-- BUSCADOR -->
+        <form id="formBuscar" class="buscador-carrito">
+          <div class="row">
+
+                    <div class="col">
+            <label class="label">
+              <i data-lucide="barcode"></i> SKU / Código
+            </label>
+
+            <div class="relative w-full">
+
+                <!-- INPUT BUSCADOR -->
+                <input
+                  id="sku"
+                  type="text"
+                  class="input-lg shadow-md pr-12"
+                  placeholder="Escanea o escribe..."
+                  autocomplete="off"
+                  required
+                >
+
+                <!-- BOTÓN BUSCAR -->
+                <button
+                  id="btnBuscarGlobal"
+                  type="button"
+                  class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-fuchsia-600 transition">
+                  <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
+
+                <!-- AUTOCOMPLETE POS -->
+                <div
+                  id="autocompleteProductos"
+                  class="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl hidden max-h-64 overflow-y-auto z-50">
+                </div>
+
+              </div>
+            </div>
+
+            <div class="col-sm">
+              <label class="label"><i data-lucide="hash"></i> Cantidad</label>
+              <input id="cantidad" type="number" min="1" placeholder="1"
+                class="input-lg input-cantidad text-center shadow-md">
+            </div>
+
+            <button id="btnAgregar" class="btn-agregar">
+              <i data-lucide="plus"></i> Agregar
+            </button>            
+
+          </div>
+        </form>
+
+        <!-- TABLA CARRITO -->
+        <div class="tabla">
+          <table>
+            <thead>
+              <tr>
+
+                <th>Producto</th>
+
+                <th class="text-right">Precio</th>
+
+                <th class="text-right">Cantidad</th>
+
+                <th class="text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <i data-lucide="percent" class="w-4 h-4 text-purple-400"></i>
+                    <span>Total</span>
+                  </div>
+                </th>
+
+                <th class="text-center w-12"></th>
+
+              </tr>
+            </thead>
+
+            <tbody id="carritoBody"></tbody>
+          </table>
+        </div>
+
+        <!-- TOTAL + KG -->
+        <div class="carrito-info-grid">
+          <div id="contenedorBascula" class="hidden"></div>
+
+          <div class="peso-manual-row">
+            <input id="pesoManual" type="text" inputmode="decimal" value="0.000"
+              placeholder="0.000" class="peso-manual-input" autocomplete="off" />
+            <span class="kg-label">kg</span>
+          </div>
+
+          <div class="total-texto">
+            <span class="label-total">Total:</span>
+            <span class="simbolo-total">$</span>
+            <span id="totalVenta">0.00</span>
+          </div>
+
+        </div>
+
+      </section>
+    </div>
+
+    <!-- 2) PANEL PAGO ======================================================= -->
+    <div id="panelPago" class="panel-pago">
+
+      <h2 class="pago-title">Método de Pago</h2>
+
+      <div class="pago-metodos-grid">
+        <button class="pago-metodo-btn" data-metodo="efectivo">
+          <i data-lucide="banknote"></i><span>Efectivo</span>
+        </button>
+
+        <button class="pago-metodo-btn" data-metodo="tarjeta">
+          <i data-lucide="credit-card"></i><span>Tarjeta</span>
+        </button>
+
+        <button class="pago-metodo-btn" data-metodo="transferencia">
+          <i data-lucide="refresh-ccw"></i><span>Transferencia</span>
+        </button>
+
+        <button class="pago-metodo-btn" data-metodo="mixto">
+          <i data-lucide="columns"></i><span>Mixto</span>
+        </button>
+      </div>
+
+      <!-- FORM DINÁMICO -->
+      <div id="panelPagoFormulario" class="pago-formulario"></div>      
+
+      <!-- TOTAL FINAL -->
+      <div class="panel-total-box">
+        <label>Total Final</label>
+        <div id="panelPagoTotal" class="panel-total-valor">$0.00</div>
+      </div>
+
+      <button id="btnFinalizarVentaPanel" class="btn-finalizar-pago">
+        <i data-lucide="check-circle"></i> Finalizar Venta
+      </button>
+
+    </div>
+
+    <!-- 3) PANEL DERECHO ==================================================== -->
+    <aside id="panelDerecho" class="panel-derecho">
+
+      <div class="panel-grid">
+
+        <button class="panel-btn btn-productos"
+          onclick="window.location.href='/productos.html'">
+          <i data-lucide="package"></i><span>Productos</span>
+        </button>
+
+        <button class="panel-btn btn-proveedores"
+          onclick="window.location.href='/proveedores.html'">
+          <i data-lucide="truck"></i><span>Proveedores</span>
+        </button>
+
+        <button class="panel-btn btn-pedidos"
+          onclick="window.location.href='/pedidos.html'">
+          <i data-lucide="shopping-bag"></i><span>Pedidos</span>
+        </button>
+
+        <button class="panel-btn btn-alta"
+          onclick="window.location.href='/inventario/inventario-alta.html'">
+          <i data-lucide="plus-circle"></i><span>Alta Sku</span>
+        </button>
+
+        <button class="panel-btn btn-entradas"
+          onclick="window.location.href='/inventario/entradas.html'">
+          <i data-lucide="arrow-down-circle"></i><span>Entrada Producto</span>
+        </button>
+
+        <button id="btnAbrirCorte"
+          class="panel-btn btn-abrir-corte">
+          <i data-lucide="log-in"></i><span>Abrir Corte venta</span>
+        </button>
+
+        <button id="btnCerrarCorte"
+          class="panel-btn btn-cerrar-corte">
+          <i data-lucide="log-out"></i><span>Cerrar Corte venta</span>
+        </button>
+
+        <button id="btnArqueo"
+          class="panel-btn btn-arqueo">
+          <i data-lucide="clipboard-list"></i><span>Arqueo venta</span>
+        </button>
+
+        <button id="btnEntrada"
+          class="panel-btn btn-entrada-efectivo">
+          <i data-lucide="plus-circle"></i><span>Entrada efectivo</span>
+        </button>
+
+        <button id="btnSalida"
+          class="panel-btn btn-salida-efectivo">
+          <i data-lucide="minus-circle"></i><span>Salida efectivo</span>
+        </button>
+
+      </div>
+
+    </aside>
+
+    <div id="panelPersonalizado" class="mt-4"></div>
+
+  </main>
+
+  <!-- =======================================================================================
+      🔥 ORDEN CORRECTO DE LOS MÓDULOS
+  ======================================================================================= -->
+  <!-- 1️⃣ Dexie -->
+
+  <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+
+  <!-- 2️⃣ Datos negocio -->
+  <script type="module" src="/js/tickets/datosNegocio.js"></script>
+
+  <!-- 3️⃣ Tickets -->
+  <script type="module" src="/js/venta/tickets.js"></script>
+
+  <!-- 4️⃣ Ventas -->
+  <script type="module" src="/js/venta/ventas.js"></script>
+
+  <!-- 5️⃣ Pagos -->
+  <script type="module" src="/js/venta/pagos.js"></script>
+
+  <!-- 6️⃣ Corte -->
+  <script type="module" src="/js/venta/corte.js"></script>
+
+  <!-- 7️⃣ Panel derecho -->
+  <script type="module" src="/js/venta/panel-personalizado.js"></script>
+
+  <!-- 8️⃣ Envios -->
+  <script type="module" src="/js/venta/envios.js"></script>  
+  <!-- 9️⃣ MAIN -->
+  <script type="module" src="/js/venta/main.js"></script>
+
+  <script type="module" src="/js/logout.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+
+  <!-- =======================================================================================
+      🟣 FOOTER
+  ======================================================================================= -->
+  <footer class="footer-pos">
+    <div class="footer-row">
+
+      <div class="footer-left">
+        <i id="indicadorRedIcon" data-lucide="wifi"></i>
+        <i id="indicadorCajaIcon" data-lucide="banknote" class="w-5 h-5"></i>
+        <i id="indicadorImpresoraIcon" data-lucide="printer"></i>
+        <i id="indicadorSonidoIcon" data-lucide="volume-2" class="w-5 h-5"></i>
+
+        <button id="btnToggleBasculaPeso" class="footer-btn-bascula off">
+          <i data-lucide="scale"></i>
+        </button>
+
+        <span id="estadoBasculaTexto" class="estado-bascula-footer off">
+          ● Desconectada
+        </span>
+      </div>
+
+      <div class="footer-right">
+        <div class="footer-user">
+          <i data-lucide="user" class="footer-user-icon"></i>
+          <span id="footerUsuario">Usuario</span>
+        </div>
+
+        <div class="footer-user">
+          <i data-lucide="shield" class="footer-user-icon"></i>
+          <span id="footerRol">Rol</span>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  </body>
+
+</html>
