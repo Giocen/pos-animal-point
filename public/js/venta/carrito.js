@@ -162,16 +162,22 @@ export async function renderCarrito() {
     tbody.insertAdjacentHTML(
       "beforeend",
       `
-      <tr class="border-t ${stockRestante < 0 ? 'bg-red-50' : ''}">
+      <tr class="border-t fila-carrito ${stockRestante < 0 ? 'bg-red-50' : ''}" data-index="${index}">
         
-        <td class="p-2">
-          ${item.nombre}
+        <td class="p-2 producto-col">
+
+          <div class="producto-nombre">
+            ${item.nombre}
+          </div>
+
           ${
             stockRestante < 0
               ? `<div class="text-xs text-red-500">Inventario negativo</div>`
               : ""
           }
+
         </td>
+
 
         <!-- 🔥 COLUMNA PRECIO -->
         <td class="p-2 text-right">
@@ -192,56 +198,91 @@ export async function renderCarrito() {
           }
         </td>
 
-        <!-- 🔥 COLUMNA CANTIDAD -->
-        <td class="p-2 text-right">
-          ${
-            item.unidad === "kg"
-              ? `
-                <div class="text-xs text-gray-500">
-                  ${
-                    item.cantidad < 1
-                      ? `${(item.cantidad * 1000).toFixed(0)} g`
-                      : `${item.cantidad.toFixed(3)} kg`
-                  }
-                </div>
-              `
-              : `
-                <input 
-                  type="number"
-                  min="1"
-                  value="${item.cantidad}"
-                  class="w-20 text-right border rounded px-1 py-0.5"
-                  oninput="actualizarCantidad(${index}, this.value)"
-                />
-              `
-          }
-        </td>
+            <!-- 🔥 COLUMNA CANTIDAD -->
+            <td class="p-2 text-right">
+              ${
+                item.unidad === "kg"
+                  ? `
+                    <div class="text-sm text-gray-500 font-semibold">
+                      ${
+                        item.cantidad < 1
+                          ? `${(item.cantidad * 1000).toFixed(0)} g`
+                          : `${item.cantidad.toFixed(3)} kg`
+                      }
+                    </div>
+                  `
+                  : `
+                   <div class="cantidad-pos">
 
-        <!-- 🔥 TOTAL -->
-        <td class="p-2 text-right">
-          $${item.totalFinal.toFixed(2)}
-          ${
-            item.descuento > 0
-              ? `<span class="ml-1 text-xs text-fuchsia-400">(-${item.descuento}%)</span>`
-              : ""
-          }
-        </td>
+                      <button onclick="disminuirCantidad(${index})" class="btn-cant">
+                        -
+                      </button>
 
-        <td class="p-2 text-center flex gap-2 justify-center">
-          <button class="text-purple-500 hover:text-purple-700"
-                  onclick="editarDescuento(${index})">
-            <i data-lucide="percent" class="w-5 h-5"></i>
-          </button>
+                      <input 
+                        type="number"
+                        min="1"
+                        value="${item.cantidad}"
+                        class="input-cant"
+                        onchange="actualizarCantidad(${index}, this.value)"
+                      />
 
-          <button class="text-red-500 hover:text-red-700"
-                  onclick="eliminarItem(${index})">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-          </button>
-        </td>
-      </tr>
+                      <button onclick="aumentarCantidad(${index})" class="btn-cant">
+                        +
+                      </button>
+
+                    </div>
+
+                  `
+              }
+            </td>
+            <!-- 🔥 TOTAL + ACCIONES -->
+            <td class="p-2 text-right">
+
+              <div class="total-pos">
+
+              <button onclick="editarDescuento(${index})" class="icon-descuento">
+                <i data-lucide="percent"></i>
+              </button>
+
+              <button onclick="eliminarItem(${index})" class="icon-eliminar">
+                <i data-lucide="trash-2"></i>
+              </button>
+
+              ${
+                item.descuento > 0
+                  ? `<span class="descuento">(-${item.descuento}%)</span>`
+                  : ""
+              }
+
+              <span class="precio-total">$${item.totalFinal.toFixed(2)}</span>
+
+            </div>
+
+
+
+            </td>
+            </tr>
+
       `
     );
   });
+
+/* FLASH ÚLTIMO PRODUCTO */
+const filas = tbody.querySelectorAll(".fila-carrito");
+
+if(filas.length){
+
+  const ultima = filas[filas.length-1];
+
+  ultima.style.transition="background .4s";
+
+  ultima.style.background="#bbf7d0";
+
+  setTimeout(()=>{
+    ultima.style.background="";
+  },400);
+
+}
 
   totalVentaEl.textContent = total.toFixed(2);
 
@@ -256,6 +297,17 @@ export async function renderCarrito() {
   document.dispatchEvent(new CustomEvent("carrito-total-cambiado", { detail: total }));
 
   if (window.lucide) lucide.createIcons();
+
+
+  // 🔽 AUTO SCROLL AL FINAL DEL CARRITO
+const tabla = document.querySelector(".carrito-card .tabla");
+
+if (tabla) {
+  tabla.scrollTo({
+    top: tabla.scrollHeight,
+    behavior: "smooth"
+  });
+}
 }
 
 /* ------------------------------------------------------------
@@ -320,6 +372,33 @@ export function actualizarCantidad(index, nuevaCantidad) {
   renderCarrito();
 }
 
+
+export function aumentarCantidad(index) {
+  const item = carrito[index];
+  if (!item) return;
+
+  item.cantidad += 1;
+
+  renderCarrito();
+}
+
+export function disminuirCantidad(index) {
+  const item = carrito[index];
+  if (!item) return;
+
+  item.cantidad -= 1;
+
+  if (item.cantidad <= 0) {
+    eliminarItem(index);
+    return;
+  }
+
+  renderCarrito();
+}
+
+
+
+
 /* ------------------------------------------------------------
    7️⃣ ACTUALIZAR POR IMPORTE (KG)
 ------------------------------------------------------------ */
@@ -365,4 +444,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.editarDescuento = editarDescuento;
   window.actualizarCantidad = actualizarCantidad;
   window.actualizarPorImporte = actualizarPorImporte;
+  window.aumentarCantidad = aumentarCantidad;
+  window.disminuirCantidad = disminuirCantidad;
 });

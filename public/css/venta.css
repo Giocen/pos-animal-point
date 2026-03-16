@@ -10,11 +10,10 @@ body.ventas {
   background: #1A042D;
   color: #fff;
   font-family: "Inter", sans-serif;
-  padding-bottom: 70px;
   margin: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;   /* 🔥 elimina scroll global */
 }
+
 
 /* Eliminamos márgenes de body para layout full */
 html, body {
@@ -199,18 +198,15 @@ html, body {
    CARRITO COMPLETO (50%)
 ========================================================== */
 
-/* ==============================================
-   CONTENEDOR DEL CARRITO (BLANCO ELEGANTE)
-============================================== */
-.carrito-card {
-  background: #ffffff !important;
-  border: 2px solid #c7d2fe !important;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
-  border-radius: 0 !important;
-  padding: 22px !important;
-  height: 100% !important;
-  display: flex;
-  flex-direction: column;
+.carrito-card{
+  background:#ffffff !important;
+  border:2px solid #c7d2fe !important;
+  border-radius:16px !important;
+  padding:22px !important;
+  display:flex;
+  flex-direction:column;
+  height:100% !important;
+  overflow:hidden;
 }
 
 /* ==============================================
@@ -332,10 +328,11 @@ html, body {
 /* ==============================================
    TABLA DEL CARRITO
 ============================================== */
-.carrito-card .tabla {
-  flex: 1;
-  overflow-y: auto;
-  margin-top: 10px;
+.carrito-card .tabla{
+  flex:1 1 auto;
+  overflow-y:auto;
+  margin-top:10px;
+  min-height:0;
 }
 
 .carrito-card table td {
@@ -350,18 +347,30 @@ html, body {
   color: #be123c !important;
 }
 
-/* Columnas */
+/* ==========================================================
+   🔧 FIX COLUMNAS CARRITO POS
+========================================================== */
+
 .carrito-card table th:nth-child(1),
-.carrito-card table td:nth-child(1) { width: 45% !important; }
+.carrito-card table td:nth-child(1){
+  width:48% !important;
+}
 
 .carrito-card table th:nth-child(2),
-.carrito-card table td:nth-child(2) { width: 15% !important; }
+.carrito-card table td:nth-child(2){
+  width:12% !important;
+}
 
 .carrito-card table th:nth-child(3),
-.carrito-card table td:nth-child(3) { width: 15% !important; }
+.carrito-card table td:nth-child(3){
+  width:18% !important;
+}
 
 .carrito-card table th:nth-child(4),
-.carrito-card table td:nth-child(4) { width: 20% !important; }
+.carrito-card table td:nth-child(4){
+  width:20% !important;
+}
+
 
 /* ==============================================
    SECCIÓN PESO + TOTAL (BLANCO)
@@ -768,15 +777,19 @@ html, body {
    🔥 FIX FINAL — LAYOUT 3 COLUMNAS 50 / 30 / 20
 ========================================================== */
 
-/* === AJUSTE DE COLUMNAS PARA 45 / 33 / 22 === */
 .contenido-ventas {
-  width: 100%;
-  height: calc(100vh - 54px);
-  margin-top: 54px;
-  display: grid !important;
-  grid-template-columns: 45% 30% 25% !important; /* Carrito - Pago - Botones */
-  overflow: visible !important;
+  position: fixed;
+  top: 54px;
+  bottom: 54px;
+  left: 0;
+  right: 0;
+
+  display: grid;
+  grid-template-columns: 45% 30% 25%;
+
+  overflow: hidden;
 }
+
 /* === PESO MANUAL — ALINEADO EN UNA SOLA LÍNEA === */
 
 .carrito-card table th {
@@ -876,10 +889,15 @@ html, body {
   padding: 12px 8px !important;
 }
 
-/* Ítems dentro del carrito un poco más grandes */
 .carrito-card table td {
-  font-size: 1rem !important;
+  font-size: 1.08rem !important;
+  font-weight:600;
 }
+
+#carritoBody td:nth-child(4){
+  font-size:1.1rem;
+}
+
 
 /* ==========================================================
    🔥 FIX GLOBAL: eliminar padding TOTAL del panel izquierdo
@@ -920,14 +938,16 @@ html, body {
    🟣 FIX FINAL — Panel carrito ajustado entre header y footer
 ========================================================== */
 
-.venta-panel-izquierdo {
-  height: calc(100vh - 108px) !important; /* 54 header + 54 footer */
-  overflow-y: auto !important;
+.venta-panel-izquierdo{
+  height:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
 }
 
 #panelPago,
 .panel-derecho {
-  height: calc(100vh - 108px) !important;
+  height: 100% !important;
   overflow-y: auto !important;
 }
 
@@ -1068,16 +1088,19 @@ html, body {
   color: #fff;
 }
 
-.carrito-card {
-  background: #ffffff !important;
-  border: 2px solid #c7d2fe !important;
-  border-radius: 16px !important; /* 🔥 ESQUINAS REDONDEADAS */
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
-  padding: 22px !important;
-  height: calc(100% - 10px) !important; /* Ajuste suave */
-  margin: 5px !important; /* Se despega apenas del borde */
-}
+.carrito-card{
+  background:#ffffff !important;
+  border:2px solid #c7d2fe !important;
+  border-radius:16px !important;
 
+  padding:22px !important;
+
+  display:flex;
+  flex-direction:column;
+
+  height:100% !important;
+  overflow:hidden;
+}
 
 /* ==========================================================
    🎨 COLORES SMARTPOS PARA MÉTODOS DE PAGO
@@ -1279,20 +1302,22 @@ input[type="date"] {
 }
 
 #autocompleteProductos{
+
   position:absolute;
   left:0;
   top:100%;
   margin-top:6px;
 
-  width:520px;          /* 🔥 ancho real del dropdown */
+  width:520px;
   max-width:520px;
 
   background:#ffffff;
   border:1px solid #e5e7eb;
-  border-radius:10px;
-  box-shadow:0 14px 28px rgba(0,0,0,.18);
+  border-radius:12px;
 
-  max-height:320px;
+  box-shadow:0 18px 40px rgba(0,0,0,.18);
+
+  max-height:520px;   /* 👈 permite ver ~12 productos */
   overflow-y:auto;
 
   z-index:999999 !important;
@@ -1398,4 +1423,579 @@ input[type="date"] {
 
 .buscador-carrito{
   position:relative;
+}
+
+/* ==========================================================
+   BUSCADOR POS NUEVO
+========================================================== */
+
+.buscador-carrito .row{
+  display:flex;
+  align-items:flex-end;
+  gap:10px;
+}
+
+/* botón buscar */
+
+.btn-buscar{
+  height:48px;
+  width:48px;
+
+  background:#ffffff;
+  border:2px solid #c7d2fe;
+  border-radius:10px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:#1e3a8a;
+
+  transition:.2s;
+}
+
+.btn-buscar:hover{
+  background:#f3f4f6;
+}
+
+/* SKU más largo */
+
+.input-sku{
+  width:100%;
+  min-width:420px;
+}
+
+/* columna SKU */
+
+.sku-col{
+  flex:1;
+}
+
+/* cantidad */
+
+#cantidad{
+  width:70px !important;
+}
+
+/* autocomplete */
+
+.autocomplete-pos{
+  position:absolute;
+  left:0;
+  right:0;
+  top:100%;
+
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+
+  box-shadow:0 12px 28px rgba(0,0,0,.18);
+
+  max-height:300px;
+  overflow-y:auto;
+
+  z-index:999999;
+}
+
+
+/* ==========================================================
+   MODAL PRODUCTOS POS GRANDE
+========================================================== */
+
+.swal-productos-popup{
+  width:90vw !important;
+  max-width:1500px !important;
+  height:85vh !important;
+
+  padding:26px !important;
+}
+
+/* buscador */
+
+.swal-productos-popup input{
+  font-size:18px !important;
+  padding:12px !important;
+}
+
+/* tabla */
+
+.swal-productos-popup table{
+  font-size:16px !important;
+}
+
+/* filas */
+
+.swal-productos-popup tbody tr{
+  height:46px;
+}
+
+/* scroll tabla */
+
+.swal-productos-popup .tabla-scroll{
+  max-height:65vh !important;
+  overflow-y:auto;
+}
+
+.swal-productos-popup table{
+  width:100%;
+  font-size:17px;
+}
+
+.swal-productos-popup th{
+  font-size:18px;
+  font-weight:800;
+}
+
+.swal-productos-popup td{
+  padding:10px 8px;
+}
+
+.swal-productos-popup input{
+  font-size:18px;
+  padding:12px;
+}
+
+/* columna producto */
+
+.producto-col{
+  max-width: 420px;
+}
+
+/* nombre del producto */
+
+.producto-nombre{
+  font-weight:500;
+  white-space:normal;
+  word-break:break-word;
+  line-height:1.2;
+}
+
+/* mantener alineadas columnas */
+
+#carritoBody td{
+  vertical-align:middle;
+  padding:10px 8px !important;
+}
+
+/* inputs compactos */
+
+#carritoBody input{
+  height:36px;
+  font-size:15px;
+  font-weight:700;
+  padding:4px 6px;
+}
+/* TABLA POS */
+
+.tabla-pos{
+  width:100%;
+  table-layout:auto;
+}
+
+.tabla-pos td{
+  vertical-align:middle;
+}
+
+/* producto */
+
+.tabla-pos td:first-child{
+  white-space:normal;
+  word-break:break-word;
+  font-weight:500;
+  line-height:1.2;
+}
+
+/* inputs carrito */
+
+.tabla-pos input{
+  height:36px;
+  font-size:15px;
+  font-weight:700;
+  padding:4px 6px;
+}
+
+
+#carritoBody td:nth-child(2){
+  font-weight:800;
+  font-size:1.1rem;
+}
+
+#carritoBody td:nth-child(3) div{
+  font-size:0.95rem;
+  font-weight:600;
+}
+
+/* ==============================
+   COLUMNA TOTAL — FIX POS
+============================== */
+
+
+#carritoBody td:nth-child(4) i{
+  width:18px;
+  height:18px;
+}
+
+/* ==========================================================
+   💰 COLUMNA TOTAL — ESTILO POS PROFESIONAL
+========================================================== */
+
+#carritoBody td:nth-child(4) i{
+  width:18px;
+  height:18px;
+  cursor:pointer;
+}
+
+#carritoBody td:nth-child(4) i:hover{
+  transform:scale(1.1);
+}
+
+
+/* valor del total */
+
+#carritoBody td:nth-child(4) span{
+  min-width:70px;
+  text-align:right;
+}
+
+/* botón descuento */
+
+#carritoBody td:nth-child(4) .lucide-percent{
+  background:#f3e8ff;
+  color:#7c3aed;
+  padding:4px;
+  border-radius:6px;
+  width:20px;
+  height:20px;
+}
+
+/* botón eliminar */
+
+#carritoBody td:nth-child(4) .lucide-trash-2{
+  background:#fee2e2;
+  color:#dc2626;
+  padding:4px;
+  border-radius:6px;
+  width:20px;
+  height:20px;
+}
+
+/* hover botones */
+
+#carritoBody td:nth-child(4) i:hover{
+  transform:scale(1.1);
+  cursor:pointer;
+}
+
+/* fila botones total */
+
+.total-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* ==========================================================
+   💰 TOTAL POS — LAYOUT CORRECTO
+========================================================== */
+
+.total-pos{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  width:100%;
+  gap:10px;
+}
+
+.precio-total{
+  margin-left:auto;
+  font-weight:900;
+  font-size:1.2rem;
+  letter-spacing:.3px;
+}
+
+
+.total-pos .descuento{
+  font-size:12px;
+  color:#a855f7;
+  font-weight:700;
+}
+
+.total-pos i{
+  width:20px;
+  height:20px;
+}
+
+.total-pos i:hover{
+  transform:scale(1.1);
+}
+
+.icon-descuento,
+.icon-eliminar{
+  border:none;
+  background:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:3px;
+}
+
+.icon-descuento{
+  color:#7c3aed;
+}
+
+.icon-eliminar{
+  color:#dc2626;
+}
+
+
+
+/* ==========================================================
+   📱 SMARTPOS — CONTROLES GRANDES PARA TABLET
+========================================================== */
+
+/* Inputs precio y cantidad */
+#carritoBody input{
+  height:44px !important;
+  font-size:16px !important;
+  font-weight:700 !important;
+  padding:6px 8px !important;
+  border-radius:8px !important;
+}
+
+/* ancho cantidad */
+#carritoBody input[type="number"]{
+  width:80px !important;
+}
+
+/* columna precio kg */
+#carritoBody td:nth-child(2) input{
+  width:90px !important;
+}
+
+
+/* botones acciones */
+.icon-descuento,
+.icon-eliminar{
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+}
+
+/* iconos */
+.icon-descuento i,
+.icon-eliminar i{
+  width:20px !important;
+  height:20px !important;
+}
+
+/* botón descuento */
+.icon-descuento{
+  background:#f3e8ff;
+  color:#7c3aed;
+}
+
+/* botón eliminar */
+.icon-eliminar{
+  background:#fee2e2;
+  color:#dc2626;
+}
+
+
+
+/* descuento */
+.descuento{
+  font-size:13px;
+}
+
+/* ==========================================================
+   CANTIDAD POS MEJORADA
+========================================================== */
+
+/* ==========================================================
+   CANTIDAD POS MEJORADA
+========================================================== */
+
+.cantidad-pos{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+
+.btn-cant{
+  width:36px;
+  height:36px;
+
+  background:#eef2ff;
+  border:1px solid #c7d2fe;
+  border-radius:8px;
+
+  font-size:18px;
+  font-weight:900;
+  color:#1e3a8a;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  cursor:pointer;
+}
+
+.input-cant{
+  width:56px;
+  height:36px;
+
+  text-align:center;
+
+  border:1px solid #c7d2fe;
+  border-radius:8px;
+
+  font-size:16px;
+  font-weight:800;
+
+  padding:0;
+}
+
+#carritoBody td:nth-child(3){
+  min-width:110px;
+}
+
+/* quitar flechas del input number */
+.input-cant::-webkit-inner-spin-button,
+.input-cant::-webkit-outer-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+
+
+/* ==========================================================
+   AUTOCOMPLETE POS PROFESIONAL
+========================================================== */
+
+/* ITEM */
+
+.autocomplete-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:14px 16px;
+  cursor:pointer;
+
+  border-bottom:1px solid #f1f5f9;
+
+  transition:.15s;
+}
+
+/* hover */
+
+.autocomplete-item:hover{
+  background:#f8fafc;
+}
+
+/* nombre producto */
+
+.autocomplete-nombre{
+  font-size:15px;
+  font-weight:600;
+  color:#111827;
+
+  flex:1;
+}
+
+/* precio */
+
+.autocomplete-precio{
+  font-size:16px;
+  font-weight:800;
+  color:#1e3a8a;
+
+  margin-left:12px;
+}
+
+/* item seleccionado teclado */
+
+.autocomplete-item.active{
+  background:#ede9fe;
+}
+
+/* scrollbar */
+
+#autocompleteProductos::-webkit-scrollbar{
+  width:6px;
+}
+
+#autocompleteProductos::-webkit-scrollbar-thumb{
+  background:#c7d2fe;
+  border-radius:6px;
+}
+
+
+/* =========================================
+   FLASH PRODUCTO AGREGADO POS
+========================================= */
+
+.flash-agregado{
+  animation:flashProducto .5s ease;
+}
+
+@keyframes flashProducto{
+
+  0%{
+    background:#bbf7d0;
+  }
+
+  50%{
+    background:#86efac;
+  }
+
+  100%{
+    background:inherit;
+  }
+
+}
+
+/* ==========================================================
+   🧾 POS ALIGN — Alineación profesional columnas
+========================================================== */
+
+/* Producto */
+#carritoBody td:nth-child(1){
+  text-align:left;
+}
+
+/* Precio */
+#carritoBody td:nth-child(2){
+  text-align:right;
+  padding-right:14px !important;
+  font-weight:800;
+}
+
+/* Cantidad */
+#carritoBody td:nth-child(3){
+  text-align:center;
+}
+
+/* Total */
+#carritoBody td:nth-child(4){
+  text-align:right;
+  padding-right:4px !important;
+}
+
+.carrito-card .tabla{
+  scroll-behavior:smooth;
+}
+
+#carritoBody tr:hover td{
+  background:#f8fafc !important;
+}
+
+/* eliminar espacio muerto columna total */
+#carritoBody td:nth-child(4){
+  text-align:right;
+  padding-right:0 !important;
+  white-space:nowrap;
 }

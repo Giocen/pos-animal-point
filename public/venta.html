@@ -71,29 +71,39 @@
 
     <div class="panel-lateral-body">
 
-      <button id="btnClientePanel" class="panel-btn-left bg-gradient-to-r from-fuchsia-600 to-pink-500">
+      <button id="btnClientePanel"
+      class="panel-btn-left bg-gradient-to-r from-fuchsia-600 to-pink-500">
         <i data-lucide="user"></i>Cliente
       </button>
 
-      <button id="btnTopVendidos" class="panel-btn-left bg-gradient-to-r from-orange-500 to-amber-500">
+      <button id="btnTopVendidos"
+      class="panel-btn-left bg-gradient-to-r from-orange-500 to-amber-500">
         <i data-lucide="flame"></i>Más Vendidos
       </button>
 
-      <button id="btnResumen" class="panel-btn-left bg-gradient-to-r from-blue-600 to-sky-500">
+      <button id="btnResumen"
+      class="panel-btn-left bg-gradient-to-r from-blue-600 to-sky-500">
         <i data-lucide="calendar"></i>Resumen del Día
       </button>
 
+      <!-- NUEVO REPORTE -->
+      <button id="btnUtilidadProductos"
+      class="panel-btn-left bg-gradient-to-r from-emerald-600 to-green-500">
+        <i data-lucide="bar-chart-3"></i>Ganancia por producto
+      </button>
+
       <button class="panel-btn-left bg-gradient-to-r from-purple-600 to-indigo-500"
-        onclick="window.location.href='/reportes/productos-no-vendidos.html'">
+      onclick="window.location.href='/reportes/productos-no-vendidos.html'">
         <i data-lucide="package-x"></i>Sku no vendidos
-      </button>      
+      </button>
 
       <button class="panel-btn-left bg-gradient-to-r from-rose-600 to-pink-500"
-        onclick="window.location.href='/reportes/reporte-movimientos.html'">
+      onclick="window.location.href='/reportes/reporte-movimientos.html'">
         <i data-lucide="repeat"></i>Movimientos SKU
       </button>
 
     </div>
+
   </aside>
 
   <!-- =======================================================================================
@@ -106,79 +116,90 @@
       <section class="card carrito-card">
 
         <!-- BUSCADOR -->
-        <form id="formBuscar" class="buscador-carrito">
+     <form id="formBuscar" class="buscador-carrito">
           <div class="row">
 
-                    <div class="col">
-            <label class="label">
-              <i data-lucide="barcode"></i> SKU / Código
-            </label>
+            <!-- BOTÓN BUSCAR -->
+            <button
+              id="btnBuscarGlobal"
+              type="button"
+              class="btn-buscar">
+              <i data-lucide="search"></i>
+            </button>
 
-            <div class="relative w-full">
+            <!-- SKU / CÓDIGO -->
+            <div class="col sku-col">
+              <label class="label">
+                <i data-lucide="barcode"></i> SKU / Código
+              </label>
 
-                <!-- INPUT BUSCADOR -->
+              <div class="relative w-full">
+
                 <input
                   id="sku"
                   type="text"
-                  class="input-lg shadow-md pr-12"
+                  class="input-lg input-sku shadow-md"
                   placeholder="Escanea o escribe..."
                   autocomplete="off"
                   required
                 >
 
-                <!-- BOTÓN BUSCAR -->
-                <button
-                  id="btnBuscarGlobal"
-                  type="button"
-                  class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-fuchsia-600 transition">
-                  <i data-lucide="search" class="w-5 h-5"></i>
-                </button>
-
-                <!-- AUTOCOMPLETE POS -->
+                <!-- AUTOCOMPLETE -->
                 <div
                   id="autocompleteProductos"
-                  class="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl hidden max-h-64 overflow-y-auto z-50">
+                  class="autocomplete-pos hidden">
                 </div>
 
               </div>
             </div>
 
+            <!-- CANTIDAD -->
             <div class="col-sm">
-              <label class="label"><i data-lucide="hash"></i> Cantidad</label>
-              <input id="cantidad" type="number" min="1" placeholder="1"
+              <label class="label">
+                <i data-lucide="hash"></i> Cantidad
+              </label>
+
+              <input
+                id="cantidad"
+                type="number"
+                min="1"
+                value="1"
                 class="input-lg input-cantidad text-center shadow-md">
             </div>
 
+            <!-- AGREGAR -->
             <button id="btnAgregar" class="btn-agregar">
               <i data-lucide="plus"></i> Agregar
-            </button>            
+            </button>
 
           </div>
         </form>
 
+
         <!-- TABLA CARRITO -->
         <div class="tabla">
-          <table>
-            <thead>
-              <tr>
+          <table class="tabla-pos">
+           <thead>
+            <tr>
 
-                <th>Producto</th>
+              <th style="width:45%">Producto</th>
 
-                <th class="text-right">Precio</th>
+              <th class="text-right" style="width:15%">Precio</th>
 
-                <th class="text-right">Cantidad</th>
+              <th class="text-right" style="width:15%">Cantidad</th>
 
-                <th class="text-right">
-                  <div class="flex items-center justify-end gap-1">
-                    <i data-lucide="percent" class="w-4 h-4 text-purple-400"></i>
-                    <span>Total</span>
-                  </div>
-                </th>
+              <th class="text-right" style="width:15%">
+                <div class="flex items-center justify-end gap-1">
+                  <i data-lucide="percent" class="w-4 h-4 text-purple-400"></i>
+                  <span>Total</span>
+                </div>
+              </th>
 
-                <th class="text-center w-12"></th>
+              <th class="text-center w-12"></th>
 
-              </tr>
-            </thead>
+            </tr>
+          </thead>
+
 
             <tbody id="carritoBody"></tbody>
           </table>
@@ -300,9 +321,7 @@
 
       </div>
 
-    </aside>
-
-    <div id="panelPersonalizado" class="mt-4"></div>
+    </aside>  
 
   </main>
 
@@ -328,8 +347,6 @@
   <!-- 6️⃣ Corte -->
   <script type="module" src="/js/venta/corte.js"></script>
 
-  <!-- 7️⃣ Panel derecho -->
-  <script type="module" src="/js/venta/panel-personalizado.js"></script>
 
   <!-- 8️⃣ Envios -->
   <script type="module" src="/js/venta/envios.js"></script>  

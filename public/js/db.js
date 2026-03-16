@@ -7,10 +7,24 @@ import { supabaseClient } from "./proteccion.js";
 import { LocalDB } from "./localdb.js";
 
 /* ----------------------------------------------- */
+/* 🔹 Obtener negocio_id seguro                    */
+/* ----------------------------------------------- */
+function obtenerNegocioId() {
+
+  const id = localStorage.getItem("negocio_id");
+
+  if (!id) {
+    console.warn("⚠ negocio_id no disponible aún");
+    return null;
+  }
+
+  return id; // UUID string válido
+}
+/* ----------------------------------------------- */
 /* 🔹 Nombre de DB por negocio                     */
 /* ----------------------------------------------- */
 function obtenerNombreDB() {
-  const negocioId = localStorage.getItem("negocio_id") || "default";
+  const negocioId = obtenerNegocioId() || "default";
   return `SmartPOSOffline_${negocioId}`;
 }
 
@@ -20,10 +34,29 @@ function obtenerNombreDB() {
 export let db;
 
 export async function inicializarDB() {
+
   if (db) return db;
 
+ let negocioId = obtenerNegocioId();
+
+/* esperar negocio_id si aún no existe */
+let intentos = 0;
+
+while (!negocioId && intentos < 20) {
+  await new Promise(r => setTimeout(r, 100));
+  negocioId = obtenerNegocioId();
+  intentos++;
+}
+
+if (!negocioId) {
+  console.warn("⚠ Dexie cancelado: negocio_id no disponible");
+  return null;
+}
+
   try {
+
     const nombreDB = obtenerNombreDB();
+
     db = new Dexie(nombreDB);
 
     db.version(113).stores({
@@ -52,16 +85,25 @@ export async function inicializarDB() {
     });
 
     console.log(`💾 Dexie inicializada: ${nombreDB} (v113)`);
+
     return db;
 
   } catch (err) {
+
     if (err.name === "VersionError") {
+
       const nombreDB = obtenerNombreDB();
+
       console.warn(`⚠️ VersionError en ${nombreDB}, reiniciando DB...`);
+
       await indexedDB.deleteDatabase(nombreDB);
+
       setTimeout(() => location.reload(), 500);
+
     } else {
+
       console.error("❌ Error en inicializarDB:", err);
+
     }
   }
 }
@@ -70,47 +112,72 @@ export async function inicializarDB() {
 /* 🔹 Config caching local                         */
 /* ----------------------------------------------- */
 export async function getConfig(clave) {
+
   await inicializarDB();
+
   try {
+
     const r = await db.configuracion_sistema.get(clave);
+
     return r?.valor ?? null;
+
   } catch {
+
     return null;
+
   }
 }
 
 export async function setConfig(clave, valor) {
+
   await inicializarDB();
+
   await db.configuracion_sistema.put({ clave, valor });
+
 }
 
 /* ----------------------------------------------- */
 /* 🔹 Sincronizar productos                        */
 /* ----------------------------------------------- */
 export async function sincronizarProductos() {
+
   await inicializarDB();
 
-  const negocioId = localStorage.getItem("negocio_id");
+  const negocioId = obtenerNegocioId();
+
   if (!negocioId) {
+
     console.warn("⚠️ No hay negocio_id → no se sincronizan productos.");
+
     return [];
+
   }
 
   /* ---------------- OFFLINE ---------------- */
+
   if (!navigator.onLine) {
+
     const cache = LocalDB.get(`productos_cache_${negocioId}`);
+
     if (cache?.length) return cache;
-    return await db.productos.toArray();
+
+    return await db.productos
+      .where("negocio_id")
+      .equals(negocioId)
+      .toArray();
   }
 
   /* ---------------- ONLINE ---------------- */
+
   try {
+
     console.log("📡 Descargando catálogo desde v_productos_existencias...");
 
     const { data: productos, error } = await supabaseClient
       .from("v_productos_existencias")
       .select(`
         id,
+        negocio_id,
         nombre,
         descripcion,
         precio_base,
@@ -123,20 +190,23 @@ export async function sincronizarProductos() {
         activo,
         categoria_id,
         imagen_url
-      `);
+      `)
+      .eq("negocio_id", negocioId);
 
     if (error) throw error;
+
     if (!productos?.length) return [];
 
-    // Cache rápido
+    /* cache rápido */
     LocalDB.set(`productos_cache_${negocioId}`, productos, 60);
 
     let actualizados = 0;
 
     for (const p of productos) {
+
       await db.productos.put({
         uuid_supabase: p.id,
-        negocio_id: negocioId,
+        negocio_id: p.negocio_id,
         nombre: p.nombre,
         descripcion: p.descripcion,
         precio_base: p.precio_base,
@@ -145,21 +215,29 @@ export async function sincronizarProductos() {
         codigo_barras: p.codigo_barras,
         existencias: p.existencias_total,
         stock_minimo: p.stock_minimo,
-        updated_at: null, // ✅ FIX DEFINITIVO
+        updated_at: null,
         costo: p.costo,
         activo: p.activo,
         categoria_id: p.categoria_id,
         imagen_url: p.imagen_url,
       });
+
       actualizados++;
+
     }
 
     console.log(`✅ Productos sincronizados (${actualizados}/${productos.length})`);
+
     return productos;
 
   } catch (err) {
+
     console.error("❌ Error sincronizando productos:", err);
-    return await db.productos.toArray();
+
+    return await db.productos
+      .where("negocio_id")
+      .equals(negocioId)
+      .toArray();
   }
 }
 
@@ -167,9 +245,15 @@ export async function sincronizarProductos() {
 /* 🔹 Limpiar Dexie                                */
 /* ----------------------------------------------- */
 export async function limpiarOffline() {
+
   await inicializarDB();
+
   const nombreDB = obtenerNombreDB();
+
   await db.delete();
+
   console.warn(`🧹 DB offline eliminada: ${nombreDB}`);
+
   location.reload();
+
 }

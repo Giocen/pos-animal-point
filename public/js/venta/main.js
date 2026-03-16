@@ -21,7 +21,7 @@ import { abrirCajonPorTicket } from "/js/sistema/cajon-ticket.js";
 import "/js/venta/panel-personalizado.js";
 
 import { inicializarPagos } from "/js/venta/pagos.js";
-import { abrirTopVendidos, abrirResumenDia } from "/js/venta/panel-reportes.js";
+import { abrirTopVendidos, abrirResumenDia, abrirUtilidadProductos } from "/js/venta/panel-reportes.js";
 import { reanudarBasculaAuto } from "/js/sistema/bascula.js";
 
 window.basculaActiva = false;
@@ -163,20 +163,22 @@ function esActivo(v) {
 async function inicializarSmartPOS() {
   mostrarLoaderSmartPOS();
 
-  await inicializarDB();
-
+  // 🔑 Primero restaurar sesión para tener negocio_id
   const usuario = await restaurarSesionPersistente();
   if (!usuario) return;
 
+  // 💾 Ahora que existe negocio_id, inicializamos Dexie
+  await inicializarDB();
+
   await cargarPerfilUsuario(usuario);
 
-  // FIX SEGURO — evitar que ventas se bloquee si no hay productos
+  // Sincronizar productos (seguro)
   await sincronizarProductos().catch(err => {
     console.warn("⚠ Error sincronizando productos (pero continuamos):", err);
   });
 
   // FIX: continuar aunque el catálogo esté vacío
-  const productosLocal = await db.productos?.toArray();
+  const productosLocal = await db?.productos?.toArray();
   if (!productosLocal || productosLocal.length === 0) {
     console.warn("⚠ No hay productos en el negocio (vacío). Venta continuará normal.");
   }
@@ -185,7 +187,6 @@ async function inicializarSmartPOS() {
 
   ocultarLoaderSmartPOS();
 }
-
 // ===================================================================================
 // 9) Cargar módulos (mismo código original)
 // ===================================================================================
@@ -324,8 +325,37 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   const panel = document.getElementById("panelLateral");
-  document.getElementById("btnTogglePanel")
-    ?.addEventListener("click", () => panel.classList.add("open"));
+const btnTogglePanel = document.getElementById("btnTogglePanel");
+
+/* ==========================================================
+   ABRIR PANEL
+========================================================== */
+btnTogglePanel?.addEventListener("click", (e) => {
+
+  e.stopPropagation(); // evita que el click cierre el panel inmediatamente
+  panel.classList.add("open");
+
+  if (window.Swal && Swal.isVisible()) {
+    Swal.close();
+  }
+
+});
+
+/* ==========================================================
+   CERRAR PANEL AL HACER CLICK FUERA
+========================================================== */
+document.addEventListener("click", (e) => {
+
+  if (!panel.classList.contains("open")) return;
+
+  const clickDentroPanel = panel.contains(e.target);
+  const clickBoton = e.target.closest("#btnTogglePanel");
+
+  if (!clickDentroPanel && !clickBoton) {
+    panel.classList.remove("open");
+  }
+
+});
   document.getElementById("btnCerrarPanel")
     ?.addEventListener("click", () => panel.classList.remove("open"));
 
@@ -334,6 +364,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("btnResumen")
     ?.addEventListener("click", abrirResumenDia);
+
+  document.getElementById("btnUtilidadProductos")
+    ?.addEventListener("click", abrirUtilidadProductos);
+
     
     // 👤 CLIENTE HUB (CLIENTES + PEDIDOS + RUTA)
 document.getElementById("btnClientePanel")

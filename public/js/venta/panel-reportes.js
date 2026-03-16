@@ -158,8 +158,10 @@ export async function abrirResumenDia() {
 
             }, 0) || 0;
 
-            const tarjetaNeto = tarjetaBruto - comisionTotal;
-            const tickets = new Set(pagos?.map(v => v.folio)).size || 0;
+            const tarjetaNeto = Number((tarjetaBruto - comisionTotal).toFixed(2));
+            const tickets = new Set(
+                (pagos || []).map(v => v.folio).filter(Boolean)
+              ).size;
 
             const utilidadReal = totalUtilidad - comisionTotal;
 
@@ -258,4 +260,214 @@ export async function abrirResumenDia() {
 
   });
 
+}
+
+/* ============================================================
+   📦 UTILIDAD POR PRODUCTO DEL DÍA
+============================================================ */
+export async function abrirUtilidadProductos(){
+
+  const negocio_id = localStorage.getItem("negocio_id") || null;
+
+  const hoy = new Date().toLocaleDateString("sv-SE", {
+    timeZone:"America/Mexico_City"
+  });
+
+      Swal.fire({
+      title:"📦 Utilidad por producto",
+      width:700,
+      background:"#1A042D",
+      color:"#fff",
+      showConfirmButton:false,
+
+
+    html:`
+
+      <div class="space-y-3">
+
+        <div class="grid grid-cols-2 gap-3 text-sm">
+
+          <div>
+            <label class="text-gray-400 text-xs">Desde</label>
+
+            <input
+            type="date"
+            id="fechaInicioUtilidad"
+            value="${hoy}"
+            class="swal2-input"
+            style="background:#2a0b45;color:#fff;border:1px solid #7c3aed">
+          </div>
+
+          <div>
+            <label class="text-gray-400 text-xs">Hasta</label>
+
+            <input
+            type="date"
+            id="fechaFinUtilidad"
+            value="${hoy}"
+            class="swal2-input"
+            style="background:#2a0b45;color:#fff;border:1px solid #7c3aed">
+          </div>
+
+        </div>
+
+        <button
+        id="btnConsultarUtilidad"
+        class="w-full py-2 rounded-lg font-bold text-white"
+        style="background:linear-gradient(90deg,#10b981,#22c55e)">
+
+        Consultar
+
+        </button>
+
+        <div id="resultadoUtilidad"
+        class="mt-3 text-sm">
+
+          <p class="text-gray-400 text-center">
+          Selecciona rango y consulta
+          </p>
+
+        </div>
+
+      </div>
+    `,
+
+    didOpen:()=>{
+
+      document
+      .getElementById("btnConsultarUtilidad")
+      .addEventListener("click", async()=>{
+
+        const inicio =
+        document.getElementById("fechaInicioUtilidad").value;
+
+        const fin =
+        document.getElementById("fechaFinUtilidad").value;
+
+        const resultado =
+        document.getElementById("resultadoUtilidad");
+
+        resultado.innerHTML =
+        "<p class='text-gray-400 text-center'>Consultando...</p>";
+
+        const { data } =
+        await supabaseClient.rpc(
+          "reporte_utilidad_productos",
+          {
+            v_negocio_id:negocio_id,
+            fecha_inicio:inicio,
+            fecha_fin:fin
+          }
+        );
+
+        const filas = data || [];
+
+        const totalVenta =
+        filas.reduce((a,v)=>a+Number(v.venta_total||0),0);
+
+        const totalUtilidad =
+        filas.reduce((a,v)=>a+Number(v.utilidad_total||0),0);
+
+        resultado.innerHTML = `
+
+        <div class="space-y-2">
+
+        <div class="flex justify-between text-sm border-b border-fuchsia-600/30 pb-2">
+
+          <span class="text-blue-300">
+          Venta total
+          </span>
+
+          <b class="text-blue-400">
+          $${totalVenta.toFixed(2)}
+          </b>
+
+        </div>
+
+        <div class="flex justify-between text-sm border-b border-fuchsia-600/30 pb-2">
+
+          <span class="text-green-300">
+          Ganancia total
+          </span>
+
+          <b class="text-green-400">
+          $${totalUtilidad.toFixed(2)}
+          </b>
+
+        </div>
+
+        <div style="max-height:360px;overflow-y:auto;padding-right:6px">
+
+        <table class="w-full text-sm table-fixed">
+
+        <thead>
+
+        <tr class="border-b border-fuchsia-600/40 text-xs uppercase">
+
+        <th class="text-left w-[45%]">
+        Producto
+        </th>
+
+        <th class="text-right w-[10%]">
+        Cant
+        </th>
+
+        <th class="text-right w-[20%]">
+        Venta
+        </th>
+
+        <th class="text-right w-[25%]">
+        Ganancia
+        </th>
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        ${
+          filas.length
+          ? filas.map(p=>`
+
+          <tr class="border-b border-fuchsia-600/20">
+
+          <td class="truncate">
+          ${p.producto}
+          </td>
+
+          <td class="text-right text-gray-200">
+          ${Number(p.cantidad_total)}
+          </td>
+
+          <td class="text-right text-blue-300">
+          $${Number(p.venta_total).toFixed(2)}
+          </td>
+
+          <td class="text-right text-green-400 font-bold">
+          $${Number(p.utilidad_total).toFixed(2)}
+          </td>
+
+          </tr>
+
+          `).join("")
+
+          : `<tr>
+               <td colspan="4"
+               class="text-center text-gray-400 py-3">
+               Sin ventas
+               </td>
+             </tr>`
+        }
+
+        </tbody>
+        </table>
+
+        </div>
+
+        </div>
+        `;
+      });
+    }
+  });
 }
