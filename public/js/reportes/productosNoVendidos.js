@@ -1,99 +1,174 @@
 import { supabaseClient, protegerSesion } from "/js/proteccion.js";
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async ()=>{
 
-  // 🔐 Proteger vista (solo administrador)
   await protegerSesion(["admin"]);
 
-  // 🟣 Negocio activo (versión segura)
   const negocioId =
     localStorage.getItem("negocio_id") ||
-    window.usuarioActual?.negocio_id ||
-    null;
+    window.usuarioActual?.negocio_id;
 
-  if (!negocioId) {
-    Swal.fire("Error", "No se encontró el negocio activo", "error");
-    return;
-  }
-
-  // 📌 Elementos del DOM
   const tabla = document.getElementById("tablaProductos");
   const inputBuscar = document.getElementById("buscar");
-  const resultadosContainer = document.getElementById("resultadosContainer");
+
+  const totalInventario = document.getElementById("totalInventario");
+  const prod30 = document.getElementById("prod30");
+  const prod60 = document.getElementById("prod60");
 
   let listaOriginal = [];
 
-  /* ==========================================================
-     🔄 Cargar Productos NO Vendidos (Multi-Negocio seguro)
-     ========================================================== */
-  async function cargarProductos() {
-    try {
-      const { data, error } = await supabaseClient
-        .from("v_productos_no_vendidos")
-        .select("*")
-        .eq("negocio_id", negocioId)   // 🔥 filtro MULTI-NEGOCIO
-        .order("nombre");
+  async function cargar(){
 
-      if (error) throw error;
+    const { data, error } = await supabaseClient
+      .from("v_productos_no_vendidos")
+      .select("*")
+      .eq("negocio_id", negocioId)
+      .order("dias_sin_vender",{ascending:false});
 
-      listaOriginal = data || [];
-
-      renderTabla(listaOriginal);
-      resultadosContainer?.classList.remove("hidden");
-
-    } catch (err) {
-      console.error("❌ Error cargando productos no vendidos:", err);
-      Swal.fire("Error", "No se pudieron cargar los datos", "error");
-    }
-  }
-
-  /* ==========================================================
-     🧱 Render tabla
-     ========================================================== */
-  function renderTabla(lista) {
-    tabla.innerHTML = "";
-
-    if (!lista || lista.length === 0) {
-      tabla.innerHTML = `
-        <tr>
-          <td colspan="6" class="py-3 text-center text-gray-300">
-            No hay productos sin ventas
-          </td>
-        </tr>`;
+    if(error){
+      console.error(error);
+      Swal.fire("Error","No se pudieron cargar datos","error");
       return;
     }
 
-    lista.forEach(p => {
-      const row = `
-        <tr class="border-b border-white/10 hover:bg-white/5 transition">
-          <td class="p-2">${p.sku ?? ""}</td>
-          <td class="p-2">${p.nombre ?? ""}</td>
-          <td class="p-2">${p.categoria ?? ""}</td>
-          <td class="p-2">$${Number(p.costo || 0).toFixed(2)}</td>
-          <td class="p-2">$${Number(p.precio_base || 0).toFixed(2)}</td>
-          <td class="p-2">${p.existencias ?? 0}</td>
-        </tr>
-      `;
-      tabla.insertAdjacentHTML("beforeend", row);
-    });
+    listaOriginal = data || [];
+
+    render(listaOriginal);
+    resumen(listaOriginal);
+
   }
 
-  /* ==========================================================
-     🔍 Buscador en tiempo real (con null-safe)
-     ========================================================== */
-  inputBuscar?.addEventListener("input", () => {
-    const texto = (inputBuscar.value || "").toLowerCase();
 
-    const filtrados = listaOriginal.filter(p =>
-      (p.nombre || "").toLowerCase().includes(texto) ||
-      (p.sku || "").toLowerCase().includes(texto) ||
-      (p.categoria || "").toLowerCase().includes(texto)
-    );
+  function resumen(lista){
 
-    renderTabla(filtrados);
+    let inventario=0;
+    let mas30=0;
+    let mas60=0;
+
+    lista.forEach(p=>{
+
+      inventario+=Number(p.valor_inventario||0);
+
+      if(p.dias_sin_vender>=30) mas30++;
+      if(p.dias_sin_vender>=60) mas60++;
+
+    });
+
+    totalInventario.innerText="$"+inventario.toFixed(2);
+    prod30.innerText=mas30;
+    prod60.innerText=mas60;
+
+  }
+
+
+  function render(lista){
+
+    tabla.innerHTML="";
+
+    if(!lista.length){
+      tabla.innerHTML=`<tr><td colspan="9">Sin productos</td></tr>`;
+      return;
+    }
+
+    lista.forEach(p=>{
+
+      const dias=p.dias_sin_vender;
+
+      let textoDias="Nunca vendido";
+      if(dias && dias<900) textoDias=dias+" días";
+
+      let color="text-gray-500";
+
+      if(dias>=60) color="text-red-600 font-bold";
+      else if(dias>=30) color="text-orange-500";
+
+      tabla.insertAdjacentHTML("beforeend",`
+
+      <tr>
+
+      <td>${p.sku||""}</td>
+      <td>${p.nombre||""}</td>
+      <td>${p.categoria||""}</td>
+
+      <td class="text-right">$${Number(p.costo||0).toFixed(2)}</td>
+
+      <td class="text-right">$${Number(p.precio_base||0).toFixed(2)}</td>
+
+      <td class="text-right">${Number(p.existencias||0)}</td>
+
+      <td class="text-right">$${Number(p.valor_inventario||0).toFixed(2)}</td>
+
+      <td class="text-right ${color}">${textoDias}</td>
+
+      <td class="text-center">
+
+      <button
+      class="promo bg-green-600 text-white px-2 py-1 rounded text-xs"
+      data-id="${p.id}"
+      data-precio="${p.precio_base}">
+
+      Promoción
+
+      </button>
+
+      </td>
+
+      </tr>
+
+      `);
+
+    });
+
+  }
+
+
+  tabla.addEventListener("click", async e=>{
+
+    const btn=e.target.closest(".promo");
+    if(!btn) return;
+
+    const id=btn.dataset.id;
+    const precio=Number(btn.dataset.precio);
+
+    const { value } = await Swal.fire({
+      title:"Nuevo precio promocional",
+      input:"number",
+      inputValue:(precio*0.9).toFixed(2),
+      showCancelButton:true
+    });
+
+    if(!value) return;
+
+    const { error } = await supabaseClient
+      .from("productos")
+      .update({precio_base:value})
+      .eq("id",id);
+
+    if(error){
+      Swal.fire("Error","No se pudo aplicar promoción","error");
+      return;
+    }
+
+    Swal.fire("Listo","Precio actualizado","success");
+    cargar();
+
   });
 
-  // ▶ Iniciar carga
-  cargarProductos();
+
+  inputBuscar.addEventListener("input",()=>{
+
+    const q=inputBuscar.value.toLowerCase();
+
+    const filtrados=listaOriginal.filter(p=>
+      (p.nombre||"").toLowerCase().includes(q) ||
+      (p.sku||"").toLowerCase().includes(q) ||
+      (p.categoria||"").toLowerCase().includes(q)
+    );
+
+    render(filtrados);
+
+  });
+
+  cargar();
 
 });

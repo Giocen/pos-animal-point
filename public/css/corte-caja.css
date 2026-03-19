@@ -171,3 +171,47 @@ main {
 @media (max-width: 500px) {
   .grid-corte { grid-template-columns: 1fr; }
 }
+
+.input-corte {
+  width: 100%;
+  height: 48px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.input-corte::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
+.input-corte:focus {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.25);
+  background: rgba(255,255,255,0.08);
+}
+
+/* 🔥 FIX SWEETALERT INPUT */
+.swal2-popup .input-corte {
+  width: 100% !important;
+  height: 48px !important;
+  border-radius: 10px !important;
+  border: 2px solid rgba(255,255,255,0.15) !important;
+  background: rgba(255,255,255,0.05) !important;
+  color: #fff !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.swal2-popup .input-corte:focus {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.25) !important;
+}

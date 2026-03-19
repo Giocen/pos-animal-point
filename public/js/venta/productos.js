@@ -8,7 +8,9 @@ let resultadosBusqueda = [];
 let indiceSeleccionado = -1;
 let bloqueoSubmit = false;
 let bloqueoAgregar = false;
+let bloqueoScanner = false;
 let bloqueoNavegacion = false;
+
 let cacheProductos = [];
 
 async function agregarProductoDesdeBusqueda(prod){
@@ -19,14 +21,13 @@ async function agregarProductoDesdeBusqueda(prod){
   setTimeout(()=>bloqueoAgregar=false,120);
 
   const inputSku = document.getElementById("sku");
+  const form = document.getElementById("formBuscar");
 
   inputSku.value = prod.codigo_barras || prod.sku;
 
-  document.getElementById("formBuscar")
-    .dispatchEvent(new Event("submit",{cancelable:true}));
+  form.dispatchEvent(new Event("submit",{cancelable:true}));
 
 }
-
 
 const negocioId = localStorage.getItem("negocio_id");
 /* ==========================================================
@@ -48,8 +49,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await protegerSesion(["admin", "cajero"]);
 
-  /* asegurar negocio_id */
-  const negocioId = localStorage.getItem("negocio_id");
+  
 
   if (!negocioId) {
     console.warn("⚠ negocio_id no disponible aún");
@@ -69,12 +69,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (productos.length) {
 
-    /* usar Dexie */
-    cacheProductos = productos;
+  cacheProductos = productos.filter(p => p.negocio_id === negocioId); 
 
-    cachearProductos(productos);
+  cachearProductos(cacheProductos);
 
-    resultadosBusqueda = productos.slice(0, 12);
+  resultadosBusqueda = cacheProductos.slice(0, 12);
 
   } else {
 
@@ -97,11 +96,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (data?.length) {
 
-      cacheProductos = data;
+    cacheProductos = data.filter(p => p.negocio_id === negocioId); // 🔥 FIX
 
-      cachearProductos(data);
+    cachearProductos(cacheProductos);
 
-      resultadosBusqueda = data.slice(0, 12);
+    resultadosBusqueda = cacheProductos.slice(0, 12);
 
     }
 
@@ -222,46 +221,35 @@ inputSku.addEventListener("input", debounceSmartPOS(async (e) => {
 
   if (esEscaner) {
 
-    const producto = await buscarProductoTotal(texto);
+  bloqueoScanner = true;
+  setTimeout(() => bloqueoScanner = false, 250);
 
-    if (producto) {
-      agregarProductoDesdeBusqueda(producto);
-      inputSku.value = "";
-      autocompleteBox.classList.add("hidden");
-    }
+  autocompleteBox.classList.add("hidden");
 
+  const producto = await buscarProductoTotal(texto);
 
-    return;
-  }
+  if (producto) {
+  agregarProductoDesdeBusqueda(producto);
+}
 
-  /* =========================
-     AUTOCOMPLETE
-  ========================= */
+  return;
+}
+
+if(texto.length >= 2){
 
   resultadosBusqueda = await buscarProductosAutocomplete(texto);
-
   renderAutocomplete(resultadosBusqueda);
+
+} else {
+
+  autocompleteBox.classList.add("hidden");
+
+}
 
 },120));
 
 
-  /* ==========================================================
-     BÚSQUEDA MANUAL (cuando escribes SKU)
-  ========================================================== */
-
-  inputSku.addEventListener("change", async () => {
-
-    const sku = inputSku.value.trim();
-
-    if (!sku || sku.length < 6) return;
-
-    const prod = await buscarProductoTotal(sku);
-
-    if (prod) {
-      agregarProductoDesdeBusqueda(prod);
-    }
-
-  });
+ 
 
 
   /* ==========================================================
@@ -276,9 +264,9 @@ inputSku.addEventListener("input", debounceSmartPOS(async (e) => {
 
     bloqueoSubmit = true;
 
-    setTimeout(() => {
+   setTimeout(() => {
       bloqueoSubmit = false;
-    }, 120);
+    }, 250);
 
     const sku = inputSku.value.trim();
     let cantidad = safeNumber(inputCantidad.value, 1);
@@ -921,7 +909,7 @@ async function obtenerProductosOffline(){
       return [];
     }
 
-    return cache.data || [];
+    return (cache.data || []).filter(p => p.negocio_id === negocioId); 
 
   }catch{
     return [];

@@ -12,6 +12,19 @@ import { optimizarImagen } from "./utilidades/optimizar-imagen.js";
 import { supabaseClient, protegerSesion } from "./proteccion.js";
 await protegerSesion(["admin", "cajero"]);
 
+let cambiosPendientes = {} 
+let hayCambios = false
+
+function calcularMargen(precio, costo) {
+  if (costo <= 0) return 0;
+  return ((precio - costo) / costo) * 100;
+}
+
+function calcularPrecioDesdeMargen(costo, margen) {
+  if (costo <= 0) return 0;
+  return costo * (1 + margen / 100);
+}
+
 // 🔐 Usuario actual seguro (nuevo nombre de variable)
 const usuario = window.usuarioActual || {};
 
@@ -317,9 +330,13 @@ const minimoBadge = r.stock_minimo != null
     const ganancia = (precio - costo)
 
    
-   const margen = costo > 0
-  ? ((precio - costo) / costo) * 100
-  : 0
+    let colorGanancia = "bg-fuchsia-100 text-fuchsia-700"
+
+if (ganancia < 0) {
+  colorGanancia = "bg-red-200 text-red-800"
+}
+
+  const margen = calcularMargen(precio, costo)
 
 let color = "bg-green-100 text-green-700"
 
@@ -344,7 +361,7 @@ if (margen < 20) {
       <span class="valor">${r.nombre ?? ''}</span>
       </td>   
       <td class="td editable" data-campo="precio_base" data-id="${r.id}">
-      <span class="valor">$${Number(precio)}</span>
+      <span class="valor">$${Number(precio).toFixed(2)}</span>
       </td>
       <td class="td editable" data-campo="costo" data-id="${r.id}">
       <span class="valor">$${Number(costo).toFixed(2)}</span>
@@ -356,10 +373,10 @@ if (margen < 20) {
       </td>
 
       <td class="td">
-        <span class="ganancia px-2 py-1 rounded-full text-sm font-bold bg-fuchsia-100 text-fuchsia-700" data-id="${r.id}">
-          $${Math.round(ganancia)}
+        <span class="ganancia px-2 py-1 rounded-full text-sm font-bold ${colorGanancia}">
+          $${ganancia.toFixed(2)}
         </span>
-      </td>    
+      </td> 
       <td class="td">${existenciasBadge}</td>
     <td class="td editable" data-campo="stock_minimo" data-id="${r.id}">
       <span class="valor">${r.stock_minimo ?? 0}</span>
@@ -732,10 +749,19 @@ tbody.addEventListener("input", (ev) => {
   let margen = leerNumero(fila.querySelector('[data-campo="margen"]'))
  
 
-  let valor = String(input.value).replace("%","").trim()
+    let valor = String(input.value)
+    .replace(/[^0-9.]/g, "")
+    .trim()
+
   if (valor === "") return
 
   valor = Number(valor)
+
+  if (campo === "margen") {
+  valor = Math.min(valor, 500) // evita locuras
+}
+
+  if (isNaN(valor)) return
 
   /* ===============================
      CAMPO EDITADO
@@ -743,20 +769,18 @@ tbody.addEventListener("input", (ev) => {
 
   if (campo === "precio_base") {
 
-  precio = valor
+    precio = valor
 
-  margen = costo > 0
-    ? ((precio - costo) / costo) * 100
-    : 0
+    margen = calcularMargen(precio, costo) // 🔥 FIX
 
-}
+  }
 
   if (campo === "costo") {
 
     costo = valor
 
     // mantener margen actual
-    precio = Math.round(costo * (1 + margen / 100))
+    precio = calcularPrecioDesdeMargen(costo, margen)
 
   }
 
@@ -764,172 +788,43 @@ tbody.addEventListener("input", (ev) => {
 
     margen = valor
 
-    precio = Math.round(costo * (1 + margen / 100))
+    precio = calcularPrecioDesdeMargen(costo, margen) // 🔥 FIX
 
   }
-
   /* ===============================
      CALCULOS
   ============================== */
-
-  const ganancia = precio - costo
-
-  if (margen < 0) margen = 0
-
-  const margenCell = fila.querySelector(".margen")
-  const gananciaCell = fila.querySelector(".ganancia")
-  const precioCell = fila.querySelector('[data-campo="precio_base"] .valor')
-
-  if (precioCell) {
-    precioCell.textContent = "$" + Math.round(precio)
-  }
-
-  if (gananciaCell) {
-    gananciaCell.textContent = "$" + Math.round(ganancia)
-  }
-
-  if (margenCell) {
-
-    let color = "bg-green-100 text-green-700"
-
-    if (margen < 20) {
-      color = "bg-red-100 text-red-700"
-    } 
-    else if (margen < 40) {
-      color = "bg-yellow-100 text-yellow-700"
-    }
-
-    margenCell.className =
-      `valor margen px-2 py-1 rounded-full text-sm font-bold ${color}`
-
-    margenCell.textContent = margen.toFixed(1) + "%"
-  }
-
-if (gananciaCell) gananciaCell.textContent = "$" + Math.round(ganancia)
-
-  })
-
-
-
-tbody.addEventListener("blur", async (ev) => {
-
-  const input = ev.target
-  if (!input.classList.contains("editor")) return
-
-  const celda = input.closest(".editable")
-  const fila = celda.closest("tr")
-
-  const id = celda.dataset.id
-  const campo = celda.dataset.campo
-
-  if (!["precio_base","costo","stock_minimo","nombre","margen"].includes(campo)) return
-
-    let valor = input.value
-
-// ⭐ evitar recalcular si no hubo cambios
-if (String(valor).trim() === String(input.dataset.original).trim()) {
-
-  if (campo === "margen") {
-    celda.innerHTML = `<span class="valor margen">${input.defaultValue}%</span>`
-  } else {
-    celda.innerHTML = `<span class="valor">${input.defaultValue}</span>`
-  }
-
-  return
-}
-
-if (campo !== "nombre") {
-
-  let v = String(valor).replace("%","").trim()
-
-  if (v === "") {
-    celda.innerHTML = `<span class="valor">${input.defaultValue}</span>`
-    return
-  }
-
-  valor = Number(v)
-}
-
-  let precio = Number(
-    fila.querySelector('[data-campo="precio_base"] .valor')
-      ?.innerText.replace("$","") || 0
-  )
-
-  let costo = Number(
-    fila.querySelector('[data-campo="costo"] .valor')
-      ?.innerText.replace("$","") || 0
-  )
-
-  // 🔹 si cambia costo mantener margen
-  if (campo === "costo") {
-
-    costo = valor
-
-    const margenActual = Number(
-      fila.querySelector('[data-campo="margen"] .valor')
-        ?.innerText.replace("%","") || 0
-    )
-
-    precio = Math.round(costo * (1 + margenActual / 100))
-
-    const precioCell = fila.querySelector('[data-campo="precio_base"] .valor')
-    if (precioCell) {
-      precioCell.textContent = "$" + precio
-    }
-  }
-
-  // 🔹 si cambia margen recalcular precio
-  if (campo === "margen") {
-
-    precio = Math.round(costo * (1 + valor / 100))
-
-    const precioCell = fila.querySelector('[data-campo="precio_base"] .valor')
-    if (precioCell) {
-      precioCell.textContent = "$" + precio
-    }
-  }
-
-  // 🔹 mostrar valor en la celda
-  if (campo === "nombre") {
-    celda.innerHTML = `<span class="valor">${valor}</span>`
-  }
-  else if (campo === "stock_minimo") {
-    celda.innerHTML = `<span class="valor">${valor}</span>`
-  }
-  else if (campo === "margen") {
-
-  let color = "bg-green-100 text-green-700"
-
-  if (valor < 20) {
-    color = "bg-red-100 text-red-700"
-  } else if (valor < 40) {
-    color = "bg-yellow-100 text-yellow-700"
-  }
-
-  celda.innerHTML = `
-  <span class="valor margen px-2 py-1 rounded-full text-sm font-bold ${color}">
-    ${valor}%
-  </span>`
-}
-  else {
-    celda.innerHTML = `<span class="valor">$${Math.round(valor)}</span>`
-  }
 
 const ganancia = precio - costo
 
 const margenCell = fila.querySelector(".margen")
 const gananciaCell = fila.querySelector(".ganancia")
+const precioCell = fila.querySelector('[data-campo="precio_base"] .valor')
+if (precioCell) {
+  precioCell.textContent = "$" + precio.toFixed(2)
+}
 
-// 🔥 SIEMPRE recalcular margen correctamente
-let margen = costo > 0 ? ((precio - costo) / costo) * 100 : 0
+let colorGanancia = "bg-fuchsia-100 text-fuchsia-700"
 
-if (margen < 0) margen = 0
+if (ganancia < 0) {
+  colorGanancia = "bg-red-200 text-red-800"
+}
+
+if (gananciaCell) {
+  gananciaCell.className =
+    `ganancia px-2 py-1 rounded-full text-sm font-bold ${colorGanancia}`
+
+  gananciaCell.textContent = "$" + ganancia.toFixed(2)
+}
+
+if (ganancia < 0) {
+  gananciaCell.title = "⚠️ Estás perdiendo dinero"
+} else {
+  gananciaCell.title = ""
+}
 
 
-
-margen = parseFloat(margen).toFixed(1)
-
-if (margenCell) {
+ if (margenCell) {
 
   let color = "bg-green-100 text-green-700"
 
@@ -940,50 +835,156 @@ if (margenCell) {
     color = "bg-yellow-100 text-yellow-700"
   }
 
-  margenCell.className = `valor margen px-2 py-1 rounded-full text-sm font-bold ${color}`
-  margenCell.textContent = margen + "%"
+  margenCell.className =
+    `valor margen px-2 py-1 rounded-full text-sm font-bold ${color}`
+
+  margenCell.textContent = margen.toFixed(1) + "%"
 }
 
-if (gananciaCell) {
-  gananciaCell.textContent = "$" + Math.round(ganancia)
-}
+  })
 
-  /* ---------------------------------------------------------
-     💾 GUARDAR EN SUPABASE
-  --------------------------------------------------------- */
+tbody.addEventListener("blur", (ev) => {
 
-  try {
+  const input = ev.target
+  if (!input.classList.contains("editor")) return
 
-    const camposUpdate = {}
+  const celda = input.closest(".editable")
+  const fila = celda.closest("tr")
+
+  const id = celda.dataset.id
+    if (!id) return
+  const campo = celda.dataset.campo
+
+  if (!["precio_base","costo","stock_minimo","nombre","margen"].includes(campo)) return
+
+  let valor = input.value
+
+  // ⭐ evitar cambios si no modificó nada
+  if (String(valor).trim() === String(input.dataset.original).trim()) {
 
     if (campo === "margen") {
-      camposUpdate["precio_base"] = precio
+      celda.innerHTML = `<span class="valor margen">${input.defaultValue}%</span>`
     } else {
-      camposUpdate[campo] = valor
+      celda.innerHTML = `<span class="valor">${input.defaultValue}</span>`
     }
 
-    const { error } = await supabase
-      .from("productos")
-      .update({
-        ...camposUpdate,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", id)
-      .eq("negocio_id", negocioId)
-
-    if (error) throw error
-
-  } catch (err) {
-
-    console.error("❌ Error guardando edición rápida:", err)
-
-    Swal.fire({
-      icon: "error",
-      title: "No se pudo guardar",
-      text: "Intenta nuevamente",
-    })
-
+    return
   }
+
+  // 🔢 normalizar número
+  if (campo !== "nombre") {
+    let v = String(valor).replace(/[^0-9.]/g, "").trim()
+
+    if (v === "") {
+      celda.innerHTML = `<span class="valor">${input.defaultValue}</span>`
+      return
+    }
+
+    valor = Number(v)
+  }
+
+  let precio = leerNumero(fila.querySelector('[data-campo="precio_base"]'))
+  let costo  = leerNumero(fila.querySelector('[data-campo="costo"]'))
+
+  // 🔹 lógica de negocio
+  if (campo === "costo") {
+    costo = valor
+
+    const margenActual = leerNumero(
+      fila.querySelector('[data-campo="margen"]')
+    )
+
+    precio = calcularPrecioDesdeMargen(costo, margenActual)
+
+    const precioCell = fila.querySelector('[data-campo="precio_base"] .valor')
+    if (precioCell) {
+      precioCell.textContent = "$" + precio.toFixed(2)
+    }
+  }
+
+  if (campo === "margen") {
+    precio = calcularPrecioDesdeMargen(costo, valor)
+
+    const precioCell = fila.querySelector('[data-campo="precio_base"] .valor')
+    if (precioCell) {
+      precioCell.textContent = "$" + precio.toFixed(2)
+    }
+  }
+
+  // 🖥️ pintar UI
+  if (campo === "nombre") {
+    celda.innerHTML = `<span class="valor">${valor}</span>`
+  }
+  else if (campo === "stock_minimo") {
+    celda.innerHTML = `<span class="valor">${valor}</span>`
+  }
+  else if (campo === "margen") {
+
+    let color = "bg-green-100 text-green-700"
+
+    if (valor < 20) color = "bg-red-100 text-red-700"
+    else if (valor < 40) color = "bg-yellow-100 text-yellow-700"
+
+    celda.innerHTML = `
+      <span class="valor margen px-2 py-1 rounded-full text-sm font-bold ${color}">
+        ${valor}%
+      </span>`
+  }
+  else {
+    celda.innerHTML = `<span class="valor">$${Number(valor).toFixed(2)}</span>`
+  }
+
+  // 🔥 recalcular margen / ganancia visual
+  const ganancia = precio - costo
+
+  const margenCell = fila.querySelector(".margen")
+  const gananciaCell = fila.querySelector(".ganancia")
+
+  let margen = calcularMargen(precio, costo)
+
+  if (margenCell) {
+
+    let color = "bg-green-100 text-green-700"
+
+    if (margen < 20) color = "bg-red-100 text-red-700"
+    else if (margen < 40) color = "bg-yellow-100 text-yellow-700"
+
+    margenCell.className =
+      `valor margen px-2 py-1 rounded-full text-sm font-bold ${color}`
+
+    margenCell.textContent = margen.toFixed(1) + "%"
+  }
+
+  let colorGanancia = "bg-fuchsia-100 text-fuchsia-700"
+  if (ganancia < 0) colorGanancia = "bg-red-200 text-red-800"
+
+  if (gananciaCell) {
+    gananciaCell.className =
+      `ganancia px-2 py-1 rounded-full text-sm font-bold ${colorGanancia}`
+
+    gananciaCell.textContent = "$" + ganancia.toFixed(2)
+  }
+
+  /* ---------------------------------------------------------
+     🧠 GUARDAR EN MEMORIA (AQUÍ VA TU BLOQUE)
+  --------------------------------------------------------- */
+
+  if (!cambiosPendientes[id]) {
+    cambiosPendientes[id] = {}
+  }
+
+  if (campo === "margen") {
+    cambiosPendientes[id]["precio_base"] = precio
+  } else {
+    cambiosPendientes[id][campo] = valor
+  }
+
+  hayCambios = true
+
+  actualizarBotonGuardar()
+
+  // 🎨 marcar fila
+  fila.classList.add("bg-yellow-50", "ring-2", "ring-yellow-300")
 
 }, true)
 
@@ -1875,3 +1876,104 @@ function inicializarImagenesModal() {
   console.log("✅ Modal de imágenes inicializado");
 }
 
+document.getElementById("btnGuardarCambios")?.addEventListener("click", async () => {
+
+  if (!hayCambios) {
+    return Swal.fire("Sin cambios", "No hay nada que guardar", "info")
+  }
+
+  Swal.fire({
+    title: "Guardando cambios...",
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  })
+
+  try {
+
+    for (const id in cambiosPendientes) {
+
+      const campos = cambiosPendientes[id]
+
+      
+      if (campos.margen !== undefined) {
+
+        const fila = document.querySelector(`[data-id="${id}"]`)?.closest("tr")
+
+        let costoActual = campos.costo
+
+        if (costoActual === undefined && fila) {
+          costoActual = leerNumero(
+            fila.querySelector('[data-campo="costo"]')
+          )
+        }
+
+        campos.precio_base = calcularPrecioDesdeMargen(
+          costoActual || 0,
+          campos.margen
+        )
+
+        delete campos.margen
+      }
+
+      const { error } = await supabase
+        .from("productos")
+        .update({
+          ...campos,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", id)
+        .eq("negocio_id", negocioId)
+
+      if (error) throw error
+
+    }
+
+    // 🔄 limpiar buffer
+    cambiosPendientes = {}
+    hayCambios = false
+    actualizarBotonGuardar()
+
+    document.querySelectorAll("tr").forEach(tr => {
+  tr.classList.remove("bg-yellow-50", "ring-2", "ring-yellow-300")
+})
+
+    Swal.fire({
+      icon: "success",
+      title: "Cambios guardados",
+      timer: 1200,
+      showConfirmButton: false
+    })
+
+    buscar()
+
+  } catch (err) {
+    console.error(err)
+    Swal.fire("Error", "No se pudieron guardar los cambios", "error")
+  }
+
+})
+
+window.addEventListener("beforeunload", (e) => {
+  if (hayCambios) {
+    e.preventDefault()
+    e.returnValue = ""
+  }
+})
+
+function validarSalida() {
+  if (!hayCambios) return true
+
+  return confirm("Tienes cambios sin guardar ¿Deseas salir?")
+}
+
+
+
+function actualizarBotonGuardar() {
+  const btn = document.getElementById("btnGuardarCambios")
+  if (!btn) return
+  btn.style.display = hayCambios ? "block" : "none"
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  actualizarBotonGuardar()
+})

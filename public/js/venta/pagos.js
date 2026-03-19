@@ -19,6 +19,49 @@ export let cambio = 0;
 let totalCarrito = 0;
 let totalCallback = null;
 
+
+
+function animarBoton(btn){
+    btn.style.transform = "scale(0.92)";
+    btn.style.boxShadow = "0 0 10px rgba(255,0,255,0.6)";
+
+    setTimeout(()=>{
+        btn.style.transform = "scale(1)";
+        btn.style.boxShadow = "none";
+    },120);
+}
+
+function soloNumerosDecimal(input) {
+    let valor = input.value;
+
+    // ❌ Elimina todo lo que no sea número o punto
+    valor = valor.replace(/[^0-9.]/g, "");
+
+    // ❌ Evita más de un punto decimal
+    const partes = valor.split(".");
+    if (partes.length > 2) {
+        valor = partes[0] + "." + partes[1];
+    }
+
+    input.value = valor;
+}
+function sugerirMontoPago(total) {
+
+    if (total <= 20) return 20;
+    if (total <= 50) return 50;
+    if (total <= 100) return 100;
+    if (total <= 200) return 200;
+
+    if (total <= 300) return 500; // 🔥 clave real
+    if (total <= 500) return 500;
+
+    if (total <= 800) return 1000;
+    if (total <= 1000) return 1000;
+
+    return Math.ceil(total / 500) * 500;
+}
+
+
 /* ============================================================
    🔄 Escucha del total del carrito
 ============================================================ */
@@ -39,6 +82,8 @@ document.addEventListener("carrito-total-cambiado", (e) => {
         const txt = document.getElementById("txtCambio");
         if (inp && txt) validarEfectivo(inp, txt);
     }
+
+    
 
     if (metodoPago === "tarjeta") {
         pagoTarjeta = totalCarrito;
@@ -134,26 +179,80 @@ function renderFormulario(metodo, form) {
 
         <div class="grid grid-cols-2 gap-4">
 
-          <div class="flex flex-col">
+        <div class="flex flex-col">
             <label class="text-sm font-semibold text-gray-200 mb-1">Monto:</label>
             <input id="inpEfec" class="pago-input text-center" inputmode="decimal" value="">
-          </div>
+        </div>
 
-          <div class="flex flex-col">
+        <div class="flex flex-col">
             <label class="text-sm font-semibold text-gray-200 mb-1">Cambio:</label>
             <div class="flex items-center justify-center bg-fuchsia-900/30 
                         border border-fuchsia-500/40 rounded-lg text-white 
                         text-2xl font-bold py-3 px-4">
-              <span id="txtCambio">$0.00</span>
+            <span id="txtCambio">$0.00</span>
             </div>
-          </div>
+        </div>
 
-        </div>`;
+        </div>
 
+        <!-- 🔥 BOTÓN INTELIGENTE -->
+        <button id="btnSugerido" class="btn-monto w-full mt-3 bg-emerald-600/30 border-emerald-400/40">
+        💡 Pago sugerido
+        </button>
+
+        <!-- 🔥 BOTONES -->
+        <div class="grid grid-cols-3 gap-2 mt-2">
+        <button class="btn-monto" data-monto="50">$50</button>
+        <button class="btn-monto" data-monto="100">$100</button>
+        <button class="btn-monto" data-monto="200">$200</button>
+
+        <button class="btn-monto" data-monto="500">$500</button>
+        <button class="btn-monto" data-monto="1000">$1000</button>
+        <button class="btn-monto" data-monto="exacto">Exacto</button>
+        </div>
+        `;
         const inp = document.getElementById("inpEfec");
         const txt = document.getElementById("txtCambio");
 
-        inp.addEventListener("input", () => validarEfectivo(inp, txt));
+        // 🔥 BOTÓN SUGERIDO
+            const btnSug = document.getElementById("btnSugerido");
+
+            if (btnSug) {
+                const monto = sugerirMontoPago(totalCarrito);
+                btnSug.textContent = `💡 Cliente paga con $${monto}`;
+
+                btnSug.addEventListener("click", () => {
+                    inp.value = monto.toFixed(2);
+                    validarEfectivo(inp, txt);
+
+                    
+                    animarBoton(btnSug);
+                });
+            }
+
+        inp.addEventListener("input", () => {
+            soloNumerosDecimal(inp); // 🔥 NUEVO
+            validarEfectivo(inp, txt);
+        });
+
+        const botones = document.querySelectorAll(".btn-monto[data-monto]");
+
+        botones.forEach(btn => {
+            btn.addEventListener("click", () => {
+
+                if (btn.dataset.monto === "exacto") {
+                    inp.value = totalCarrito.toFixed(2);
+                } else {
+                    inp.value = Number(btn.dataset.monto);
+                }
+
+                validarEfectivo(inp, txt);
+
+                
+                animarBoton(btn);
+            });
+        });
+
         inp.addEventListener("blur", () => {
             if (inp.value !== "")
                 inp.value = parseFloat(inp.value).toFixed(2);
@@ -177,6 +276,8 @@ function renderFormulario(metodo, form) {
         const v = document.getElementById("inpVouch");
 
         t.addEventListener("input", () => {
+            soloNumerosDecimal(t); // 🔥 NUEVO
+
             let val = parseFloat(t.value);
             if (isNaN(val)) val = 0;
             pagoTarjeta = val;
@@ -204,6 +305,8 @@ function renderFormulario(metodo, form) {
         const inp = document.getElementById("inpTrans");
 
         inp.addEventListener("input", () => {
+            soloNumerosDecimal(inp); // 🔥 NUEVO
+
             const val = parseFloat(inp.value);
             pagoTransfer = isNaN(val) ? 0 : val;
         });
@@ -230,11 +333,18 @@ function renderFormulario(metodo, form) {
             <p id="mxValida" class="text-red-300 mt-1 text-sm"></p>
         `;
 
-        const ef = document.getElementById("mxEfec");
+       const ef = document.getElementById("mxEfec");
         const tj = document.getElementById("mxTar");
 
-        ef.addEventListener("input", recalcularMixto);
-        tj.addEventListener("input", recalcularMixto);
+        ef.addEventListener("input", () => {
+            soloNumerosDecimal(ef); // 🔥 NUEVO
+            recalcularMixto();
+        });
+
+        tj.addEventListener("input", () => {
+            soloNumerosDecimal(tj); // 🔥 NUEVO
+            recalcularMixto();
+        });
 
         ef.addEventListener("blur", () => {
             if (ef.value !== "")

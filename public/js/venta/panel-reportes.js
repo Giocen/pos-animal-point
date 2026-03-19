@@ -432,7 +432,7 @@ export async function abrirUtilidadProductos(){
 
           <tr class="border-b border-fuchsia-600/20">
 
-          <td class="truncate">
+          <td class="truncate text-left">
           ${p.producto}
           </td>
 

@@ -5,172 +5,151 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SmartPOS | Productos No Vendidos</title>
 
-  <!-- 🎨 Librerías -->
+  <!-- Librerías -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- 📄 Estilos -->
-  <link rel="stylesheet" href="/css/reportes.css">
+  <style>
+    body{
+      background:#1A042D;
+      color:white;
+      font-family: Inter, system-ui;
+    }
+
+    .header{
+      background:linear-gradient(90deg,#7c3aed,#ec4899);
+      padding:14px 24px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      position:fixed;
+      width:100%;
+      top:0;
+      left:0;
+      z-index:10;
+    }
+
+    .card{
+      background:white;
+      border-radius:10px;
+      padding:20px;
+      color:#111;
+      box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:14px;
+    }
+
+    thead{
+      background:linear-gradient(90deg,#7c3aed,#ec4899);
+      color:white;
+    }
+
+    th{
+      padding:12px 16px;
+      text-align:left;
+      font-weight:600;
+    }
+
+    td{
+      padding:14px 16px;
+      border-bottom:1px solid #eee;
+    }
+
+    tbody tr:hover{
+      background:#fafafa;
+    }
+
+  </style>
+
 </head>
 
 <body>
 
-<!-- ----------------------------------------------------------
-  💜 HEADER ESTILO REPORTES
------------------------------------------------------------ -->
-<header class="header-reportes">
-  <div class="header-content">
-
-    <button onclick="window.location.href='/venta.html'" class="btn-volver">
-      <i data-lucide="arrow-left"></i> Volver a ventas
-    </button>
-
-    <div class="flex items-center gap-2">
-      <i data-lucide="package-search" class="w-6 h-6 text-white"></i>
-      <h1 class="text-xl font-bold text-white">Productos No Vendidos</h1>
-    </div>
-
+<header class="header">
+  <div class="flex items-center gap-2">
+    <i data-lucide="package-search"></i>
+    <span class="font-bold">Productos No Vendidos</span>
   </div>
+
+  <button onclick="location.href='/venta.html'" class="bg-white/20 px-3 py-1 rounded">
+    Volver
+  </button>
 </header>
 
 
-<!-- ----------------------------------------------------------
-  📦 CONTENIDO PRINCIPAL
------------------------------------------------------------ -->
-<main class="mt-[5.5rem] px-6">
-
-  <!-- 🔍 Filtros -->
-  <section id="filtros" class="fadeIn">
-    <div id="filtroContenedor" class="flex flex-wrap items-end gap-4">
-
-      <div class="flex flex-col flex-1 min-w-[240px]">
-        <label class="text-sm font-semibold text-fuchsia-700 mb-1">
-          Buscar por SKU o Nombre
-        </label>
-        <input id="buscar" class="input-filtro" placeholder="Ej. 12345 / Shampoo perro">
-      </div>
-
-    </div>
-  </section>
+<main class="mt-[80px] px-6 space-y-6">
 
 
-  <!-- ----------------------------------------------------------
-    📄 TABLA PRODUCTOS NO VENDIDOS
-  ----------------------------------------------------------- -->
-  <section id="resultado" class="mt-4">
+<!-- PANEL RESUMEN -->
+<div class="grid md:grid-cols-3 gap-4">
 
-    <div class="contenedor-pnv">
+  <div class="card">
+    <div class="text-xs text-gray-500">Inventario detenido</div>
+    <div id="totalInventario" class="text-xl font-bold">$0</div>
+  </div>
 
-      <table class="tabla-pnv">
-        <thead>
-          <tr>
-            <th>SKU</th>
-            <th>Producto</th>
-            <th>Categoría</th>
-            <th>Costo</th>
-            <th>Precio</th>
-            <th>Existencias</th>
-          </tr>
-        </thead>
+  <div class="card">
+    <div class="text-xs text-gray-500">Productos +30 días</div>
+    <div id="prod30" class="text-xl font-bold">0</div>
+  </div>
 
-        <tbody id="tablaProductos"></tbody>
-      </table>
+  <div class="card">
+    <div class="text-xs text-gray-500">Productos +60 días</div>
+    <div id="prod60" class="text-xl font-bold">0</div>
+  </div>
 
-    </div>
+</div>
 
-  </section>
+
+<!-- BUSCADOR -->
+<div class="card">
+
+  <input
+    id="buscar"
+    placeholder="Buscar por SKU o nombre..."
+    class="w-full border p-2 rounded"
+  >
+
+</div>
+
+
+<!-- TABLA -->
+<div class="card overflow-x-auto">
+
+<table>
+
+<thead>
+<tr>
+
+<th>SKU</th>
+<th>Producto</th>
+<th>Categoría</th>
+<th class="text-right">Costo</th>
+<th class="text-right">Precio</th>
+<th class="text-right">Existencias</th>
+<th class="text-right">Valor Inventario</th>
+<th class="text-right">Días sin vender</th>
+<th class="text-center">Acción</th>
+
+</tr>
+</thead>
+
+<tbody id="tablaProductos"></tbody>
+
+</table>
+
+</div>
 
 </main>
 
 
-<!-- ----------------------------------------------------------
-  📌 JAVASCRIPT
------------------------------------------------------------ -->
-<script type="module">
-
-  import { supabaseClient, protegerSesion } from "/js/proteccion.js";
-  await protegerSesion(["admin"]);
-
-  const tabla = document.getElementById("tablaProductos");
-  const inputBuscar = document.getElementById("buscar");
-
-  let listaOriginal = [];
-
-  // ==========================================================
-  // 🔄 Cargar productos no vendidos
-  // ==========================================================
-  async function cargarProductos() {
-
-    const { data, error } = await supabaseClient
-      .from("v_productos_no_vendidos")
-      .select("*")
-      .order("nombre");
-
-    if (error) {
-      console.error(error);
-      Swal.fire("Error", "No se pudieron cargar los datos", "error");
-      return;
-    }
-
-    listaOriginal = data;
-    renderTabla(data);
-  }
-
-
-  // ==========================================================
-  // 🧱 Render tabla
-  // ==========================================================
-  function renderTabla(lista) {
-    tabla.innerHTML = "";
-
-    if (lista.length === 0) {
-      tabla.innerHTML = `
-        <tr>
-          <td colspan="6" class="py-3 text-center text-gray-400">
-            No hay productos sin ventas
-          </td>
-        </tr>`;
-      return;
-    }
-
-    lista.forEach(p => {
-
-      tabla.insertAdjacentHTML("beforeend", `
-        <tr>
-          <td>${p.sku}</td>
-          <td>${p.nombre}</td>
-          <td>${p.categoria}</td>
-          <td>$${p.costo.toFixed(2)}</td>
-          <td>$${p.precio_base.toFixed(2)}</td>
-          <td>${p.existencias}</td>
-        </tr>
-      `);
-
-    });
-  }
-
-
-  // ==========================================================
-  // 🔍 Buscador
-  // ==========================================================
-  inputBuscar.addEventListener("input", () => {
-    const q = inputBuscar.value.toLowerCase();
-
-    const filtrados = listaOriginal.filter(p =>
-      p.nombre.toLowerCase().includes(q) ||
-      p.sku.toLowerCase().includes(q) ||
-      p.categoria.toLowerCase().includes(q)
-    );
-
-    renderTabla(filtrados);
-  });
-
-  cargarProductos();
-
-</script>
-
-<script> lucide.createIcons(); </script>
+<script type="module" src="/js/reportes/productosNoVendidos.js"></script>
+<script>lucide.createIcons()</script>
 
 </body>
 </html>
