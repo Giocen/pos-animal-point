@@ -841,7 +841,30 @@ if (ganancia < 0) {
   margenCell.textContent = margen.toFixed(1) + "%"
 }
 
+/* ===============================
+   🧠 GUARDAR CAMBIOS EN TIEMPO REAL
+============================== */
+
+const id = celda.dataset.id;
+if (!id) return;
+
+if (!cambiosPendientes[id]) {
+  cambiosPendientes[id] = {};
+}
+
+if (campo === "margen") {
+  cambiosPendientes[id]["precio_base"] = precio;
+} else {
+  cambiosPendientes[id][campo] = valor;
+}
+
+hayCambios = true;
+actualizarBotonGuardar();
+
+// 🎨 marcar fila
+fila.classList.add("bg-yellow-50", "ring-2", "ring-yellow-300");
   })
+
 
 tbody.addEventListener("blur", (ev) => {
 
@@ -987,6 +1010,7 @@ tbody.addEventListener("blur", (ev) => {
   fila.classList.add("bg-yellow-50", "ring-2", "ring-yellow-300")
 
 }, true)
+
 
 // --- Guardar cambios ---
     formEdit.addEventListener("submit", async (e) => {

@@ -181,8 +181,8 @@ export function configurarVentas() {
       /* ----------------------------------------
          🟣 ONLINE → Guardar en Supabase
       ---------------------------------------- */
-      if (online) {    
-        
+          if (online) {
+
         /* ============================================================
           🚨 VALIDAR PRODUCTOS SIN SKU (CRÍTICO)
         ============================================================ */
@@ -216,63 +216,80 @@ export function configurarVentas() {
           Number(pago.efectivo) || 0,
           totalVenta
         );
-      
-        const payload = carritoReal.map((i, index) => {
-
-        const productoUUID = i.uuid_supabase || i.id || null;
-
-        if (!productoUUID) {
-          console.warn("⚠️ Producto sin UUID Supabase:", i.nombre);
-          
-        }
 
         const tarjetaBruto = Number(pago.tarjeta) || 0;
-
-        const COMISION_BASE = 0.035;   // 3.5%
-        const IVA = 0.16;              // 16%
-
+        const COMISION_BASE = 0.035;
+        const IVA = 0.16;
         const porcentajeComision = COMISION_BASE * (1 + IVA);
-        // Resultado: 0.0406 → 4.06%
-
         const comisionTarjeta = tarjetaBruto * porcentajeComision;
 
-          return {        
-          producto_id: productoUUID,
-          cantidad: Number(i.cantidad),
-          precio_unitario: Number(i.precio),
-          total: Number(i.totalFinal),
-          unidad: i.unidad === "kg" ? "kg" : "pieza",
+        /* ============================================================
+          1️⃣ CREAR ENCABEZADO EN ventas
+        ============================================================ */
+        const ventaHeader = {
+          producto_id: null, // ya no se usa a nivel ticket
+          cantidad: 0,       // ya no se usa a nivel ticket
+          precio_unitario: 0,
+          total: totalVenta,
           fecha,
+          unidad: "pieza",
           corte_id: corte.id,
           cliente_id: window.clienteSeleccionado?.id ?? null,
           folio: window.folioVentaActual,
           metodo_pago: pago.metodo,
-
-          pago_efectivo: index === 0 ? efectivoReal : 0,
-          pago_tarjeta: index === 0 ? tarjetaBruto : 0,
-          pago_transferencia: index === 0 ? Number(pago.transferencia) || 0 : 0,
-
-          comision_tarjeta: index === 0 ? comisionTarjeta : 0,
-          porcentaje_comision: index === 0 ? porcentajeComision : 0,
-
-          cambio: index === 0 ? Number(pago.cambio) || 0 : 0,
-          voucher: index === 0 ? pago.voucher || null : null,
-
-          descuento: Number(i.descuento) || 0,
-          total_final: Number(i.totalFinal),
+          pago_efectivo: efectivoReal,
+          pago_tarjeta: tarjetaBruto,
+          pago_transferencia: Number(pago.transferencia) || 0,
+          cambio: Number(pago.cambio) || 0,
+          voucher: pago.voucher || null,
+          descuento: carritoReal.reduce((acc, i) => acc + (Number(i.descuento) || 0), 0),
+          total_final: totalVenta,
           negocio_id,
-          sucursal_id: null
+          sucursal_id: null,
+          comision_tarjeta: comisionTarjeta,
+          porcentaje_comision: porcentajeComision,
+          estado: "completada"
         };
-      })
 
-
-        const { error } = await supabaseClient
+        const { data: ventaCreada, error: errorVenta } = await supabaseClient
           .from("ventas")
-          .insert(payload);
+          .insert(ventaHeader)
+          .select("id, folio")
+          .single();
 
-        if (error) {
-          console.error("❌ Error insert ventas:", error);
-          throw new Error("No se pudo guardar la venta en Supabase");
+        if (errorVenta || !ventaCreada) {
+          console.error("❌ Error creando encabezado de venta:", errorVenta);
+          throw new Error("No se pudo crear la venta");
+        }
+
+        /* ============================================================
+          2️⃣ CREAR DETALLE EN ventas_detalle
+        ============================================================ */
+        const detalles = carritoReal.map((i) => {
+          const productoUUID = i.uuid_supabase || i.id || null;
+
+          if (!productoUUID) {
+            console.warn("⚠️ Producto sin UUID Supabase:", i.nombre);
+          }
+
+          return {
+            venta_id: ventaCreada.id,
+            producto_id: productoUUID,
+            cantidad: Number(i.cantidad),
+            precio_unitario: Number(i.precio),
+            costo_unitario: Number(i.costo || 0),
+            precio_total: Number(i.totalFinal),
+            negocio_id
+          };
+        });
+
+        const { error: errorDetalle } = await supabaseClient
+          .from("ventas_detalle")
+          .insert(detalles);
+
+        if (errorDetalle) {
+          console.error("❌ Error insert ventas_detalle:", errorDetalle);
+          throw new Error("No se pudo guardar el detalle de la venta");
         }
       }
 
@@ -423,3 +440,157 @@ function iniciarModuloVentas() {
 
 if (document.readyState !== "loading") iniciarModuloVentas();
 else document.addEventListener("DOMContentLoaded", iniciarModuloVentas());
+
+
+export async function anularVenta(venta) {
+
+  const negocio_id =
+    window.usuarioActual?.negocio_id ||
+    localStorage.getItem("negocio_id");
+
+  const usuario_id = window.usuarioActual?.id || null;
+
+  if (!venta?.id) return;
+
+  if (venta.estado === "anulada") {
+    return Swal.fire("Aviso", "La venta ya está anulada", "info");
+  }
+
+  // 🔥 Validación negocio
+  if (venta.negocio_id !== negocio_id) {
+    return Swal.fire("Error", "No puedes anular esta venta", "error");
+  }
+
+  // 🔥 Swal bonito
+  const { value: motivo } = await Swal.fire({
+    title: "🛑 Anular venta",
+    input: "textarea",
+    inputLabel: "Motivo de cancelación",
+    inputPlaceholder: "Ej: error en cobro, cliente canceló...",
+    inputAttributes: {
+      maxlength: 200
+    },
+    showCancelButton: true,
+    confirmButtonText: "Anular",
+    confirmButtonColor: "#dc2626",
+    cancelButtonText: "Cancelar",
+    inputValidator: (value) => {
+      if (!value) return "Debes escribir un motivo";
+    }
+  });
+
+  if (!motivo) return;
+
+  try {
+
+    const { error } = await supabaseClient
+      .from("ventas")
+      .update({
+        estado: "anulada",
+        motivo_anulacion: motivo,
+        fecha_anulacion: new Date().toISOString(),
+        anulada_por: usuario_id
+      })
+      .eq("id", venta.id)
+      .eq("negocio_id", negocio_id);
+
+    if (error) throw error;
+
+    Swal.fire("Listo", "Venta anulada correctamente", "success");
+
+    // 🔥 refrescar UI
+    window.dispatchEvent(new Event("ventaAnulada"));
+
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", err.message, "error");
+  }
+}
+
+
+document.addEventListener("click", (e) => {
+
+  const btn = e.target.closest(".btnAnular");
+  if (!btn) return;
+
+  const id = btn.dataset.id;
+
+  // aquí necesitas tener la venta en memoria
+  const venta = window.listaVentas?.find(v => v.id == id);
+
+  if (!venta) return;
+
+  anularVenta(venta);
+
+});
+
+export async function verVentas() {
+
+  const negocio_id = localStorage.getItem("negocio_id");
+
+  const { data } = await supabaseClient
+    .from("ventas")
+    .select("id, folio, total_final, estado, negocio_id")
+    .eq("negocio_id", negocio_id)
+    .order("id", { ascending: false })
+    .limit(20);
+
+  const ventas = data || [];
+
+  // 🔥 IMPORTANTE
+  window.listaVentas = ventas;
+
+  Swal.fire({
+    title: "🧾 Ventas",
+    width: 600,
+    background: "#1A042D",
+    color: "#fff",
+    showConfirmButton: false,
+
+    html: `
+      <div style="max-height:400px;overflow:auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-fuchsia-600/40">
+              <th>Folio</th>
+              <th>Total</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${
+              ventas.map(v => `
+                <tr class="border-b border-fuchsia-600/20">
+                  <td>${v.folio}</td>
+                  <td>$${Number(v.total_final).toFixed(2)}</td>
+
+                  <td>
+                    ${
+                      v.estado === "anulada"
+                        ? `<span class="text-red-400">ANULADA</span>`
+                        : `<span class="text-green-400">OK</span>`
+                    }
+                  </td>
+
+                  <td>
+                    ${
+                      v.estado === "anulada"
+                        ? ""
+                        : `<button 
+                            class="bg-red-600 text-white px-2 py-1 rounded btnAnular"
+                            data-id="${v.id}">
+                            ❌
+                          </button>`
+                    }
+                  </td>
+                </tr>
+              `).join("")
+            }
+          </tbody>
+        </table>
+      </div>
+    `
+  });
+}

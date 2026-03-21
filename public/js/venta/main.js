@@ -172,16 +172,15 @@ async function inicializarSmartPOS() {
 
   await cargarPerfilUsuario(usuario);
 
-  // Sincronizar productos (seguro)
-  await sincronizarProductos().catch(err => {
-    console.warn("⚠ Error sincronizando productos (pero continuamos):", err);
-  });
+ sincronizarProductos().catch(err => {
+  console.warn("⚠ Error sincronizando productos:", err);
+});
 
-  // FIX: continuar aunque el catálogo esté vacío
-  const productosLocal = await db?.productos?.toArray();
+  db?.productos?.toArray().then(productosLocal => {
   if (!productosLocal || productosLocal.length === 0) {
-    console.warn("⚠ No hay productos en el negocio (vacío). Venta continuará normal.");
+    console.warn("⚠ No hay productos en el negocio (vacío).");
   }
+});
 
   await cargarModulosVentas();
 

@@ -139,7 +139,7 @@
                   id="sku"
                   type="text"
                   class="input-lg input-sku shadow-md"
-                  placeholder="Escanea o escribe..."
+                  placeholder="Busca por nombre o código..."
                   autocomplete="off"
                   required
                 >
@@ -318,6 +318,13 @@
           class="panel-btn btn-salida-efectivo">
           <i data-lucide="minus-circle"></i><span>Salida efectivo</span>
         </button>
+        
+        <button id="btnVentasAdmin"
+          class="panel-btn bg-red-600 text-white hidden"
+          onclick="import('/js/venta/ventas.js').then(m => m.verVentas())">
+          <i data-lucide="receipt"></i>
+          <span>Ventas</span>
+        </button>
 
       </div>
 
@@ -396,6 +403,19 @@
 
     </div>
   </footer>
+
+<script>
+    setTimeout(() => {
+
+      const usuario = window.usuarioActual || {};
+      const rol = usuario.rol || localStorage.getItem("rol");
+
+      if (rol === "admin") {
+        document.getElementById("btnVentasAdmin")?.classList.remove("hidden");
+      }
+
+    }, 500); // espera a que cargue sesión
+</script>
 
   </body>
 

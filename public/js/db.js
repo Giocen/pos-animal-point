@@ -28,6 +28,18 @@ function obtenerNombreDB() {
   return `SmartPOSOffline_${negocioId}`;
 }
 
+
+/* ----------------------------------------------- */
+/* 🔹 Control de sincronización incremental        */
+/* ----------------------------------------------- */
+function getUltimaSync() {
+  return localStorage.getItem("ultima_sync_productos");
+}
+
+function setUltimaSync() {
+  localStorage.setItem("ultima_sync_productos", new Date().toISOString());
+}
+
 /* ----------------------------------------------- */
 /* 🔹 Inicializar Dexie                            */
 /* ----------------------------------------------- */
@@ -173,62 +185,90 @@ export async function sincronizarProductos() {
 
     console.log("📡 Descargando catálogo desde v_productos_existencias...");
 
-    const { data: productos, error } = await supabaseClient
-      .from("v_productos_existencias")
-      .select(`
-        id,
-        negocio_id,
-        nombre,
-        descripcion,
-        precio_base,
-        unidad,
-        sku,
-        codigo_barras,
-        existencias_total,
-        stock_minimo,
-        costo,
-        activo,
-        categoria_id,
-        imagen_url
-      `)
-      .eq("negocio_id", negocioId);
+  const ultimaSync = getUltimaSync();
+
+let query = supabaseClient
+  .from("v_productos_existencias")
+  .select(`
+    id,
+    negocio_id,
+    nombre,
+    descripcion,
+    precio_base,
+    unidad,
+    sku,
+    codigo_barras,
+    existencias_total,
+    stock_minimo,
+    costo,
+    activo,
+    categoria_id,
+    imagen_url,
+    updated_at
+  `)
+  .eq("negocio_id", negocioId);
+
+// 🔥 SOLO TRAER CAMBIOS
+if (ultimaSync) {
+  query = query.gt("updated_at", ultimaSync);
+}
+
+const { data: productos, error } = await query;
 
     if (error) throw error;
 
-    if (!productos?.length) return [];
+  if (!productos?.length) {
+  console.log("⚡ Sin cambios en productos");
+  return [];
+}
 
     /* cache rápido */
-    LocalDB.set(`productos_cache_${negocioId}`, productos, 60);
+   // LocalDB.set(`productos_cache_${negocioId}`, productos, 60);//
 
     let actualizados = 0;
 
-    for (const p of productos) {
+    /* ==========================================================
+      🚀 INSERT MASIVO (ULTRA RÁPIDO)
+    ========================================================== */
+    const registros = productos.map(p => ({
+      uuid_supabase: p.id,
+      negocio_id: p.negocio_id,
+      nombre: p.nombre,
+      descripcion: p.descripcion,
+      precio_base: p.precio_base,
+      unidad: p.unidad,
+      sku: p.sku,
+      codigo_barras: p.codigo_barras,
+      existencias: p.existencias_total,
+      stock_minimo: p.stock_minimo,
+      updated_at: p.updated_at,
+      costo: p.costo,
+      activo: p.activo,
+      categoria_id: p.categoria_id,
+      imagen_url: p.imagen_url,
+    }));
 
-      await db.productos.put({
-        uuid_supabase: p.id,
-        negocio_id: p.negocio_id,
-        nombre: p.nombre,
-        descripcion: p.descripcion,
-        precio_base: p.precio_base,
-        unidad: p.unidad,
-        sku: p.sku,
-        codigo_barras: p.codigo_barras,
-        existencias: p.existencias_total,
-        stock_minimo: p.stock_minimo,
-        updated_at: null,
-        costo: p.costo,
-        activo: p.activo,
-        categoria_id: p.categoria_id,
-        imagen_url: p.imagen_url,
-      });
+    await db.transaction("rw", db.productos, async () => {
+      await db.productos.bulkPut(registros);
+    });
 
-      actualizados++;
+const maxUpdated = productos.reduce((max, p) => {
+  if (!p.updated_at) return max;
+  return !max || p.updated_at > max ? p.updated_at : max;
+}, null);
 
-    }
+if (maxUpdated) {
+  localStorage.setItem("ultima_sync_productos", maxUpdated);
+}
 
-    console.log(`✅ Productos sincronizados (${actualizados}/${productos.length})`);
+    /* ==========================================================
+      📊 CONTADOR (se mantiene tu lógica)
+    ========================================================== */
+    actualizados = registros.length;
 
-    return productos;
+  console.log(`✅ Productos sincronizados (${actualizados}/${productos.length})`);
+
+  return productos;
 
   } catch (err) {
 

@@ -8,25 +8,91 @@ let resultadosBusqueda = [];
 let indiceSeleccionado = -1;
 let bloqueoSubmit = false;
 let bloqueoAgregar = false;
-let bloqueoScanner = false;
 let bloqueoNavegacion = false;
+let indexSku = new Map();
+let indexCodigo = new Map();
+let indexNombre = new Map();
 
 let cacheProductos = [];
 
+/* =========================================
+   SCANNER GLOBAL SEPARADO DEL INPUT VISUAL
+========================================= */
+let bufferScanner = "";
+let timeoutScanner = null;
+let ultimoScannerAt = 0;
+let ultimoCodigo = "";
+let ultimoTiempo = 0;
+
+function normalizarCodigo(c) {
+  return (c || "").toString().trim();
+}
+
+
+function limpiarAutocomplete(){
+
+  const autocompleteBox = document.getElementById("autocompleteProductos");
+
+  if(!autocompleteBox) return;
+
+  autocompleteBox.classList.add("hidden");
+  autocompleteBox.innerHTML = "";
+  resultadosBusqueda = [];
+  indiceSeleccionado = -1;
+}
+
 async function agregarProductoDesdeBusqueda(prod){
 
-  if(bloqueoAgregar) return;
+  limpiarAutocomplete();
+
+  if (bloqueoAgregar) return;
   bloqueoAgregar = true;
 
-  setTimeout(()=>bloqueoAgregar=false,120);
+  setTimeout(() => bloqueoAgregar = false, 120);
 
   const inputSku = document.getElementById("sku");
   const form = document.getElementById("formBuscar");
 
+  if (!inputSku || !form) return;
+
   inputSku.value = prod.codigo_barras || prod.sku;
+  form.dispatchEvent(new Event("submit", { cancelable: true }));
+}
 
-  form.dispatchEvent(new Event("submit",{cancelable:true}));
+/* =========================================
+   PROCESAR SCANNER GLOBAL
+========================================= */
+async function procesarScanner(codigo) {
+  if (!codigo) return;
 
+  const ahora = Date.now();
+
+  // 🔥 evita doble scan
+  if (codigo === ultimoCodigo && (ahora - ultimoTiempo) < 400) {
+    return;
+  }
+
+  ultimoCodigo = codigo;
+  ultimoTiempo = ahora;
+
+  limpiarAutocomplete();
+
+  const inputSku = document.getElementById("sku");
+  if (inputSku) {
+    inputSku.value = codigo;
+  }
+
+  const producto = await buscarProductoTotal(codigo);
+
+  if (producto) {
+  await agregarProductoDesdeBusqueda(producto);
+} else {
+  if (inputSku) inputSku.value = "";
+}
+
+// 🔥 LIMPIEZA TOTAL
+bufferScanner = "";
+clearTimeout(timeoutScanner);
 }
 
 const negocioId = localStorage.getItem("negocio_id");
@@ -40,7 +106,6 @@ function debounceSmartPOS(fn, delay = 150) {
     timeout = setTimeout(() => fn.apply(this, args), delay);
   };
 }
-
 /* -------------------------------------------------------------------------- */
 /* 🚀 INICIALIZACIÓN                                                          */
 /* -------------------------------------------------------------------------- */
@@ -70,6 +135,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (productos.length) {
 
   cacheProductos = productos.filter(p => p.negocio_id === negocioId); 
+  indexarProductos(cacheProductos);
 
   cachearProductos(cacheProductos);
 
@@ -96,17 +162,84 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (data?.length) {
 
-    cacheProductos = data.filter(p => p.negocio_id === negocioId); // 🔥 FIX
+  cacheProductos = data.filter(p => p.negocio_id === negocioId);
 
-    cachearProductos(cacheProductos);
+  indexarProductos(cacheProductos); // 🔥 FALTABA ESTO
 
-    resultadosBusqueda = cacheProductos.slice(0, 12);
+  cachearProductos(cacheProductos);
 
-    }
+  resultadosBusqueda = cacheProductos.slice(0, 12);
+
+}
 
   }
 
   configurarProductos();
+
+  /* =========================================
+     LISTENER GLOBAL DEL SCANNER
+  ========================================= */
+  document.addEventListener("keydown", async (e) => {
+
+    const target = e.target;
+    const tag = target?.tagName?.toLowerCase();
+
+    // Si está escribiendo en textarea o en otro input que NO sea sku, no interceptar
+    if (tag === "textarea") return;
+
+    // 🔥 CLAVE: evitar que el scanner escriba en inputs
+    if (tag === "input") {
+      // Si viene muy rápido (scanner), lo bloqueamos
+      if (bufferScanner.length >= 2) {
+        e.preventDefault();
+      }
+}
+
+    // Enter = cerrar lectura del scanner
+    if (e.key === "Enter") {
+
+  // 🔥 SCANNER
+  if (bufferScanner.length >= 8) {
+    e.preventDefault();
+
+    const codigo = bufferScanner;
+    bufferScanner = "";
+    clearTimeout(timeoutScanner);
+
+    await procesarScanner(codigo);
+    return;
+  }
+
+  // 🔥 MANUAL (usuario)
+  if (e.target?.id === "sku") {
+    return; // deja que el submit normal haga su trabajo
+  }
+}
+
+    // Solo dígitos para scanner
+    if (/^[0-9]$/.test(e.key)) {
+      const ahora = Date.now();
+      const delta = ahora - ultimoScannerAt;
+      ultimoScannerAt = ahora;
+
+      // Si pasó mucho tiempo, reiniciar buffer
+      if (delta > 80) {
+        bufferScanner = "";
+      }
+
+      bufferScanner += e.key;
+
+      clearTimeout(timeoutScanner);
+      timeoutScanner = setTimeout(() => {
+        bufferScanner = "";
+      }, 120);
+
+      return;
+    }
+
+    // Cualquier otra tecla corta el buffer
+    bufferScanner = "";
+  });
 
 });
 
@@ -148,6 +281,11 @@ export function configurarProductos() {
     console.warn("⚠️ No se encontró el formulario de productos");
     return;
   }
+
+    inputSku.addEventListener("focus", () => {
+    bufferScanner = "";
+    clearTimeout(timeoutScanner);
+  });
 
   /* ==========================================================
      MODO ESCÁNER AUTOMÁTICO
@@ -192,63 +330,44 @@ setTimeout(()=>{
 }
 
 
-/* BUSCAR */
-
-let tiempoUltimaTecla = 0;
+/* BUSCAR SOLO MANUAL */
 
 inputSku.addEventListener("input", debounceSmartPOS(async (e) => {
 
-  const ahora = Date.now();
-  const diferencia = ahora - tiempoUltimaTecla;
-  tiempoUltimaTecla = ahora;
+  // 🔥 SI HAY ACTIVIDAD DE SCANNER → IGNORAR INPUT
+  if (bufferScanner.length > 0) return;
 
   const texto = e.target.value.trim();
 
   if (!texto) {
     indiceSeleccionado = -1;
     autocompleteBox.classList.add("hidden");
+    autocompleteBox.innerHTML = "";
+    resultadosBusqueda = [];
     return;
   }
 
-  /* =========================
-     DETECTAR ESCÁNER
-  ========================= */
+  // Si parece código numérico largo, no mostrar autocomplete.
+  // El scanner real ya se procesa globalmente por keydown.
+  if (/^\d{8,}$/.test(texto)) {
+    autocompleteBox.classList.add("hidden");
+    autocompleteBox.innerHTML = "";
+    resultadosBusqueda = [];
+    indiceSeleccionado = -1;
+    return;
+  }
 
-  const esEscaner =
-    texto.length >= 8 &&
-    diferencia < 120 &&
-    /^\d+$/.test(texto);
+  if (texto.length >= 2) {
+    resultadosBusqueda = await buscarProductosAutocomplete(texto);
+    renderAutocomplete(resultadosBusqueda);
+  } else {
+    autocompleteBox.classList.add("hidden");
+    autocompleteBox.innerHTML = "";
+    resultadosBusqueda = [];
+    indiceSeleccionado = -1;
+  }
 
-  if (esEscaner) {
-
-  bloqueoScanner = true;
-  setTimeout(() => bloqueoScanner = false, 250);
-
-  autocompleteBox.classList.add("hidden");
-
-  const producto = await buscarProductoTotal(texto);
-
-  if (producto) {
-  agregarProductoDesdeBusqueda(producto);
-}
-
-  return;
-}
-
-if(texto.length >= 2){
-
-  resultadosBusqueda = await buscarProductosAutocomplete(texto);
-  renderAutocomplete(resultadosBusqueda);
-
-} else {
-
-  autocompleteBox.classList.add("hidden");
-
-}
-
-},120));
-
-
+}, 120));
  
 
 
@@ -310,7 +429,9 @@ if(texto.length >= 2){
 
     }
 
-    renderCarrito();
+       renderCarrito();
+
+    limpiarAutocomplete();
 
     inputSku.value = "";
     inputCantidad.value = 1;
@@ -549,7 +670,15 @@ export async function buscarGlobal() {
 /* 🔍 BÚSQUEDA TOTAL (ONLINE + OFFLINE)                                       */
 /* ========================================================================== */
 export async function buscarProductoTotal(sku) {
-  let producto = null;
+ 
+sku = normalizarCodigo(sku); 
+
+let producto =
+  indexSku.get(sku) ||
+  indexCodigo.get(sku);
+
+if (producto) return producto;
+
 
   // --- ONLINE ---
   if (navigator.onLine) {
@@ -593,7 +722,13 @@ export async function buscarProductoTotal(sku) {
       console.warn("❌ SKU no encontrado:", sku, "Negocio:", negocioId);
     }
 
-    return producto;
+    if (producto) {
+  // 🔥 auto indexado en caliente
+  if (producto.sku) indexSku.set(producto.sku, producto);
+  if (producto.codigo_barras) indexCodigo.set(producto.codigo_barras, producto);
+}
+
+return producto;
 
 }
 /* ========================================================================== */
@@ -1057,4 +1192,31 @@ async function buscarProductosAutocomplete(texto){
 
   return resultados.slice(0,12)
 
+}
+
+
+function indexarProductos(lista = []) {
+
+  indexSku.clear();
+  indexCodigo.clear();
+  indexNombre.clear();
+
+  for (const p of lista) {
+
+    if (p.sku) {
+      indexSku.set(p.sku, p);
+    }
+
+    if (p.codigo_barras) {
+      indexCodigo.set(p.codigo_barras, p);
+    }
+
+    if (p.nombre) {
+      const nombre = p.nombre.toLowerCase();
+      indexNombre.set(nombre, p);
+    }
+
+  }
+
+  console.log("⚡ Productos indexados:", lista.length);
 }
