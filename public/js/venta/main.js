@@ -168,23 +168,37 @@ async function inicializarSmartPOS() {
   if (!usuario) return;
 
   // 💾 Ahora que existe negocio_id, inicializamos Dexie
-  await inicializarDB();
+ await inicializarDB();
 
-  await cargarPerfilUsuario(usuario);
+await cargarPerfilUsuario(usuario);
 
- sincronizarProductos().catch(err => {
-  console.warn("⚠ Error sincronizando productos:", err);
-});
+// 🔥 1. SINCRONIZAR
+await sincronizarProductos();
 
-  db?.productos?.toArray().then(productosLocal => {
-  if (!productosLocal || productosLocal.length === 0) {
-    console.warn("⚠ No hay productos en el negocio (vacío).");
-  }
-});
+const productosLocal = await db.productos
+  .where("negocio_id")
+  .equals(localStorage.getItem("negocio_id"))
+  .toArray();
 
-  await cargarModulosVentas();
+if (productosLocal?.length) {
+  console.log("📦 Productos finales desde Dexie:", productosLocal.length);
+}
 
-  ocultarLoaderSmartPOS();
+// 🔥 siempre usar catálogo final de Dexie
+window.productosGlobal = productosLocal;
+
+if (!productosLocal.length) {
+  console.warn("⚠ No hay productos en el negocio (real).");
+}
+
+if (!productosLocal.length) {
+  console.warn("⚠ No hay productos en el negocio (real).");
+}
+
+// 🔥 4. CARGAR UI
+await cargarModulosVentas();
+
+ocultarLoaderSmartPOS();
 }
 // ===================================================================================
 // 9) Cargar módulos (mismo código original)

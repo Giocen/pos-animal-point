@@ -117,22 +117,30 @@ document.getElementById("btnLogin").addEventListener("click", async () => {
       localStorage.setItem("negocio_id", unico.negocio_id);
 
       // 🧠 Guardar sesión para restaurar ventas/offline
-      const sesionObj = {
-        id: uid,
-        nombre: usuario.nombre,
-        rol: unico.rol,
-        email,
-        negocio_id: unico.negocio_id,
-        fecha: new Date().toISOString()
-      };
 
-      LocalDB.set("usuario_sesion", sesionObj);
-      LocalDB.set("usuario_activo", sesionObj); // FIX espejo obligatorio
+const sesionObj = {
+  id: uid,
+  nombre: usuario.nombre,
+  rol: unico.rol,
+  email,
+  negocio_id: unico.negocio_id,
+  fecha: new Date().toISOString()
+};
 
-      Swal.close();
-      return (window.location.href = "/index"); // no se toca
-    }
+LocalDB.set("usuario_sesion", sesionObj);
+LocalDB.set("usuario_activo", sesionObj);
 
+Swal.close();
+
+// 🔥 DETECCIÓN REAL
+const esMovil = window.innerWidth < 768;
+
+// 🚀 REDIRECCIÓN CORRECTA
+return (window.location.href = esMovil 
+  ? "/productos-movil.html"
+  : "/index"
+);
+}
     // =====================================================
     // 🟣 MULTI-NEGOCIO → selección externa
     // =====================================================

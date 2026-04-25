@@ -107,9 +107,18 @@ btnGuardar.addEventListener("click", async () => {
 
   if (!navigator.onLine) {
     const cache = JSON.parse(localStorage.getItem(cacheKey) || "[]");
-    const idx = cache.findIndex((u) => u.id === usuarioEditando);
+    const idx = cache.findIndex((u) => u.usuario_id === usuarioEditando);
     if (idx >= 0) {
-      cache[idx] = { ...cache[idx], nombre: nuevoNombre, email: nuevoEmail, rol_id: nuevoRol, activo: estadoActivo };
+      cache[idx] = {
+      ...cache[idx],
+      rol: nuevoRol,
+      activo: estadoActivo,
+      usuarios: {
+        ...cache[idx].usuarios,
+        nombre: nuevoNombre,
+        correo: nuevoEmail
+      }
+    };
       localStorage.setItem(cacheKey, JSON.stringify(cache));
     }
     Swal.fire("💾 Guardado local", "Cambios almacenados temporalmente (modo sin conexión).", "info");
@@ -121,26 +130,34 @@ btnGuardar.addEventListener("click", async () => {
   /* ------------------------------------------------------------- */
   /* 🟣 UPDATE CON MULTI-NEGOCIO                                  */
   /* ------------------------------------------------------------- */
-  const { error } = await supabaseClient
-    .from("usuarios")
-    .update({
-      nombre: nuevoNombre,
-      email: nuevoEmail,
-      rol_id: nuevoRol,
-      activo: estadoActivo,
-      negocio_id: negocioId // ← MULTI NEGOCIO
-    })
-    .eq("id", usuarioEditando)
-    .eq("negocio_id", negocioId);
+ // 🔹 actualizar datos base
+const { error: errorUser } = await supabaseClient
+  .from("usuarios")
+  .update({
+    nombre: nuevoNombre,
+    correo: nuevoEmail,
+    activo: estadoActivo
+  })
+  .eq("id", usuarioEditando);
 
-  if (error) {
-    return Swal.fire({
-      icon: "error",
-      title: "Error al actualizar",
-      text: error.message,
-      confirmButtonColor: "#a21caf",
-    });
-  }
+// 🔹 actualizar rol en relación
+const { error: errorRel } = await supabaseClient
+  .from("usuarios_negocios")
+  .update({
+    rol: nuevoRol,
+    activo: estadoActivo
+  })
+  .eq("usuario_id", usuarioEditando)
+  .eq("negocio_id", negocioId);
+
+if (errorUser || errorRel) {
+  return Swal.fire({
+    icon: "error",
+    title: "Error al actualizar",
+    text: errorUser?.message || errorRel?.message,
+    confirmButtonColor: "#a21caf",
+  });
+}
 
   if (nuevaPassword) {
     Swal.fire({
@@ -210,14 +227,14 @@ btnRegistrar.addEventListener("click", async () => {
   if (!navigator.onLine) {
     const cache = JSON.parse(localStorage.getItem(cacheKey) || "[]");
     const nuevo = {
-      id: Date.now(),
-      nombre,
-      email,
-      rol_id: rol,
-      roles: { nombre: rol === "1" ? "Administrador" : "Cajero" },
+      usuario_id: Date.now(),
+      rol: rol,
       activo: true,
-      negocio_id: negocioId,
-      local: true,
+      usuarios: {
+        nombre,
+        correo: email
+      },
+      local: true
     };
     cache.push(nuevo);
     localStorage.setItem(cacheKey, JSON.stringify(cache));
@@ -233,75 +250,93 @@ btnRegistrar.addEventListener("click", async () => {
     return;
   }
 
-  /* ------------------------------------------------------------- */
-  /* 🟣 BUSCAR SI YA EXISTE EN ESTE NEGOCIO                         */
-  /* ------------------------------------------------------------- */
-  const { data: existente } = await supabaseClient
-    .rpc("fn_buscar_usuario_por_email", {
-      email_input: email,
-      negocio_id_input: negocioId // ← RPC debe aceptar esto
-    })
-    .maybeSingle();
 
-  if (existente) {
-    await supabaseClient
-      .from("usuarios")
-      .update({ nombre, rol_id: rol, activo: true, negocio_id: negocioId })
-      .eq("id", existente.id)
-      .eq("negocio_id", negocioId);
-
-    Swal.fire({
-      icon: "info",
-      title: "Usuario reactivado",
-      html: `<p>El usuario <b>${nombre}</b> ya existía y fue reactivado.</p><p>Debe restablecer su contraseña mediante correo.</p>`,
-      confirmButtonColor: "#a21caf",
-    });
-
-    limpiarFormulario();
-    mostrarUsuarios();
-    return;
-  }
-
-  /* ------------------------------------------------------------- */
-  /* 🟣 REGISTRO NUEVO USUARIO                                      */
-  /* ------------------------------------------------------------- */
-  const { data, error } = await supabaseClient.auth.signUp({ email, password });
-
-  if (error) {
-    return Swal.fire({
-      icon: "error",
-      title: "Error al registrar",
-      text: error.message,
-      confirmButtonColor: "#a21caf",
-    });
-  }
-
-  await new Promise((r) => setTimeout(r, 3000));
-
-  await supabaseClient.rpc("fn_recrear_usuario_desde_auth", {
-    uid: data.user.id,
+/* ------------------------------------------------------------- */
+/* 🟣 BUSCAR SI YA EXISTE EN ESTE NEGOCIO                         */
+/* ------------------------------------------------------------- */
+const { data: existente } = await supabaseClient
+  .rpc("fn_buscar_usuario_por_email", {
+    email_input: email,
     negocio_id_input: negocioId
-  });
+  })
+  .maybeSingle();
 
+if (existente) {
+
+  // 🔹 actualizar usuario base
   await supabaseClient
     .from("usuarios")
     .update({
       nombre,
-      rol_id: rol,
-      activo: true,
-      negocio_id: negocioId
+      correo: email,
+      activo: true
     })
-    .eq("id", data.user.id);
+    .eq("id", existente.id);
 
+  
   Swal.fire({
-    icon: "success",
-    title: "Usuario registrado",
-    text: `${nombre} ha sido agregado exitosamente.`,
+    icon: "info",
+    title: "Usuario reactivado",
+    html: `<p>El usuario <b>${nombre}</b> ya existía y fue reactivado.</p>
+           <p>Debe restablecer su contraseña mediante correo.</p>`,
     confirmButtonColor: "#a21caf",
   });
 
   limpiarFormulario();
   mostrarUsuarios();
+  return;
+}
+
+/* ------------------------------------------------------------- */
+/* 🟣 REGISTRO NUEVO USUARIO                                      */
+/* ------------------------------------------------------------- */
+// 1. crear en auth
+const { data, error } = await supabaseClient.auth.signUp({ email, password });
+
+if (error) {
+  return Swal.fire({
+    icon: "error",
+    title: "Error al registrar",
+    text: error.message,
+    confirmButtonColor: "#a21caf",
+  });
+}
+
+if (!data?.user?.id) {
+  return Swal.fire({
+    icon: "error",
+    title: "Error",
+    text: "No se pudo crear el usuario",
+  });
+}
+
+// 2. crear usuario base
+await supabaseClient.from("usuarios").upsert({
+  id: data.user.id,
+  nombre,
+  correo: email,
+  activo: true
+});
+
+// 3. crear relación negocio
+await supabaseClient.from("usuarios_negocios").upsert({
+  usuario_id: data.user.id,
+  negocio_id: negocioId,
+  rol,
+  activo: true
+}, {
+  onConflict: "usuario_id,negocio_id"
+});
+
+Swal.fire({
+  icon: "success",
+  title: "Usuario registrado",
+  text: `${nombre} ha sido agregado exitosamente.`,
+  confirmButtonColor: "#a21caf",
+});
+
+limpiarFormulario();
+mostrarUsuarios();
 });
 
 /* ------------------------------------------------------------- */
@@ -328,10 +363,19 @@ async function mostrarUsuarios() {
   }
 
   const { data: usuarios, error } = await supabaseClient
-    .from("usuarios")
-    .select("id, nombre, activo, rol_id, negocio_id, roles:rol_id(nombre)")
-    .eq("negocio_id", negocioId) // ← SOLO ESTE NEGOCIO
-    .order("nombre", { ascending: true });
+    .from("usuarios_negocios")
+    .select(`
+      usuario_id,
+      rol,
+      activo,
+      usuarios (
+        id,
+        nombre,
+        correo
+      )
+    `)
+    .eq("negocio_id", negocioId)
+    .order("creado_en", { ascending: true });
 
   if (error) {
     listaUsuarios.innerHTML = `<p class="text-red-500 text-center">Error cargando usuarios.</p>`;
@@ -351,10 +395,15 @@ function renderUsuarios(usuarios) {
 
   listaUsuarios.innerHTML = usuarios
     .map((u) => {
+      const nombre = u.usuarios?.nombre || "Sin nombre";
+      const esAdmin = u.rol === "1" || u.rol === "admin";
+      const rol = esAdmin ? "Administrador" : "Cajero";
+
       const color = u.activo ? "bg-green-500" : "bg-red-500";
       const estadoTexto = u.activo ? "Activo" : "Inactivo";
+
       const rolColor =
-        u.roles?.nombre === "Administrador"
+        rol === "Administrador"
           ? "text-purple-700 font-semibold"
           : "text-gray-700";
 
@@ -362,20 +411,20 @@ function renderUsuarios(usuarios) {
         <div class="flex justify-between items-center border-b pb-2">
           <div>
             <p class="font-medium flex items-center gap-2">
-              ${u.nombre}
+              ${nombre}
               <span class="${color} rounded-full w-3 h-3 inline-block"></span>
               <span>${estadoTexto}</span>
             </p>
-            <p class="text-xs ${rolColor}">${u.roles?.nombre || "Sin rol"}</p>
+            <p class="text-xs ${rolColor}">${rol}</p>
           </div>
           <div class="flex gap-2">
-            <button onclick="editarUsuario('${u.id}', '${u.nombre}', '${u.roles?.nombre}', ${u.activo})" class="btn-small btn-edit">
+            <button onclick="editarUsuario('${u.usuario_id}', '${nombre}', '${rol}', ${u.activo})" class="btn-small btn-edit">
               Editar
             </button>
-            <button onclick="confirmarDesactivar('${u.id}', ${u.activo}, '${u.nombre}')" class="btn-small ${u.activo ? 'bg-gray-500' : 'bg-green-600'}">
+            <button onclick="confirmarDesactivar('${u.usuario_id}', ${u.activo}, '${nombre}')" class="btn-small ${u.activo ? 'bg-gray-500' : 'bg-green-600'}">
               ${u.activo ? 'Desactivar' : 'Activar'}
             </button>
-            <button onclick="confirmarEliminar('${u.id}', '${u.nombre}')" class="btn-small bg-red-600">
+            <button onclick="confirmarEliminar('${u.usuario_id}', '${nombre}')" class="btn-small bg-red-600">
               Eliminar
             </button>
           </div>
@@ -418,7 +467,7 @@ window.confirmarDesactivar = async (id, activo, nombre) => {
 
   if (!navigator.onLine) {
     const cache = JSON.parse(localStorage.getItem(cacheKey) || "[]");
-    const idx = cache.findIndex((u) => u.id === id);
+    const idx = cache.findIndex((u) => u.usuario_id === id);
     if (idx >= 0) {
       cache[idx].activo = !activo;
       localStorage.setItem(cacheKey, JSON.stringify(cache));
@@ -429,9 +478,9 @@ window.confirmarDesactivar = async (id, activo, nombre) => {
   }
 
   await supabaseClient
-    .from("usuarios")
+    .from("usuarios_negocios")
     .update({ activo: !activo })
-    .eq("id", id)
+    .eq("usuario_id", id)
     .eq("negocio_id", negocioId);
 
   Swal.fire({
@@ -462,7 +511,7 @@ window.confirmarEliminar = async (id, nombre) => {
 
   if (!navigator.onLine) {
     const cache = JSON.parse(localStorage.getItem(cacheKey) || "[]");
-    const filtrado = cache.filter((u) => u.id !== id);
+    const filtrado = cache.filter((u) => u.usuario_id !== id);
     localStorage.setItem(cacheKey, JSON.stringify(filtrado));
     Swal.fire("💾 Eliminado localmente", `${nombre} se eliminará al reconectar.`, "info");
     mostrarUsuarios();
@@ -470,9 +519,9 @@ window.confirmarEliminar = async (id, nombre) => {
   }
 
   await supabaseClient
-    .from("usuarios")
+    .from("usuarios_negocios")
     .delete()
-    .eq("id", id)
+    .eq("usuario_id", id)
     .eq("negocio_id", negocioId);
 
   Swal.fire({

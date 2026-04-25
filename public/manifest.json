@@ -5,11 +5,11 @@
   "scope": "/",
   "start_url": "/venta",
   "id": "/venta",
-  "display_override": ["fullscreen", "standalone"], 
+  "display_override": ["standalone"], 
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#a21caf",
-  "orientation": "landscape",
+  "orientation": "portrait",
   "categories": ["business", "productivity", "finance"],
   "prefer_related_applications": false,
   "icons": [

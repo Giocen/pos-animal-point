@@ -15,6 +15,12 @@ await protegerSesion(["admin", "cajero"]);
 let cambiosPendientes = {} 
 let hayCambios = false
 
+function marcarFilaEditada(fila) {
+  if (!fila) return;
+
+  fila.classList.add("bg-yellow-50", "ring-2", "ring-yellow-300");
+}
+
 function calcularMargen(precio, costo) {
   if (costo <= 0) return 0;
   return ((precio - costo) / costo) * 100;
@@ -175,16 +181,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ---------- Categorías ----------
 async function cargarCategorias() {
+
   const cat = document.getElementById('cat')
+
+  // 🔥 traer categorías desde productos reales
   const { data, error } = await supabase
-    .from('categorias')
-    .select('nombre')
-    .eq('negocio_id', NEGOCIO_ID)
-    .order('nombre', { ascending: true })
+    .from("v_productos_existencias")
+    .select("categoria_nombre")
+    .eq("negocio_id", NEGOCIO_ID)
+
   cat.innerHTML = '<option value="">Todas las categorías</option>'
+
   if (!error && data) {
-    data.forEach(c => {
-      cat.innerHTML += `<option>${c.nombre}</option>`
+
+    // 🧠 quitar duplicados y vacíos
+    const categoriasUnicas = [
+      ...new Set(
+        data
+          .map(p => p.categoria_nombre)
+          .filter(c => c && c.trim() !== "")
+      )
+    ]
+
+    categoriasUnicas.sort()
+
+    categoriasUnicas.forEach(nombre => {
+      cat.innerHTML += `<option>${nombre}</option>`
     })
   }
 }
@@ -348,7 +370,7 @@ if (margen < 20) {
 
 
  return `
-  <tr class="bg-white shadow-sm rounded-lg hover:shadow-md transition cursor-pointer hover:bg-fuchsia-50 animate-fade-in">
+  <tr data-id="${r.id}" class="bg-white shadow-sm rounded-lg hover:shadow-md transition cursor-pointer hover:bg-fuchsia-50 animate-fade-in">
     <td class="td font-mono">${r.sku ?? ''}</td>
 
       <td class="td font-mono text-xs">
@@ -742,6 +764,7 @@ tbody.addEventListener("input", (ev) => {
 
   const celda = input.closest(".editable")
   const fila = celda.closest("tr")
+  if (!fila) return;
   const campo = celda.dataset.campo
 
   let precio = leerNumero(fila.querySelector('[data-campo="precio_base"]'))
@@ -749,11 +772,14 @@ tbody.addEventListener("input", (ev) => {
   let margen = leerNumero(fila.querySelector('[data-campo="margen"]'))
  
 
-    let valor = String(input.value)
-    .replace(/[^0-9.]/g, "")
-    .trim()
+    // 🔥 marcar SIEMPRE al empezar edición
+marcarFilaEditada(fila);
 
-  if (valor === "") return
+let valor = String(input.value)
+  .replace(/[^0-9.]/g, "")
+  .trim()
+
+if (valor === "" && campo !== "nombre") return
 
   valor = Number(valor)
 
@@ -845,7 +871,7 @@ if (ganancia < 0) {
    🧠 GUARDAR CAMBIOS EN TIEMPO REAL
 ============================== */
 
-const id = celda.dataset.id;
+const id = celda.dataset.id || fila.querySelector(".editable")?.dataset.id;
 if (!id) return;
 
 if (!cambiosPendientes[id]) {
@@ -860,9 +886,10 @@ if (campo === "margen") {
 
 hayCambios = true;
 actualizarBotonGuardar();
+marcarFilaEditada(fila);
 
-// 🎨 marcar fila
-fila.classList.add("bg-yellow-50", "ring-2", "ring-yellow-300");
+
+
   })
 
 
@@ -1006,8 +1033,7 @@ tbody.addEventListener("blur", (ev) => {
 
   actualizarBotonGuardar()
 
-  // 🎨 marcar fila
-  fila.classList.add("bg-yellow-50", "ring-2", "ring-yellow-300")
+  marcarFilaEditada(fila);
 
 }, true)
 

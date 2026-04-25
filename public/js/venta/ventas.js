@@ -9,6 +9,48 @@ import {
   mostrarTicketTermico
 } from "./tickets.js";
 import Dexie from "https://cdn.jsdelivr.net/npm/dexie@3.2.2/dist/dexie.mjs";
+import {
+  metodoPago,
+  pagoEfectivo,
+  pagoTarjeta,
+  pagoTransfer,
+  cambio,
+  voucherTarjeta
+} from "./pagos.js";
+
+let guardandoVenta = false;
+
+// ⚡ CONFIG RESILIENCIA POS
+const TIMEOUT_VENTA = 10000; // 10s
+const MAX_REINTENTOS = 2;
+
+async function withTimeout(promise, ms) {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Tiempo de espera agotado")), ms)
+  );
+
+  return Promise.race([promise, timeout]);
+}
+
+function resetUIVenta(btn) {
+  Swal.close();
+  if (btn) {
+    btn.disabled = false;
+    btn.innerText = "Finalizar venta";
+  }
+}
+
+window.addEventListener("offline", () => {
+  Swal.fire({
+    icon: "warning",
+    title: "Sin internet",
+    text: "Se guardará en modo offline",
+    toast: true,
+    position: "top-end",
+    timer: 3000,
+    showConfirmButton: false
+  });
+});
 
 const Swal = window.Swal;
 
@@ -78,8 +120,59 @@ export function configurarVentas() {
   const btnFinalizarPanel = document.getElementById("btnFinalizarVentaPanel");
   if (!btnFinalizarPanel) return;
 
+  // 🔥 EVITA DUPLICADOS
+  if (btnFinalizarPanel.dataset.listener === "true") return;
+  btnFinalizarPanel.dataset.listener = "true";
+
   btnFinalizarPanel.addEventListener("click", async () => {
 
+   if (guardandoVenta) return;
+
+guardandoVenta = true;
+
+btnFinalizarPanel.disabled = true;
+btnFinalizarPanel.innerText = "Procesando...";
+
+// 🔄 SPINNER AQUÍ (después del lock)
+Swal.fire({
+  title: "Procesando pago",
+  html: `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+      
+      <div class="spinner-pos"></div>
+      
+      <div style="font-size:14px;opacity:0.8">
+        No cierres la app
+      </div>
+
+    </div>
+  `,
+  background: "#1A042D",
+  color: "#fff",
+  allowOutsideClick: false,
+  allowEscapeKey: false,
+  showConfirmButton: false,
+  didOpen: () => {
+    const style = document.createElement("style");
+    style.innerHTML = `
+      .spinner-pos {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255,255,255,0.2);
+        border-top: 4px solid #d946ef;
+        border-radius: 50%;
+        animation: spinPOS 0.8s linear infinite;
+      }
+
+      @keyframes spinPOS {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+});
+    
 
   // 🔥 DECLARAR negocio_id PRIMERO
   const negocio_id =
@@ -88,35 +181,36 @@ export function configurarVentas() {
 
   if (!negocio_id) {
     console.error("❌ negocio_id NO disponible");
+    resetUIVenta(btnFinalizarPanel);
     return Swal.fire("Error", "Negocio no identificado", "error");
   }
-
-  // 🛑 ANTI-DOBLE CLICK
-  if (btnFinalizarPanel.dataset.locked === "1") return;
-
-    // 🛑 ANTI-DOBLE CLICK
-    if (btnFinalizarPanel.dataset.locked === "1") return;
-    btnFinalizarPanel.dataset.locked = "1";
-    setTimeout(() => (btnFinalizarPanel.dataset.locked = "0"), 1500);
 
     // 🔥 Carrito real desde window
     const carritoReal = window.carrito || [];
 
-    if (!carritoReal.length)
+    if (!carritoReal.length) {
+      resetUIVenta(btnFinalizarPanel);
       return Swal.fire("Aviso", "El carrito está vacío.", "info");
+    }
 
-    // 🟣 ANTI-DOBLE EVENTO pago-confirmado
-    await new Promise(resolve => {
-      const handler = () => {
-        document.removeEventListener("pago-confirmado", handler);
-        resolve();
-      };
-      document.addEventListener("pago-confirmado", handler);
-    });
+// 🔥 CREAR PAGO REAL DESDE pagos.js
+const pago = {
+  metodo: metodoPago,
+  efectivo: pagoEfectivo,
+  tarjeta: pagoTarjeta,
+  transferencia: pagoTransfer,
+  cambio: cambio,
+  voucher: voucherTarjeta
+};
 
-    const pago = window.pagoFinal;
-    if (!pago || !pago.metodo)
-      return Swal.fire("Falta método", "Selecciona un método.", "warning");
+console.log("💰 Pago generado:", pago);
+
+// 🔥 VALIDACIÓN REAL
+if (!pago.metodo) {
+  resetUIVenta(btnFinalizarPanel);  
+  return Swal.fire("Error", "Selecciona método de pago correctamente", "error");
+}
+
 
     /* ---------------------------------------------- Corte ---------------------------------------------- */
     let corte = null;
@@ -141,6 +235,7 @@ export function configurarVentas() {
       }
 
     } catch (err) {
+      resetUIVenta(btnFinalizarPanel);
       return Swal.fire("Error", err.message, "error");
     }
 
@@ -154,24 +249,43 @@ export function configurarVentas() {
         confirmButtonText: "Sí",
         confirmButtonColor: "#a21caf",
       });
-      if (!ok.isConfirmed) return;
+      if (!ok.isConfirmed) {
+        guardandoVenta = false;
+        resetUIVenta(btnFinalizarPanel);
+        return;
+      }
     }
 
-    /* ============================================================
-       GENERAR FOLIO
-    ============================================================ */
-    window.folioVentaActual = Date.now().toString().slice(-6);
-
+    
     /* ============================================================
        💾 GUARDAR VENTA (ONLINE / OFFLINE)
     ============================================================ */
     try {
       const fecha = fechaMexico();
-      const online = navigator.onLine;
+      const online = navigator.onLine;     
 
-      const negocio_id =
-        window.usuarioActual?.negocio_id ||
-        localStorage.getItem("negocio_id");
+      // 🔥 GENERAR FOLIO UNIVERSAL (VISIBLE AL USUARIO)
+    function generarFolioPOS() {
+      const negocio = negocio_id.slice(0, 4).toUpperCase(); // multi negocio
+      const fecha = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const random = Date.now().toString().slice(-5);
+
+      return `${negocio}-${fecha}-${random}`;
+    }
+
+const folioPOS = generarFolioPOS();
+
+      // 📶 detectar red lenta
+      if (online && navigator.connection) {
+        const tipo = navigator.connection.effectiveType;
+
+        if (["slow-2g", "2g"].includes(tipo)) {
+          Swal.update({
+            title: "Red lenta...",
+            text: "Esto puede tardar unos segundos"
+          });
+        }
+      }
 
       if (!negocio_id) {
         console.error("❌ negocio_id NO disponible al guardar venta");
@@ -191,24 +305,52 @@ export function configurarVentas() {
         );
 
         if (productosInvalidos.length > 0) {
-          const nombres = productosInvalidos
-            .map(p => `• ${p.nombre || "Producto sin nombre"}`)
-            .join("<br>");
+
+          resetUIVenta(btnFinalizarPanel);
 
           return Swal.fire({
             icon: "error",
             title: "Producto no registrado",
             html: `
-              Los siguientes productos no existen en el sistema:<br><br>
-              ${nombres}<br><br>
-              Regístralos antes de venderlos.
-            `,
+            Los siguientes productos no existen en el sistema:<br><br>
+            ${productosInvalidos.map(p => `• ${p.nombre}`).join("<br>")}
+            <br><br>Regístralos antes de venderlos.
+          `,
             confirmButtonColor: "#dc2626",
           });
         }
 
+
+        // 🔥 VALIDAR COSTO ANTES DE TODO
+        const productosSinCosto = carritoReal.filter(i => {
+          const costo = i.costo ?? i.costo_unitario ?? i.producto?.costo;
+          return costo === null || costo === undefined;
+        });
+
+        if (productosSinCosto.length > 0) {
+
+          resetUIVenta(btnFinalizarPanel);
+
+          return Swal.fire({
+            icon: "warning",
+            title: "Productos sin costo",
+            html: `
+              Los siguientes productos no tienen costo:<br><br>
+              ${productosSinCosto.map(p => `• ${p.nombre}`).join("<br>")}
+              <br><br>Corrige el costo antes de vender.
+            `,
+            confirmButtonColor: "#dc2626"
+          });
+        }
+
+
         const totalVenta = carritoReal.reduce(
-          (acc, i) => acc + Number(i.totalFinal),
+          (acc, i) =>
+            acc +
+            Number(
+              i.totalFinal ??
+              (Number(i.precio) * Number(i.cantidad))
+            ),
           0
         );
 
@@ -227,6 +369,7 @@ export function configurarVentas() {
           1️⃣ CREAR ENCABEZADO EN ventas
         ============================================================ */
         const ventaHeader = {
+          folio: folioPOS,
           producto_id: null, // ya no se usa a nivel ticket
           cantidad: 0,       // ya no se usa a nivel ticket
           precio_unitario: 0,
@@ -235,7 +378,7 @@ export function configurarVentas() {
           unidad: "pieza",
           corte_id: corte.id,
           cliente_id: window.clienteSeleccionado?.id ?? null,
-          folio: window.folioVentaActual,
+          
           metodo_pago: pago.metodo,
           pago_efectivo: efectivoReal,
           pago_tarjeta: tarjetaBruto,
@@ -251,17 +394,59 @@ export function configurarVentas() {
           estado: "completada"
         };
 
-        const { data: ventaCreada, error: errorVenta } = await supabaseClient
-          .from("ventas")
-          .insert(ventaHeader)
-          .select("id, folio")
-          .single();
+        let ventaCreada = null;
+let errorVenta = null;
 
-        if (errorVenta || !ventaCreada) {
-          console.error("❌ Error creando encabezado de venta:", errorVenta);
-          throw new Error("No se pudo crear la venta");
-        }
+for (let intento = 0; intento <= MAX_REINTENTOS; intento++) {
 
+  try {
+
+    const resp = await withTimeout(
+      supabaseClient
+        .from("ventas")
+        .insert(ventaHeader)
+        .select("id, folio")
+        .single(),
+      TIMEOUT_VENTA
+    );
+
+    ventaCreada = resp.data;
+    errorVenta = resp.error;
+
+    if (!errorVenta) break;
+
+  } catch (err) {
+    errorVenta = err;
+  }
+
+  console.warn(`⚠ Reintento ${intento + 1}...`);
+
+  Swal.update({
+  title: `Reintentando conexión...`,
+  html: `
+    <div style="font-size:14px;opacity:0.8">
+      Intento ${intento + 1} de ${MAX_REINTENTOS + 1}
+    </div>
+  `
+});
+
+  await new Promise(r => setTimeout(r, 1000));
+}
+
+if (errorVenta) {
+  resetUIVenta(btnFinalizarPanel);
+  return Swal.fire({
+    icon: "error",
+    title: "Error al guardar venta",
+    text: errorVenta.message || "Intenta nuevamente",
+    confirmButtonColor: "#dc2626"
+  });
+}
+
+  
+
+      window.folioVentaActual = folioPOS;
+        
         /* ============================================================
           2️⃣ CREAR DETALLE EN ventas_detalle
         ============================================================ */
@@ -277,7 +462,7 @@ export function configurarVentas() {
             producto_id: productoUUID,
             cantidad: Number(i.cantidad),
             precio_unitario: Number(i.precio),
-            costo_unitario: Number(i.costo || 0),
+            costo_unitario: Number(i.costo ?? i.costo_unitario ?? i.producto?.costo ?? 0),
             precio_total: Number(i.totalFinal),
             negocio_id
           };
@@ -406,30 +591,65 @@ export function configurarVentas() {
         return;                 // No mostrar ticket
       }
 
-      /* ============================================================
-        🖨 IMPRESO
-      ============================================================ */
-      if (opcion === "impreso") {
+    if (opcion === "impreso") {
         await mostrarTicketTermico(copia);
-        limpiarCarritoReal();
       }
 
-      /* ============================================================
-        💌 DIGITAL
-      ============================================================ */
       if (opcion === "digital") {
         await mostrarTicket(copia);
-        limpiarCarritoReal();
       }
 
+    
+      /* ============================================================
+        🔥 ACTUALIZAR STOCK EN DEXIE (TIEMPO REAL)
+      ============================================================ */
+     try {
+  const db = window.db;
 
-    } catch (err) {
-      Swal.fire("Error", err.message, "error");
+  if (!db) {
+    console.warn("⚠️ DB no inicializada");
+    return;
+  }
+
+  for (const item of carritoReal) {
+    const id = item.uuid_supabase || item.id;
+
+    if (!id) continue;
+
+    const producto = await db.productos.get(id);
+
+    if (producto) {
+      producto.existencias =
+        Number(producto.existencias || 0) -
+        Number(item.cantidad || 0);
+
+      await db.productos.put(producto);
     }
+  }
+
+  console.log("📦 Stock actualizado en Dexie");
+
+  window.dispatchEvent(new Event("productos-actualizados"));
+
+} catch (err) {
+  console.warn("⚠️ No se pudo actualizar Dexie:", err);
+}
+      
+      limpiarCarritoReal();
+      document.dispatchEvent(new CustomEvent("venta-finalizada"));
+
+      } catch (err) {
+        Swal.fire("Error", err.message, "error");
+        } finally {
+           guardandoVenta = false;
+          resetUIVenta(btnFinalizarPanel);
+        }
+
 
   });
 }
 
+  
 /* ============================================================
    🔧 Inicializar módulo
 ============================================================ */
@@ -463,7 +683,7 @@ export async function anularVenta(venta) {
 
   // 🔥 Swal bonito
   const { value: motivo } = await Swal.fire({
-    title: "🛑 Anular venta",
+    title: `🛑 Anular venta ${venta.folio}`,
     input: "textarea",
     inputLabel: "Motivo de cancelación",
     inputPlaceholder: "Ej: error en cobro, cliente canceló...",
@@ -528,12 +748,20 @@ export async function verVentas() {
 
   const negocio_id = localStorage.getItem("negocio_id");
 
+  // 🔥 obtener inicio y fin del día (hora México)
+  const hoy = new Date();
+  const inicio = new Date(hoy.setHours(0, 0, 0, 0)).toISOString();
+
+  const fin = new Date();
+  fin.setHours(23, 59, 59, 999);
+
   const { data } = await supabaseClient
     .from("ventas")
-    .select("id, folio, total_final, estado, negocio_id")
+    .select("id, folio, total_final, estado, negocio_id, fecha, metodo_pago")
     .eq("negocio_id", negocio_id)
-    .order("id", { ascending: false })
-    .limit(20);
+    .gte("fecha", inicio)
+    .lte("fecha", fin.toISOString())
+    .order("fecha", { ascending: false });
 
   const ventas = data || [];
 
@@ -541,56 +769,154 @@ export async function verVentas() {
   window.listaVentas = ventas;
 
   Swal.fire({
-    title: "🧾 Ventas",
-    width: 600,
+    title: "🧾 Ventas del día",
+    width: 700,
     background: "#1A042D",
     color: "#fff",
     showConfirmButton: false,
 
     html: `
-      <div style="max-height:400px;overflow:auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-fuchsia-600/40">
-              <th>Folio</th>
-              <th>Total</th>
-              <th>Estado</th>
-              <th></th>
-            </tr>
-          </thead>
+      <div>
 
-          <tbody>
-            ${
-              ventas.map(v => `
-                <tr class="border-b border-fuchsia-600/20">
-                  <td>${v.folio}</td>
-                  <td>$${Number(v.total_final).toFixed(2)}</td>
+        <!-- 🔍 BUSCADOR -->
+        <input 
+          id="buscadorVentas"
+          type="text"
+          placeholder="Buscar folio, monto, hora (14:30) o método (efectivo)..."
+          class="w-full mb-3 p-2 rounded bg-[#2A0A45] text-white border border-fuchsia-600/30 outline-none"
+        />
 
-                  <td>
-                    ${
-                      v.estado === "anulada"
-                        ? `<span class="text-red-400">ANULADA</span>`
-                        : `<span class="text-green-400">OK</span>`
-                    }
-                  </td>
+        <!-- 📋 TABLA -->
+        <div style="max-height:400px;overflow:auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-fuchsia-600/40">
+                <th>Folio</th>
+                <th>Hora</th>
+                <th>Total</th>
+                <th>Método</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
 
-                  <td>
-                    ${
-                      v.estado === "anulada"
-                        ? ""
-                        : `<button 
-                            class="bg-red-600 text-white px-2 py-1 rounded btnAnular"
-                            data-id="${v.id}">
-                            ❌
-                          </button>`
-                    }
-                  </td>
-                </tr>
-              `).join("")
-            }
-          </tbody>
-        </table>
+            <tbody id="tablaVentas">
+              ${
+                ventas.map(v => {
+
+                  const hora = new Date(v.fecha)
+                    .toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                  return `
+                    <tr class="border-b border-fuchsia-600/20">
+                      <td>${v.folio}</td>
+                      <td>${hora}</td>
+                      <td>$${Number(v.total_final).toFixed(2)}</td>
+
+                      <td class="uppercase text-xs">
+                        ${v.metodo_pago || "-"}
+                      </td>
+
+                      <td>
+                        ${
+                          v.estado === "anulada"
+                            ? `<span class="text-red-400">ANULADA</span>`
+                            : `<span class="text-green-400">OK</span>`
+                        }
+                      </td>
+
+                      <td>
+                        ${
+                          v.estado === "anulada"
+                            ? ""
+                            : `<button 
+                                class="bg-red-600 text-white px-2 py-1 rounded btnAnular"
+                                data-id="${v.id}">
+                                ❌
+                              </button>`
+                        }
+                      </td>
+                    </tr>
+                  `;
+                }).join("")
+              }
+            </tbody>
+          </table>
+        </div>
+
       </div>
-    `
+    `,
+
+    didOpen: () => {
+
+      const input = document.getElementById("buscadorVentas");
+      const tabla = document.getElementById("tablaVentas");
+
+      if (!input || !tabla) return;
+
+      input.addEventListener("input", () => {
+
+        const valor = input.value.toLowerCase().trim();
+
+        const filtradas = window.listaVentas.filter(v => {
+
+          const folio = (v.folio || "").toString().toLowerCase();
+          const total = Number(v.total_final).toFixed(2);
+          const metodo = (v.metodo_pago || "").toLowerCase();
+
+          const hora = new Date(v.fecha)
+            .toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            .toLowerCase();
+
+          return (
+            folio.includes(valor) ||
+            total.includes(valor) ||
+            metodo.includes(valor) ||
+            hora.includes(valor)
+          );
+        });
+
+        tabla.innerHTML = filtradas.map(v => {
+
+          const hora = new Date(v.fecha)
+            .toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+          return `
+            <tr class="border-b border-fuchsia-600/20">
+              <td>${v.folio}</td>
+              <td>${hora}</td>
+              <td>$${Number(v.total_final).toFixed(2)}</td>
+
+              <td class="uppercase text-xs">
+                ${v.metodo_pago || "-"}
+              </td>
+
+              <td>
+                ${
+                  v.estado === "anulada"
+                    ? `<span class="text-red-400">ANULADA</span>`
+                    : `<span class="text-green-400">OK</span>`
+                }
+              </td>
+
+              <td>
+                ${
+                  v.estado === "anulada"
+                    ? ""
+                    : `<button 
+                        class="bg-red-600 text-white px-2 py-1 rounded btnAnular"
+                        data-id="${v.id}">
+                        ❌
+                      </button>`
+                }
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+      });
+
+    }
+
   });
 }

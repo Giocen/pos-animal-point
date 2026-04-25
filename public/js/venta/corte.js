@@ -13,9 +13,52 @@ const supabase = supabaseClient;
 
 let bloqueoCorte = false;
 
-
 // 🟣 MULTI-NEGOCIO (CORREGIDO)
-const negocio_id = localStorage.getItem("negocio_id");
+let negocio_id = null;
+
+async function obtenerNegocioIdSeguro() {
+
+  // 🔹 intentar localStorage
+  let id = localStorage.getItem("negocio_id");
+
+  if (id) {
+    negocio_id = id;
+    return id;
+  }
+
+  // 🔹 fallback Supabase
+  try {
+    const { data } = await supabase.auth.getUser();
+
+    const user = data?.user;
+
+    if (!user) throw new Error("No hay usuario");
+
+    id = user.user_metadata?.negocio_id;
+
+    if (!id) throw new Error("Usuario sin negocio_id");
+
+    localStorage.setItem("negocio_id", id);
+
+    negocio_id = id;
+
+    console.log("♻ negocio_id recuperado:", id);
+
+    return id;
+
+  } catch (err) {
+
+    console.error("❌ Error recuperando negocio_id:", err);
+
+    await Swal.fire({
+      icon: "error",
+      title: "Sesión inválida",
+      text: "Vuelve a iniciar sesión"
+    });
+
+    location.reload();
+  }
+}
 
 function fechaMexicoISO() {
   const ahora = new Date();
@@ -36,10 +79,6 @@ function fechaMexicoISO() {
 return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}:${get("second")}`;
 }
 
-if (!negocio_id) {
-  console.error("❌ No existe negocio_id. Corte de caja no puede funcionar.");
-}
-
 /* -------------------------------------------------------------------------- */
 /* ⚙️ Dexie: base offline compatible MULTI-NEGOCIO                             */
 /* -------------------------------------------------------------------------- */
@@ -53,10 +92,12 @@ DB_CORTES.version(1).stores({
 /* 🕓 Sesión activa detectada + sincronizar corte                              */
 /* -------------------------------------------------------------------------- */
 document.addEventListener("sesionActiva", async () => {
+
+  await obtenerNegocioIdSeguro(); // 🔥 CLAVE
+
   console.log("💼 Corte de caja listo (sesión activa detectada)");
   lucide.createIcons();
 
-  // 🔄 SINCRONIZAR ESTADO REAL DEL CORTE
   try {
     const { data, error } = await supabase
       .from("cortes_caja")
@@ -77,7 +118,6 @@ document.addEventListener("sesionActiva", async () => {
     LocalDB.set(`corte_abierto_${negocio_id}`, null);
   }
 });
-
 
 /* -------------------------------------------------------------------------- */
 /* 💎 SweetAlert2 opciones visuales                                           */
@@ -144,6 +184,13 @@ async function imprimirCorteCompacto(tipo = "apertura", datos = {}) {
 /* 🟢 ABRIR CORTE DE CAJA                                                     */
 /* -------------------------------------------------------------------------- */
 document.getElementById("btnAbrirCorte")?.addEventListener("click", async () => {
+
+  await obtenerNegocioIdSeguro();
+
+  if (!negocio_id) {
+    Swal.fire("Error", "No se pudo obtener negocio_id", "error");
+    return;
+  }
 
   if (bloqueoCorte) return;
   bloqueoCorte = true;
@@ -263,6 +310,8 @@ document.getElementById("btnAbrirCorte")?.addEventListener("click", async () => 
 /* 🔴 CERRAR CORTE DE CAJA                                                    */
 /* -------------------------------------------------------------------------- */
 document.getElementById("btnCerrarCorte")?.addEventListener("click", async () => {
+  
+ await obtenerNegocioIdSeguro();
 
   if (bloqueoCorte) return;
   bloqueoCorte = true;
@@ -385,17 +434,19 @@ document.getElementById("btnCerrarCorte")?.addEventListener("click", async () =>
 /* 🧾 ARQUEO DE CAJA                                                          */
 /* -------------------------------------------------------------------------- */
 document.getElementById("btnArqueo")?.addEventListener("click", async () => {
-  if (!LocalDB.get(`corte_abierto_${negocio_id}`)) {
+
+  await obtenerNegocioIdSeguro();
+const { data: cortes } = await supabase
+  .from("cortes_caja")
+  .select("id")
+  .eq("negocio_id", negocio_id)
+  .is("cierre", null)
+  .limit(1);
+
+if (!cortes || cortes.length === 0) {
   await Swal.fire("Info", "No hay corte abierto", "info");
   return;
 }
-
-  const { data: cortes } = await supabase
-    .from("cortes_caja")
-    .select("id, efectivo_inicial")
-    .eq("negocio_id", negocio_id)
-    .is("cierre", null)
-    .limit(1);
 
   const corte = cortes?.[0];
   if (!corte) {
@@ -412,6 +463,16 @@ document.getElementById("btnArqueo")?.addEventListener("click", async () => {
 
   const t = totales?.[0] || {};
   const esperado = Number(t.total_esperado || 0);
+
+  
+    const { data: anuladas } = await supabase
+      .from("ventas")
+      .select("total_final")
+      .eq("corte_id", corte.id)
+      .eq("estado", "anulada");
+
+    const totalAnulado = (anuladas || [])
+      .reduce((sum, v) => sum + Number(v.total_final || 0), 0);
 
 
       const { isConfirmed } = await Swal.fire({
@@ -452,6 +513,13 @@ document.getElementById("btnArqueo")?.addEventListener("click", async () => {
       <div class="font-semibold text-red-400">$${Number(t.total_salidas || 0).toFixed(2)}</div>
     </div>
 
+  </div>
+
+  <div class="bg-white/5 p-2 rounded-lg">
+    <div class="text-xs opacity-70">❌ Ventas anuladas</div>
+    <div class="font-semibold text-red-400">
+      $${totalAnulado.toFixed(2)}
+    </div>
   </div>
 
   <div class="border-t border-white/10 pt-2">

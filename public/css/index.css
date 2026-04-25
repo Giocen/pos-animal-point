@@ -279,3 +279,41 @@ main > div a:nth-child(n+6) {
   text-align: center;
   letter-spacing: 0.5px;
 }
+
+/* =========================
+   🔹 CONTENEDOR REDES
+========================= */
+.footer-redes {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================
+   🔹 ICONOS REDONDOS
+========================= */
+.footer-redes i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  background: rgba(255,255,255,0.15);
+  border-radius: 50%;
+
+  color: #fff;
+
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+/* =========================
+   🔥 HOVER (EFECTO PRO)
+========================= */
+.footer-redes i:hover {
+  transform: translateY(-2px) scale(1.05);
+  background: rgba(255,255,255,0.3);
+}

@@ -5,6 +5,7 @@
    ✔ Sin "0.00" forzado hasta blur()
    ✔ Lógica original intacta
 ============================================================ */
+import { supabaseClient } from "/js/proteccion.js";
 
 const lucide = window.lucide;
 const Swal = window.Swal;
@@ -18,6 +19,12 @@ export let cambio = 0;
 
 let totalCarrito = 0;
 let totalCallback = null;
+
+let configMP = {
+  comision_base: 0,
+  meses: [],
+  msi: {}
+};
 
 
 
@@ -86,10 +93,18 @@ document.addEventListener("carrito-total-cambiado", (e) => {
     
 
     if (metodoPago === "tarjeta") {
+
+    const tipo = document.getElementById("tipoPagoTarjeta")?.value;
+
+    // 🔥 SOLO si es normal
+    if (tipo !== "msi") {
         pagoTarjeta = totalCarrito;
+
         const inp = document.getElementById("inpTar");
         if (inp) inp.value = totalCarrito.toFixed(2);
     }
+
+}
 
     if (metodoPago === "transferencia") {
         pagoTransfer = totalCarrito;
@@ -103,7 +118,9 @@ document.addEventListener("carrito-total-cambiado", (e) => {
 /* ============================================================
    🚀 Inicializador general
 ============================================================ */
-export function inicializarPagos(totalVentaCallback) {
+export async function inicializarPagos(totalVentaCallback) {
+
+    await cargarConfigPagos();
 
     if (!totalCallback) totalCallback = totalVentaCallback;
 
@@ -262,37 +279,199 @@ function renderFormulario(metodo, form) {
     }
 
     /* 🟣 TARJETA -------------------------------------------- */
-    if (metodo === "tarjeta") {
+if (metodo === "tarjeta") {
 
-        form.innerHTML = `
-            <label class="text-sm font-semibold text-gray-200">Monto tarjeta</label>
-            <input id="inpTar" class="pago-input" value="${totalCarrito.toFixed(2)}">
+    form.innerHTML = `
+        <div class="grid grid-cols-2 gap-3">
 
-            <label class="mt-2 text-sm font-semibold text-gray-200">Voucher</label>
-            <input id="inpVouch" class="pago-input" value="">
+            <div class="flex flex-col">
+                <label class="text-sm font-semibold text-gray-200">Monto</label>
+                <input id="inpTar"
+                class="pago-input text-center bg-white/10 text-white border border-white/20"
+                value="${totalCarrito.toFixed(2)}">
+            </div>
+
+            <div class="flex flex-col">
+                <label class="text-sm font-semibold text-gray-200">Voucher</label>
+                <input id="inpVouch"
+                class="pago-input text-center tracking-widest bg-white/10 text-white border border-white/20"
+                placeholder="0000 0000">
+            </div>
+
+        </div>
+
+        <div class="mt-3">
+            <label class="text-sm text-gray-300">Tipo de pago</label>
+            <select id="tipoPagoTarjeta"
+            class="pago-input mt-1 bg-white text-black border border-gray-300">
+                <option value="normal">Pago normal</option>
+                <option value="msi">Meses sin intereses</option>
+            </select>
+        </div>
+
+        <div id="bloqueMSI" class="mt-3 hidden">
+            <label class="text-sm text-gray-300">Seleccionar meses</label>
+            <select id="selectMSI"
+            class="pago-input mt-1 bg-white text-black border border-gray-300">
+            </select>
+
+            <div id="infoMSI" class="text-xs text-gray-300 mt-2"></div>
+
+            <button id="btnConfigMSI" 
+                class="mt-2 text-xs text-fuchsia-300 underline">
+                ⚙ Configurar meses
+            </button>
+        </div>
+    `;
+
+    const t = document.getElementById("inpTar");
+    const v = document.getElementById("inpVouch");
+    const tipoPago = document.getElementById("tipoPagoTarjeta");
+    pagoTarjeta = totalCarrito;
+    t.value = totalCarrito.toFixed(2);
+
+    tipoPago.querySelectorAll("option").forEach(opt => {
+        opt.style.color = "#111";
+    });
+    const bloqueMSI = document.getElementById("bloqueMSI");
+    const selectMSI = document.getElementById("selectMSI");
+    const infoMSI = document.getElementById("infoMSI");
+    const btnConfig = document.getElementById("btnConfigMSI");
+
+    // 🔥 si no hay config
+        selectMSI.innerHTML = "";
+
+        if (!configMP.meses.length) {
+            const opt = document.createElement("option");
+            opt.value = "";
+            opt.textContent = "Configura meses";
+            selectMSI.appendChild(opt);
+        } else {
+            configMP.meses.forEach(m => {
+                const opt = document.createElement("option");
+                opt.style.color = "#111"; 
+                opt.value = m;
+                opt.textContent = `${m} meses`;
+                selectMSI.appendChild(opt);
+            });
+        }
+
+    // 🔥 cálculo
+   function calcularMP(total, meses) {
+
+    // 🔥 SOLO MSI lleva comisión base
+    const base = configMP.comision_base; // 3.5%
+    const extra = configMP.msi[meses] || 0;
+
+    const tasa = base + extra;
+
+    const comision = total * tasa;
+    const iva = comision * 0.16;
+
+    const totalFinal = total + comision + iva;
+    const mensualidad = totalFinal / meses;
+
+    return {
+        totalFinal,
+        mensualidad,
+        tasa,
+        comision,
+        iva
+    };
+}
+
+
+
+    // 🔥 evento MSI
+    selectMSI.addEventListener("change", () => {
+        const meses = Number(selectMSI.value);
+        if (!meses) return;
+
+        const res = calcularMP(totalCarrito, meses);
+
+        infoMSI.innerHTML = `
+        <div class="mt-3 p-3 rounded-lg bg-white/5 border border-white/10">
+
+            <div class="text-center mb-2">
+            <span class="text-xs text-gray-400">Pago mensual</span><br>
+            <span class="text-xl font-bold text-emerald-400">
+                $${res.mensualidad.toFixed(2)}
+            </span>
+            <span class="text-xs text-gray-400">x ${meses} meses</span>
+            </div>
+
+            <div class="flex justify-between text-xs mt-2">
+            <span class="text-gray-400">Total</span>
+            <span class="text-white font-semibold">
+                $${res.totalFinal.toFixed(2)}
+            </span>
+            </div>
+
+            <div class="flex justify-between text-xs">
+            <span class="text-gray-400">Comisión</span>
+            <span class="text-fuchsia-400 font-semibold">
+                ${(res.tasa * 100).toFixed(2)}%
+            </span>
+            </div>
+
+        </div>
         `;
 
-        const t = document.getElementById("inpTar");
-        const v = document.getElementById("inpVouch");
+        pagoTarjeta = res.totalFinal;
+        t.value = res.totalFinal.toFixed(2);
+    });
 
-        t.addEventListener("input", () => {
-            soloNumerosDecimal(t); // 🔥 NUEVO
-
-            let val = parseFloat(t.value);
-            if (isNaN(val)) val = 0;
-            pagoTarjeta = val;
-        });
-
-        t.addEventListener("blur", () => {
-            if (t.value !== "")
-                t.value = parseFloat(t.value).toFixed(2);
-        });
-
-        v.addEventListener("input", () => voucherTarjeta = v.value);
-
-        pagoTarjeta = totalCarrito;
-        return;
+    // 🔥 seleccionar primer mes automático
+    if (configMP.meses.length > 0) {
+        selectMSI.value = configMP.meses[0];
     }
+
+    // 🔥 mostrar / ocultar
+    tipoPago.addEventListener("change", () => {
+
+    if (tipoPago.value === "msi") {
+
+        bloqueMSI.classList.remove("hidden");
+
+        // 🔥 aquí sí aplica comisión
+        selectMSI.dispatchEvent(new Event("change"));
+
+    } else {
+
+        bloqueMSI.classList.add("hidden");
+
+        // 🔥 AQUÍ NO HAY COMISIÓN
+        pagoTarjeta = totalCarrito;
+        t.value = totalCarrito.toFixed(2);
+
+        // 🔥 limpiar info
+        infoMSI.innerHTML = "";
+    }
+});
+
+
+
+    // 🔥 botón config
+    btnConfig.addEventListener("click", abrirConfigMSI);
+
+    // 🔥 input manual
+    t.addEventListener("input", () => {
+        soloNumerosDecimal(t);
+        pagoTarjeta = parseFloat(t.value) || 0;
+    });
+
+    t.addEventListener("blur", () => {
+        if (t.value !== "")
+            t.value = parseFloat(t.value).toFixed(2);
+    });
+
+    v.addEventListener("input", () => voucherTarjeta = v.value);
+
+    pagoTarjeta = totalCarrito;
+
+    return;
+}
+
 
     /* 🟣 TRANSFERENCIA -------------------------------------- */
     if (metodo === "transferencia") {
@@ -433,15 +612,265 @@ function limpiarVoucher() {
     voucherTarjeta = "";
 }
 
-/* ============================================================
-   ♻️ Después de confirmar venta
-============================================================ */
-document.addEventListener("pago-confirmado", () => {
+document.addEventListener("venta-finalizada", () => {
     resetEstadosPago();
     limpiarFormulario();
 
     const totalPanel = document.getElementById("panelPagoTotal");
     if (totalPanel) totalPanel.textContent = "$0.00";
 
-    console.log("💜 Métodos de pago reiniciados");
+    console.log("💜 Métodos de pago reiniciados (post venta)");
 });
+
+
+async function cargarConfigPagos() {
+  const negocioId = localStorage.getItem("negocio_id");
+
+  const { data: base } = await supabaseClient
+    .from("config_pago_tarjeta")
+    .select("*")
+    .eq("negocio_id", negocioId)
+    .maybeSingle();
+
+  const { data: meses } = await supabaseClient
+    .from("config_pago_tarjeta_meses")
+    .select("*")
+    .eq("negocio_id", negocioId)
+    .eq("activo", true)
+    .order("meses");
+
+  const msi = {};
+  const listaMeses = [];
+
+  meses?.forEach(m => {
+    listaMeses.push(m.meses);
+    msi[m.meses] = Number(m.comision_extra);
+  });
+
+  configMP = {
+    comision_base: Number(base?.comision_base ?? 0.035),
+    meses: listaMeses,
+    msi
+  };
+}
+
+async function abrirConfigMSI() {
+
+  const negocioId = localStorage.getItem("negocio_id");
+
+  let { data } = await supabaseClient
+    .from("config_pago_tarjeta_meses")
+    .select("*")
+    .eq("negocio_id", negocioId)
+    .order("meses");
+
+   
+
+  // 🔥 AQUÍ VA (ANTES DEL HTML)
+  if (!data || data.length === 0) {
+
+    await supabaseClient
+      .from("config_pago_tarjeta_meses")
+      .insert([
+        { negocio_id: negocioId, meses: 3, comision_extra: 0.05, activo: true },
+        { negocio_id: negocioId, meses: 6, comision_extra: 0.08, activo: true },
+        { negocio_id: negocioId, meses: 9, comision_extra: 0.10, activo: true },
+        { negocio_id: negocioId, meses: 12, comision_extra: 0.12, activo: true }
+      ]);
+
+    // 🔥 vuelve a cargar datos ya creados
+    const res = await supabaseClient
+      .from("config_pago_tarjeta_meses")
+      .select("*")
+      .eq("negocio_id", negocioId)
+      .order("meses");
+
+    data = res.data;
+  }
+// 🔥 traer base
+const { data: baseConfig } = await supabaseClient
+  .from("config_pago_tarjeta")
+  .select("*")
+  .eq("negocio_id", negocioId)
+  .maybeSingle();
+
+
+let html = `
+<div class="text-left">
+
+  <!-- 🔥 Comisión base -->
+  <div class="mb-4">
+    <label class="text-sm font-semibold text-gray-600">
+      Comisión base (%)
+    </label>
+
+    <input 
+      id="inpBase"
+      type="number"
+      step="0.01"
+      value="${((baseConfig?.comision_base ?? 0.035) * 100).toFixed(2)}"
+      class="w-32 mt-1 p-2 border rounded text-black"
+    >
+  </div>
+
+  <!-- 🔥 Tabla -->
+  <table class="w-full text-sm border-separate border-spacing-y-2">
+
+    <thead>
+      <tr class="text-gray-500 text-xs uppercase">
+        <th class="text-left">Meses</th>
+        <th class="text-left">Comisión %</th>
+        <th class="text-center">Activo</th>
+      </tr>
+    </thead>
+
+    <tbody>
+`;
+
+  (data || []).forEach(d => {
+  html += `
+    <tr class="bg-gray-100 rounded-lg">
+
+      <td class="px-3 py-2 font-semibold text-gray-800">
+        ${d.meses} meses
+      </td>
+
+      <td class="px-3 py-2">
+        <input type="number" step="0.01"
+          value="${(d.comision_extra * 100).toFixed(2)}"
+          data-id="${d.id}"
+          class="inp-comision w-24 p-2 text-black rounded border border-gray-300">
+      </td>
+
+      <td class="px-3 py-2 text-center">
+        <input type="checkbox"
+          ${d.activo ? "checked" : ""}
+          data-id="${d.id}"
+          class="chk-activo scale-110">
+      </td>
+
+    </tr>
+  `;
+});
+
+
+  html += `
+    </tbody>
+  </table>
+
+  <button id="btnAddMes"
+    class="mt-4 text-sm text-emerald-500 hover:text-emerald-600 font-semibold">
+    + Agregar mes personalizado
+  </button>
+
+</div>
+`;
+
+  const resSwal = await Swal.fire({
+  title: "Configurar MSI",
+  html,
+  confirmButtonText: "Guardar",
+  width: 600,
+
+  didOpen: () => {
+
+    const btnAdd = document.getElementById("btnAddMes");
+
+    if (!btnAdd) return;
+
+    btnAdd.addEventListener("click", async () => {
+
+      const { value: meses } = await Swal.fire({
+        title: "Nuevo plazo",
+        input: "number",
+        inputLabel: "Meses (ej: 18, 24)",
+        inputPlaceholder: "Ej: 18",
+        confirmButtonText: "Agregar"
+      });
+
+      if (!meses) return;
+
+      // 🔥 VALIDAR DUPLICADO
+      const yaExiste = (data || []).find(d => d.meses == meses);
+
+      if (yaExiste) {
+        Swal.fire("Error", "Ese plazo ya existe", "warning");
+        return;
+      }
+
+      const negocioId = localStorage.getItem("negocio_id");
+
+      await supabaseClient
+        .from("config_pago_tarjeta_meses")
+        .insert({
+          negocio_id: negocioId,
+          meses: Number(meses),
+          comision_extra: 0,
+          activo: true
+        });
+
+      await Swal.fire("Agregado", "Nuevo plazo creado", "success");
+
+        Swal.close(); 
+        abrirConfigMSI();
+
+    });
+
+  }
+});
+
+  if (!resSwal.isConfirmed) return;
+
+  await guardarConfigMSI();
+}
+
+
+
+
+async function guardarConfigMSI() {
+
+  const inputs = document.querySelectorAll(".inp-comision");
+  const checks = document.querySelectorAll(".chk-activo");
+
+  const negocioId = localStorage.getItem("negocio_id");
+
+const inpBase = document.getElementById("inpBase");
+
+if (inpBase) {
+  const base = parseFloat(inpBase.value) || 0;
+
+ await supabaseClient
+  .from("config_pago_tarjeta")
+  .upsert({
+    negocio_id: negocioId,
+    comision_base: base / 100,
+    updated_at: new Date().toISOString()
+  }, {
+    onConflict: "negocio_id"
+  });
+  
+}
+
+
+  for (const inp of inputs) {
+
+    const id = inp.dataset.id;
+    const porcentaje = parseFloat(inp.value) || 0;
+
+    const chk = [...checks].find(c => c.dataset.id === id);
+
+    await supabaseClient
+      .from("config_pago_tarjeta_meses")
+      .update({
+        comision_extra: porcentaje / 100,
+        activo: chk.checked
+      })
+      .eq("id", id);
+  }
+
+  await cargarConfigPagos();
+
+  Swal.fire("Guardado", "Configuración actualizada", "success");
+
+  renderFormulario("tarjeta", document.getElementById("panelPagoFormulario"));
+}

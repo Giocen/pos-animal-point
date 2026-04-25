@@ -19,47 +19,6 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* ==========================================================
-💎 HEADER UNIFICADO REPORTES (100% ancho)
-========================================================== */
-.header-reportes {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background: linear-gradient(90deg, #7e22ce, #a21caf, #ec4899);
-  color: #fff;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
-  z-index: 50;
-  padding: 0.9rem 0;
-}
-
-.header-content {
-  width: 95%;
-  max-width: 1300px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.btn-volver {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #fff;
-  padding: 0.45rem 0.9rem;
-  border-radius: 0.45rem;
-  background: rgba(255, 255, 255, 0.2);
-  transition: all 0.25s ease;
-}
-.btn-volver:hover {
-  background: rgba(255, 255, 255, 0.35);
-  transform: translateY(-1px);
-}
 
 /* ==========================================================
 📦 CONTENEDOR PRINCIPAL
@@ -68,7 +27,7 @@ main {
   width: 100%;
   margin: 0 auto;
   padding: 1rem 1.5rem 2rem;
-  margin-top: 5.5rem; /* justo debajo del header fijo */
+  margin-top: 0;
   max-width: 1600px;
 }
 
@@ -201,12 +160,10 @@ main {
 #resultado th {
   padding: 0.7rem 0.5rem;
   border-bottom: 2px solid rgba(255, 255, 255, 0.25);
-  text-align: center;
   white-space: nowrap;
 }
 
-/* --- Filas --- */
-#resultado td {
+#resultado:not(.tabla-producto-pro):not(.tabla-categoria) td {
   padding: 0.6rem 0.5rem;
   border-bottom: 1px solid rgba(162, 28, 175, 0.1);
   background: rgba(255, 255, 255, 0.97);
@@ -323,4 +280,504 @@ main {
 .tabla-pnv tr:hover td {
   background: #fdf2f8;
   transition: 0.2s;
+}
+
+/* ==========================================================
+🔥 TABLA PRODUCTO PRO (VERSIÓN FINAL LIMPIA)
+========================================================== */
+
+/* CONTENEDOR */
+#resultado.tabla-producto-pro {
+  padding: 0.5rem 0.8rem;
+}
+
+/* TABLA */
+#resultado.tabla-producto-pro table {
+  font-size: 0.9rem;
+  border-collapse: collapse;
+}
+
+/* HEADER */
+#resultado.tabla-producto-pro thead {
+  background: linear-gradient(90deg, #6d28d9, #a21caf);
+}
+
+#resultado.tabla-producto-pro th {
+  padding: 12px 10px;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+/* 🔥 ALINEACIÓN REAL */
+#resultado.tabla-producto-pro th:nth-child(1),
+#resultado.tabla-producto-pro th:nth-child(2) {
+  text-align: left;
+}
+
+#resultado.tabla-producto-pro th:nth-child(3),
+#resultado.tabla-producto-pro th:nth-child(4),
+#resultado.tabla-producto-pro th:nth-child(5),
+#resultado.tabla-producto-pro th:nth-child(7),
+#resultado.tabla-producto-pro th:nth-child(8) {
+  text-align: right;
+}
+
+#resultado.tabla-producto-pro th:nth-child(6) {
+  text-align: center;
+}
+
+
+/* CELDAS */
+#resultado.tabla-producto-pro td {
+  padding: 11px 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  background: #fff;
+  text-align: left;
+}
+
+/* ZEBRA */
+#resultado.tabla-producto-pro tbody tr:nth-child(even) td {
+  background: #faf5ff;
+}
+
+/* HOVER */
+#resultado.tabla-producto-pro tbody tr:hover td {
+  background: #f3e8ff;
+}
+
+/* 📌 COLUMNA 1: Código */
+#resultado.tabla-producto-pro td:nth-child(1) {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* 📌 COLUMNA 2: Producto */
+#resultado.tabla-producto-pro td:nth-child(2) {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* 💰 VENTA */
+#resultado.tabla-producto-pro td:nth-child(3) {
+  text-align: right !important;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+/* 🟠 INVERSIÓN */
+#resultado.tabla-producto-pro td:nth-child(4) {
+  text-align: right !important;
+  color: #ea580c;
+}
+
+/* 🟢 GANANCIA (LA MÁS IMPORTANTE) */
+#resultado.tabla-producto-pro td:nth-child(5) {
+  text-align: right !important;
+  font-weight: 700;
+  color: #16a34a;
+  font-size: 1rem;
+}
+
+/* 💳 MÉTODO DE PAGO */
+#resultado.tabla-producto-pro td:nth-child(6) {
+  text-align: center !important;
+  font-size: 0.8rem;
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+/* 📊 MARGEN */
+#resultado.tabla-producto-pro td:nth-child(7) {
+  text-align: right !important;
+  font-weight: 700;
+  color: #db2777;
+}
+
+/* 📅 FECHA */
+#resultado.tabla-producto-pro td:nth-child(8) {
+  text-align: right !important;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Ajustes visuales finos */
+#resultado.tabla-producto-pro td:nth-child(3),
+#resultado.tabla-producto-pro td:nth-child(4),
+#resultado.tabla-producto-pro td:nth-child(5),
+#resultado.tabla-producto-pro td:nth-child(7),
+#resultado.tabla-producto-pro td:nth-child(8) {
+  text-align: right !important;
+}
+
+#resultado.tabla-producto-pro td:nth-child(6) {
+  text-align: center !important;
+}
+
+.reporte-btn {
+  white-space: nowrap;
+}
+
+header {
+  backdrop-filter: blur(6px);
+}
+
+header {
+  padding-bottom: 0;
+}
+
+.reporte-btn {
+  white-space: nowrap;
+}
+
+#resultado table {
+  table-layout: auto;
+}
+
+/* 🔥 HEADERS ALINEADOS EXACTO COMO CELDAS */
+#resultado th:nth-child(1),
+#resultado th:nth-child(2) {
+  text-align: left;
+}
+
+#resultado th:nth-child(3),
+#resultado th:nth-child(4),
+#resultado th:nth-child(5),
+#resultado th:nth-child(7),
+#resultado th:nth-child(8) {
+  text-align: right;
+}
+
+#resultado th:nth-child(6) {
+  text-align: center;
+}
+
+
+#filtros {
+  margin-top: 10px;
+}
+
+input[type="date"] {
+  min-width: 140px;
+}
+
+input[type="date"] {
+  appearance: auto !important;
+  -webkit-appearance: auto !important;
+  color: black !important;
+  background: white !important;
+}
+
+tfoot {
+  position: sticky;
+  bottom: 0;
+  backdrop-filter: blur(6px);
+}
+
+
+/* ==========================================================
+🔥 TABLA CATEGORÍA (ALINEACIÓN CORRECTA)
+========================================================== */
+
+/* HEADERS */
+#resultado.tabla-categoria th:nth-child(1) { text-align: left; }
+#resultado.tabla-categoria th:nth-child(2) { text-align: right; }
+#resultado.tabla-categoria th:nth-child(3) { text-align: right; }
+#resultado.tabla-categoria th:nth-child(4) { text-align: right; }
+#resultado.tabla-categoria th:nth-child(5) { text-align: right; }
+#resultado.tabla-categoria th:nth-child(6) { text-align: right; }
+
+/* CELDAS */
+#resultado.tabla-categoria td:nth-child(1) {
+  text-align: left;
+  font-weight: 600;
+}
+
+#resultado.tabla-categoria td:nth-child(2) {
+  text-align: right;
+  color: #6b7280;
+}
+
+#resultado.tabla-categoria td:nth-child(3) {
+  text-align: right;
+  font-weight: 600;
+  color: #7c3aed;
+}
+
+/* 💰 INGRESO */
+#resultado.tabla-categoria td:nth-child(4) {
+  text-align: right;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+/* 🟠 INVERSIÓN */
+#resultado.tabla-categoria td:nth-child(5) {
+  text-align: right;
+  color: #ea580c;
+}
+
+/* 🟢 GANANCIA */
+#resultado.tabla-categoria td:nth-child(6) {
+  text-align: right;
+  font-weight: 700;
+  color: #16a34a;
+  font-size: 0.95rem;
+}
+
+/* ==========================================================
+🔥 COLORES PRO - TABLA CATEGORÍA
+========================================================== */
+
+/* 💰 INGRESO */
+#resultado.tabla-categoria td:nth-child(4) {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+/* 🟠 INVERSIÓN */
+#resultado.tabla-categoria td:nth-child(5) {
+  color: #ea580c;
+  font-weight: 600;
+}
+
+/* 🟢 GANANCIA */
+#resultado.tabla-categoria td:nth-child(6) {
+  color: #16a34a;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+/* 📊 % VENTAS */
+#resultado.tabla-categoria td:nth-child(3) {
+  color: #7c3aed;
+  font-weight: 700;
+}
+
+/* ==========================================================
+🔥 TOTAL DESTACADO
+========================================================== */
+
+#resultado tfoot td {
+  background: #111827;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-top: 2px solid #a21caf;
+}
+
+/* Colores dentro del total */
+#resultado tfoot td:nth-child(4) { color: #60a5fa; } /* ingreso */
+#resultado tfoot td:nth-child(5) { color: #fb923c; } /* inversion */
+#resultado tfoot td:nth-child(6) { color: #4ade80; } /* ganancia */
+
+/* ==========================================================
+🔥 CATEGORÍA HEREDANDO ESTILO DE PRODUCTO
+========================================================== */
+
+#resultado.tabla-categoria {
+  padding: 0.5rem 0.8rem;
+}
+
+#resultado.tabla-categoria table {
+  font-size: 0.9rem;
+  border-collapse: collapse;
+}
+
+#resultado.tabla-categoria thead {
+  background: linear-gradient(90deg, #6d28d9, #a21caf);
+}
+
+#resultado.tabla-categoria th {
+  padding: 12px 10px;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+#resultado.tabla-categoria td {
+  padding: 11px 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  background: #fff;
+}
+
+#resultado.tabla-categoria tbody tr:nth-child(even) td {
+  background: #faf5ff;
+}
+
+#resultado.tabla-categoria tbody tr:hover td {
+  background: #f3e8ff;
+}
+
+/* HEADERS */
+#resultado.tabla-categoria th:nth-child(1) { text-align: left; }
+#resultado.tabla-categoria th:nth-child(2),
+#resultado.tabla-categoria th:nth-child(3),
+#resultado.tabla-categoria th:nth-child(4),
+#resultado.tabla-categoria th:nth-child(5),
+#resultado.tabla-categoria th:nth-child(6) { text-align: right; }
+
+/* CELDAS */
+#resultado.tabla-categoria td:nth-child(1) {
+  text-align: left !important;
+  font-weight: 600;
+  color: #111827;
+}
+
+#resultado.tabla-categoria td:nth-child(2) {
+  text-align: right !important;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+#resultado.tabla-categoria td:nth-child(3) {
+  text-align: right !important;
+  font-weight: 700;
+  color: #db2777;
+}
+
+#resultado.tabla-categoria td:nth-child(4) {
+  text-align: right !important;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+#resultado.tabla-categoria td:nth-child(5) {
+  text-align: right !important;
+  color: #ea580c;
+  font-weight: 600;
+}
+
+#resultado.tabla-categoria td:nth-child(6) {
+  text-align: right !important;
+  font-weight: 700;
+  color: #16a34a;
+  font-size: 1rem;
+}
+
+/* FOOTER */
+#resultado.tabla-categoria tfoot td {
+  background: #111827 !important;
+  font-weight: 700;
+  border-top: 2px solid #a21caf;
+}
+
+#resultado.tabla-categoria tfoot td:nth-child(1) {
+  color: #e879f9 !important;
+}
+
+#resultado.tabla-categoria tfoot td:nth-child(2) {
+  color: #60a5fa !important;
+}
+
+#resultado.tabla-categoria tfoot td:nth-child(4) {
+  color: #60a5fa !important;
+}
+
+#resultado.tabla-categoria tfoot td:nth-child(5) {
+  color: #fb923c !important;
+}
+
+#resultado.tabla-categoria tfoot td:nth-child(6) {
+  color: #4ade80 !important;
+  font-size: 1rem;
+}
+
+/* 🔥 Ordenamiento PRO */
+
+#tablaCustom th.activo {
+  background: rgba(168, 85, 247, 0.25);
+  color: #fff;
+}
+
+#tablaCustom th:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#tablaCustom th {
+  transition: all 0.2s ease;
+}
+
+/* ==========================================================
+   📱 FIX REAL MÓVIL (ESCALA + ORIENTACIÓN + UI)
+========================================================== */
+@media (max-width: 768px) {
+
+  /* 🔴 BASE: evitar zoom raro */
+  html, body {
+    font-size: 14px;
+  }
+
+  /* 🔴 LAYOUT */
+  .contenido-ventas {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  /* 🔴 OCULTAR LATERALES */
+  .panel-derecho,
+  .panel-lateral {
+    display: none !important;
+  }
+
+  #btnTogglePanel {
+    display: none !important;
+  }
+
+  /* 🟢 CARRITO */
+  .venta-panel-izquierdo {
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* 🟢 PANEL PAGO ABAJO */
+  #panelPago {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+  }
+
+  /* 🔥 REDUCIR TAMAÑOS (AQUÍ ESTABA EL PROBLEMA) */
+
+  .input-lg {
+    height: 38px !important;
+    font-size: 14px !important;
+  }
+
+  .btn-agregar,
+  .btn-buscar {
+    height: 38px !important;
+    font-size: 13px !important;
+    padding: 6px 10px !important;
+  }
+
+  /* 🟢 BOTONES DE PAGO */
+  .pago-metodo-btn {
+    padding: 8px !important;
+    font-size: 13px !important;
+  }
+
+  /* 🟢 TOTAL */
+  .panel-total-valor {
+    font-size: 20px !important;
+  }
+
+  /* 🟢 BOTÓN FINAL */
+  #btnFinalizarVentaPanel {
+    height: 45px !important;
+    font-size: 14px !important;
+  }
+
+  /* 🟢 TABLA */
+  .tabla-pos {
+    font-size: 12px;
+    min-width: 500px;
+  }
+
+}
+
+@media (orientation: landscape) and (max-width: 900px) {
+  body {
+    transform: rotate(90deg);
+  }
 }

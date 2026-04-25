@@ -1,70 +1,122 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SmartPOS | Productos No Vendidos</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Librerías -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+<title>SmartPOS | Rotación de Productos</title>
 
-  <style>
-    body{
-      background:#1A042D;
-      color:white;
-      font-family: Inter, system-ui;
-    }
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 
-    .header{
-      background:linear-gradient(90deg,#7c3aed,#ec4899);
-      padding:14px 24px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      position:fixed;
-      width:100%;
-      top:0;
-      left:0;
-      z-index:10;
-    }
+<style>
+body{
+  background:#1A042D;
+  color:white;
+  font-family: Inter, system-ui;
+}
 
-    .card{
-      background:white;
-      border-radius:10px;
-      padding:20px;
-      color:#111;
-      box-shadow:0 10px 25px rgba(0,0,0,0.15);
-    }
+.header{
+  background:linear-gradient(90deg,#7c3aed,#ec4899);
+  padding:10px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:fixed;
+  width:100%;
+  top:0;
+  z-index:50;
+}
 
-    table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:14px;
-    }
+.card{
+  background:white;
+  border-radius:10px;
+  padding:12px;
+  color:#111;
+}
 
-    thead{
-      background:linear-gradient(90deg,#7c3aed,#ec4899);
-      color:white;
-    }
+.table-sm th,
+.table-sm td{
+  padding:6px 8px;
+  font-size:12px;
+}
 
-    th{
-      padding:12px 16px;
-      text-align:left;
-      font-weight:600;
-    }
+.table-sm th{
+  font-size:11px;
+  cursor:pointer;
+  position:relative;
+}
 
-    td{
-      padding:14px 16px;
-      border-bottom:1px solid #eee;
-    }
+.btn{
+  padding:6px 10px;
+  font-size:12px;
+  border-radius:6px;
+}
 
-    tbody tr:hover{
-      background:#fafafa;
-    }
+/* sticky header */
+thead th{
+  position:sticky;
+  top:0;
+  z-index:10;
+}
 
-  </style>
+/* filtros */
+.filtro-btn{
+  font-size:10px;
+  margin-left:4px;
+  cursor:pointer;
+}
+
+.filtro-box{
+  position:absolute;
+  top:100%;
+  left:0;
+  background:white;
+  color:black;
+  border-radius:6px;
+  padding:8px;
+  display:none;
+  min-width:150px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+  z-index:20;
+}
+
+.filtro-box input{
+  width:100%;
+  border:1px solid #ccc;
+  padding:4px;
+  margin-bottom:5px;
+  font-size:12px;
+}
+
+tfoot{
+  background:#f3f4f6;
+  font-weight:bold;
+}
+
+.sort-active {
+  font-weight: bold;
+  color: #fff;
+}
+
+.sort-icon {
+  margin-left: 4px;
+  font-size: 10px;
+}
+
+/* 🔥 FIX ESPACIOS */
+td {
+  white-space: nowrap;
+}
+
+/* 🔥 cortar nombre largo */
+td:nth-child(2){
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>
 
 </head>
 
@@ -73,83 +125,111 @@
 <header class="header">
   <div class="flex items-center gap-2">
     <i data-lucide="package-search"></i>
-    <span class="font-bold">Productos No Vendidos</span>
+    <span class="font-bold text-sm">Rotación de Productos</span>
   </div>
 
-  <button onclick="location.href='/venta.html'" class="bg-white/20 px-3 py-1 rounded">
-    Volver
-  </button>
+  <div class="flex gap-2">
+    <button id="btnExportar" class="btn bg-green-600 text-white">
+      Exportar Excel
+    </button>
+
+    <button onclick="location.href='/venta.html'" class="btn bg-white/20 text-white">
+      Volver
+    </button>
+  </div>
 </header>
 
+<main class="mt-[70px] px-4 h-[calc(100vh-70px)] flex flex-col">
 
-<main class="mt-[80px] px-6 space-y-6">
+  <div class="grid grid-cols-3 gap-2 mb-2">
 
+    <div class="card text-center">
+      <div class="text-xs text-gray-500">Inventario</div>
+      <div id="totalInventario" class="text-lg font-bold">$0</div>
+    </div>
 
-<!-- PANEL RESUMEN -->
-<div class="grid md:grid-cols-3 gap-4">
+    <div class="card text-center">
+      <div class="text-xs text-gray-500">+30 días</div>
+      <div id="prod30" class="text-lg font-bold text-orange-500">0</div>
+    </div>
 
-  <div class="card">
-    <div class="text-xs text-gray-500">Inventario detenido</div>
-    <div id="totalInventario" class="text-xl font-bold">$0</div>
+    <div class="card text-center">
+      <div class="text-xs text-gray-500">+60 días</div>
+      <div id="prod60" class="text-lg font-bold text-red-500">0</div>
+    </div>
+
   </div>
 
-  <div class="card">
-    <div class="text-xs text-gray-500">Productos +30 días</div>
-    <div id="prod30" class="text-xl font-bold">0</div>
+  <!-- BUSCADOR -->
+  <div class="card mb-2">
+    <input id="buscar" placeholder="Buscar..."
+      class="w-full border p-2 rounded text-sm">
   </div>
 
-  <div class="card">
-    <div class="text-xs text-gray-500">Productos +60 días</div>
-    <div id="prod60" class="text-xl font-bold">0</div>
+  <!-- TABLA -->
+  <div class="card flex-1 overflow-auto">
+
+    <table class="w-full table-sm">
+
+      <thead class="bg-gradient-to-r from-purple-600 to-pink-500 text-white">
+        <tr>
+
+          <th style="width:90px">SKU</th>
+          <th style="width:280px">Producto</th>
+          <th style="width:140px">Categoría</th>
+          <th class="text-right" style="width:90px">Costo</th>
+          <th class="text-right" style="width:90px">Precio</th>
+          <th class="text-right" style="width:80px">Existencias</th>
+          <th class="text-right" style="width:100px">Valor</th>
+          <th class="text-right" style="width:80px">Días</th>
+          <th style="width:110px">Estado</th>
+          <th style="width:130px">Sugerido</th>
+          <th class="text-right" style="width:100px">Ganancia</th>
+          <th class="text-right" style="width:80px">Margen</th>
+          <th style="width:180px">Simulación</th>
+
+        </tr>
+      </thead>
+
+      <tbody id="tablaProductos"></tbody>
+
+      <tfoot>
+        <tr>
+          <td colspan="6">TOTAL</td>
+          <td id="totalValor">$0</td>
+          <td colspan="6"></td>
+        </tr>
+      </tfoot>
+
+    </table>
+
   </div>
-
-</div>
-
-
-<!-- BUSCADOR -->
-<div class="card">
-
-  <input
-    id="buscar"
-    placeholder="Buscar por SKU o nombre..."
-    class="w-full border p-2 rounded"
-  >
-
-</div>
-
-
-<!-- TABLA -->
-<div class="card overflow-x-auto">
-
-<table>
-
-<thead>
-<tr>
-
-<th>SKU</th>
-<th>Producto</th>
-<th>Categoría</th>
-<th class="text-right">Costo</th>
-<th class="text-right">Precio</th>
-<th class="text-right">Existencias</th>
-<th class="text-right">Valor Inventario</th>
-<th class="text-right">Días sin vender</th>
-<th class="text-center">Acción</th>
-
-</tr>
-</thead>
-
-<tbody id="tablaProductos"></tbody>
-
-</table>
-
-</div>
 
 </main>
 
+<!-- XLSX con estilos -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
+<!-- TU SCRIPT -->
 <script type="module" src="/js/reportes/productosNoVendidos.js"></script>
-<script>lucide.createIcons()</script>
+
+<script>
+lucide.createIcons();
+
+// filtros dropdown
+document.querySelectorAll(".filtro-btn").forEach(btn=>{
+  btn.addEventListener("click", e=>{
+    e.stopPropagation();
+    const box = btn.nextElementSibling;
+    document.querySelectorAll(".filtro-box").forEach(b=>b.style.display="none");
+    box.style.display = "block";
+  });
+});
+
+document.addEventListener("click", ()=>{
+  document.querySelectorAll(".filtro-box").forEach(b=>b.style.display="none");
+});
+</script>
 
 </body>
 </html>

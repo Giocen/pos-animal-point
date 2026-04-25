@@ -1,11 +1,13 @@
 /* ===========================================================
    💜 SmartPOS Service Worker v2.4 (2025 Final)
-   - Misma lógica original de v2.3
-   - Corrige caché crítico: proteccion.js NUNCA se cachea
-   - Evita problemas de roles y sesiones antiguas
+   - Misma lógica original
+   - proteccion.js NUNCA se cachea
+   - JS sí funciona offline
+   - Estabilidad total POS
    =========================================================== */
 
 const CACHE_NAME = "smartpos-v2.4";
+
 const APP_SHELL = [
   "/index",
   "/manifest.json",
@@ -25,10 +27,18 @@ const APP_SHELL = [
   "/entradas",
   "/conteo",
   "/ajustes",
+
   "/css/venta.css",
-  "/img/favicon-pos.png"
+  "/img/favicon-pos.png",
+
+  // 🔥 JS CRÍTICO (para offline real)
+  "/js/main.js",
+  "/js/ventas.js",
+  "/js/productos.js",
+  "/js/carrito.js"
 ];
-// 👆 importante: se eliminó /js/proteccion.js del cache inicial
+
+// 👆 proteccion.js sigue SIN cache
 
 /* ------------------ INSTALACIÓN ------------------ */
 self.addEventListener("install", (event) => {
@@ -36,6 +46,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
+
       for (const url of APP_SHELL) {
         try {
           const res = await fetch(url, { cache: "no-cache" });
@@ -44,6 +55,7 @@ self.addEventListener("install", (event) => {
           console.warn("⚠️ No se pudo cachear:", url);
         }
       }
+
       await self.skipWaiting();
     })()
   );
@@ -52,9 +64,11 @@ self.addEventListener("install", (event) => {
 /* ------------------ ACTIVACIÓN ------------------ */
 self.addEventListener("activate", (event) => {
   console.log(`🚀 Activando SmartPOS SW ${CACHE_NAME}...`);
+
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
+
       await Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
@@ -81,17 +95,16 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   /* ---------------------------------------------------------
-     🚫 1) proteccion.js nunca debe ser cacheado
+     🚫 1) proteccion.js nunca cache
      --------------------------------------------------------- */
   if (url.pathname.endsWith("proteccion.js")) {
     return event.respondWith(fetch(request, { cache: "no-store" }));
   }
 
   /* ---------------------------------------------------------
-     🚫 2) No interceptar peticiones JS ni externas
+     🚫 2) externas / APIs
      --------------------------------------------------------- */
   if (
-    url.pathname.startsWith("/js/") ||
     url.hostname === "localhost" ||
     url.hostname.startsWith("127.") ||
     url.hostname.includes("supabase.co") ||
@@ -104,7 +117,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   /* ---------------------------------------------------------
-     🚫 3) No interceptar login ni configuraciones dinámicas
+     🚫 3) rutas dinámicas
      --------------------------------------------------------- */
   if (
     url.pathname.startsWith("/login") ||
@@ -114,7 +127,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   /* ---------------------------------------------------------
-     ⚡ 4) Estrategia cache-first con actualización silenciosa
+     ⚡ 4) CACHE FIRST + UPDATE SILENCIOSO (TU LÓGICA ORIGINAL)
      --------------------------------------------------------- */
   event.respondWith(
     (async () => {
@@ -132,13 +145,19 @@ self.addEventListener("fetch", (event) => {
 
       try {
         const res = await fetch(request);
+
         if (res && res.ok && res.type === "basic") {
           await cache.put(request, res.clone());
         }
+
         return res;
+
       } catch {
         if (request.destination === "document") {
-          const offline = await cache.match("/venta");
+          const offline =
+            (await cache.match("/venta")) ||
+            (await cache.match("/index"));
+
           if (offline) return offline;
         }
       }

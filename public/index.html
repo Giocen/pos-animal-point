@@ -87,12 +87,28 @@
         </div>
 
         <div class="footer-social">
-          <a href="https://wa.me/529999999999" target="_blank" title="WhatsApp" class="social-link"><i data-lucide="message-circle"></i></a>
-          <a href="https://www.facebook.com" target="_blank" title="Facebook" class="social-link"><i data-lucide="facebook"></i></a>
-          <a href="https://www.instagram.com" target="_blank" title="Instagram" class="social-link"><i data-lucide="instagram"></i></a>
-          <a href="https://www.youtube.com" target="_blank" title="YouTube" class="social-link"><i data-lucide="play"></i></a>
-          <a href="https://www.google.com/shopping" target="_blank" title="Google Shopping" class="social-link"><i data-lucide="globe"></i></a>
-        </div>
+
+        <a href="https://wa.me/529999999999" target="_blank" title="WhatsApp" class="social-link">
+          <i data-lucide="message-circle"></i>
+        </a>
+
+        <a href="https://www.facebook.com" target="_blank" title="Facebook" class="social-link">
+          <i data-lucide="thumbs-up"></i>
+        </a>
+
+        <a href="https://www.instagram.com" target="_blank" title="Instagram" class="social-link">
+          <i data-lucide="camera"></i>
+        </a>
+
+        <a href="https://www.youtube.com" target="_blank" title="YouTube" class="social-link">
+          <i data-lucide="play"></i>
+        </a>
+
+        <a href="https://www.google.com/shopping" target="_blank" title="Google Shopping" class="social-link">
+          <i data-lucide="globe"></i>
+        </a>
+
+      </div>
 
         <div id="horaFooter" class="footer-time text-sm font-medium text-white/90"></div>
       </div>
@@ -140,7 +156,12 @@
     /* ======================================================
        🎨 Iconos
     ====================================================== */
-    if (window.lucide) lucide.createIcons();
+    document.addEventListener("DOMContentLoaded", () => {
+    if (window.lucide) {
+      lucide.createIcons();
+      setTimeout(() => lucide.createIcons(), 300);
+    }
+  });
 
     /* ======================================================
        🔧 Service Worker
@@ -201,6 +222,15 @@
 </script>
 
 <script type="module" src="/js/logout.js"></script>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.lucide) {
+      lucide.createIcons();
+      setTimeout(() => lucide.createIcons(), 300);
+    }
+  });
+  </script>
 
 
   </body>

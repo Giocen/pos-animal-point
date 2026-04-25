@@ -177,8 +177,10 @@ function linea80mm(desc, precio) {
 /* ============================================================
    🖨 TICKET TÉRMICO — Versión adaptada (corrige encabezado)
 ============================================================ */
-export async function mostrarTicketTermico(carritoParaTicket = []) {
-  try {
+export function mostrarTicketTermico(carritoParaTicket = []) {
+  return new Promise(async (resolve) => {
+    try {
+
     let datos = {};
     const negocio_id = localStorage.getItem("negocio_id") || null;
 
@@ -309,9 +311,25 @@ export async function mostrarTicketTermico(carritoParaTicket = []) {
     /* ------------------------------
        IFRAME PARA IMPRESIÓN (80mm)
     ------------------------------ */
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
+     const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        setTimeout(() => {
+          try {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+          } catch (e) {}
+
+          // 🔥 resolver SIEMPRE
+          setTimeout(() => {
+            iframe.remove();
+            resolve();
+          }, 800);
+
+        }, 300);
+      };
 
  iframe.srcdoc = `
 <html>
@@ -385,12 +403,14 @@ export async function mostrarTicketTermico(carritoParaTicket = []) {
 </html>
 `;
 
-   
-    setTimeout(() => iframe.remove(), 800);
 
   } catch (err) {
-    console.error("❌ Error ticket térmico:", err);
-  }
+      console.error("❌ Error ticket térmico:", err);
+      resolve(); // 🔥 nunca dejes colgado el flujo
+    }
+
+    });
+
 }
 
 /* ============================================================

@@ -5,112 +5,122 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SmartPOS | Reportes</title>
 
-  <!-- 🎨 Librerías base -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- SweetAlert -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Lucide -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- 💅 Estilos SmartPOS -->
+  <!-- Estilos propios -->
   <link rel="stylesheet" href="css/reportes.css">
 
-  <!-- 💬 Tooltip flotante tipo navegador -->
-  <style>
-    .tooltip-bubble {
-      position: fixed;
-      background: #f9fafb;
-      color: #111827;
-      font-size: 12px;
-      font-weight: 400;
-      padding: 4px 6px;
-      border: 1px solid #d1d5db;
-      border-radius: 4px;
-      white-space: nowrap;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-      z-index: 999999;
-      pointer-events: none;
-      opacity: 0;
-      transform: scale(0.95);
-      transition: opacity .12s ease-out, transform .12s ease-out;
-    }
-  </style>
 </head>
 
-<body class="min-h-screen flex flex-col font-inter text-gray-900">
+<body class="min-h-screen bg-gradient-to-br from-purple-800 via-fuchsia-700 to-purple-900 font-sans">
 
-  <!-- HEADER -->
-  <header class="header-reportes">
-    <div class="header-content">
-      <button onclick="window.location.href='/index.html'" class="btn-volver">
-        <i data-lucide="arrow-left"></i> Volver al Menú
-      </button>
-      <div class="flex items-center gap-2">
-        <i data-lucide="bar-chart-3" class="w-6 h-6 text-white"></i>
-        <h1 class="text-xl font-bold text-white">Reportes de Ventas</h1>
-      </div>
-    </div>
-  </header>
+<header class="fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-fuchsia-700 to-purple-800 shadow-lg">
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <main id="mainReporte" class="flex-1 w-full px-6 mt-[5.5rem]">
+  <div class="max-w-7xl mx-auto px-6 py-3">
 
-    <!-- 🟣 Botones -->
-    <div class="flex flex-wrap gap-3 mb-6 justify-center sm:justify-start">
-      <button id="btnProducto" class="reporte-btn bg-blue-600" data-tooltip="Ventas agrupadas por producto.">
-        <i data-lucide="package" class="w-4 h-4"></i> Ventas por Producto
-      </button>
+    <!-- 🔥 GRID 3 ZONAS -->
+    <div class="grid grid-cols-[auto_1fr_auto] items-center gap-4">
 
-      <button id="btnCategoria" class="reporte-btn bg-indigo-600" data-tooltip="Ventas agrupadas por categoría.">
-        <i data-lucide="layers" class="w-4 h-4"></i> Ventas por Categoría
-      </button>
-
-      <button id="btnFecha" class="reporte-btn bg-teal-600" data-tooltip="Ventas dentro de un rango de fechas.">
-        <i data-lucide="calendar" class="w-4 h-4"></i> Ventas por Fecha
-      </button>
-
-      <button id="btnMargen" class="reporte-btn bg-pink-600" data-tooltip="Margen y utilidad por venta.">
-        <i data-lucide="trending-up" class="w-4 h-4"></i> Margen y Utilidad
-      </button>
-
-      <!-- 🔘 Filtros manual -->
-      <button id="btnToggleFiltros" class="reporte-btn bg-gradient-to-r from-fuchsia-600 to-purple-600"
-        data-tooltip="Mostrar/ocultar filtros (solo para Fecha o Margen)">
-        <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> Filtros
-      </button>
-    </div>
-
-    <!-- FILTROS -->
-    <section id="filtros" class="hidden">
-      <div class="flex flex-wrap items-end gap-4" id="filtroContenedor">
-        <div class="flex flex-col flex-1 min-w-[180px]">
-          <label for="fechaInicio" class="text-sm font-semibold text-fuchsia-700 mb-1">Desde</label>
-          <input id="fechaInicio" type="date" class="input-filtro">
-        </div>
-
-        <div class="flex flex-col flex-1 min-w-[180px]">
-          <label for="fechaFin" class="text-sm font-semibold text-fuchsia-700 mb-1">Hasta</label>
-          <input id="fechaFin" type="date" class="input-filtro">
-        </div>
-
-        <div class="flex flex-col flex-1 min-w-[180px]">
-          <label for="periodo" class="text-sm font-semibold text-fuchsia-700 mb-1">Periodo</label>
-          <select id="periodo" class="input-filtro">
-            <option value="">-- Selecciona --</option>
-            <option value="semana">Esta semana</option>
-            <option value="mes">Este mes</option>
-            <option value="30dias">Últimos 30 días</option>
-          </select>
-        </div>
-
-        <button id="btnAplicarFiltro"
-          class="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white font-semibold px-4 py-2 rounded-md flex items-center gap-2 hover:opacity-90 transition">
-          <i data-lucide="filter" class="w-4 h-4"></i> Aplicar
+      <!-- IZQUIERDA -->
+      <div class="flex justify-start">
+        <button onclick="window.location.href='/index.html'"
+          class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          Volver
         </button>
       </div>
-    </section>
 
-    <!-- RESULTADOS -->
+      <!-- CENTRO (BOTONES / TABS) -->
+      <div class="flex justify-center items-center gap-2 flex-wrap text-center">
+
+        <button id="btnProducto" class="reporte-btn flex items-center gap-2 bg-blue-600 px-4 py-2 rounded-lg text-white">
+          <i data-lucide="package" class="w-4 h-4"></i>
+          Venta por Día
+        </button>
+
+        <button id="btnCategoria" class="reporte-btn flex items-center gap-2 bg-indigo-600 px-4 py-2 rounded-lg text-white">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+          Categoría
+        </button>
+
+        <button id="btnFecha" class="reporte-btn flex items-center gap-2 bg-teal-600 px-4 py-2 rounded-lg text-white">
+          <i data-lucide="calendar" class="w-4 h-4"></i>
+          Por Producto
+        </button>
+
+        <button id="btnInventario" class="reporte-btn flex items-center gap-2 bg-pink-600 px-4 py-2 rounded-lg text-white">
+          <i data-lucide="trending-up" class="w-4 h-4"></i>
+          Inventario
+        </button>
+
+      </div>
+
+      <!-- DERECHA -->
+      <div class="flex justify-end items-center h-full">
+        <h1 class="text-white font-bold text-lg whitespace-nowrap text-right">
+          Reportes de Ventas
+        </h1>
+      </div>
+
+    </div>
+
+  </div>
+</header>
+
+
+  <!-- CONTENIDO -->
+<main class="pt-28 max-w-7xl mx-auto px-6">
+    <!-- 🔥 FILTROS -->
+  <section id="filtros" class="bg-white/10 backdrop-blur-md rounded-xl p-4 mb-6 shadow-lg border border-white/20">
+
+  <div class="flex flex-wrap gap-4 items-end">
+
+    <div class="flex flex-col">
+      <label class="text-white text-sm">Desde</label>
+      <input id="fechaInicio" type="date"
+        class="px-3 py-2 rounded-lg bg-white text-black">
+    </div>
+
+    <div class="flex flex-col">
+      <label class="text-white text-sm">Hasta</label>
+      <input id="fechaFin" type="date"
+        class="px-3 py-2 rounded-lg bg-white text-black">
+    </div>
+
+    <div class="flex flex-col">
+      <label class="text-white text-sm">Periodo</label>
+      <select id="periodo"
+        class="px-3 py-2 rounded-lg bg-white text-black">
+        <option value="">-- Selecciona --</option>
+        <option value="semana">Semana</option>
+        <option value="mes">Mes</option>
+        <option value="30dias">30 días</option>
+      </select>
+    </div>
+
+    <button id="btnAplicarFiltro"
+      class="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-5 py-2 rounded-lg flex items-center gap-2">
+      <i data-lucide="filter" class="w-4 h-4"></i>
+      Aplicar
+    </button>
+
+  </div>
+
+</section>
+
+    <!-- 📊 RESUMEN -->
     <section id="resumenFecha" class="mb-6 hidden"></section>
-    <section id="resultado"></section>
+
+    <!-- 📋 RESULTADO -->
+    <section id="resultado"
+   class="bg-white rounded-xl shadow-xl overflow-hidden tabla-categoria"></section>
 
   </main>
 
@@ -119,90 +129,12 @@
   <script type="module" src="js/proteccion.js"></script>
   <script type="module" src="js/reportes.js"></script>
 
+  <!-- 🔧 INIT -->
   <script>
-document.addEventListener("DOMContentLoaded", () => {
-  lucide.createIcons();
-
-  /* ==========================================================
-     💬 TOOLTIP flotante (tipo navegador, posición automática)
-  ========================================================== */
-  const tooltip = document.createElement("div");
-  tooltip.className = "tooltip-bubble";
-  document.body.appendChild(tooltip);
-
-  document.querySelectorAll("[data-tooltip]").forEach(el => {
-    el.addEventListener("mouseenter", e => {
-      tooltip.textContent = el.getAttribute("data-tooltip");
-      tooltip.style.opacity = "1";
-      tooltip.style.transform = "scale(1)";
-      const rect = el.getBoundingClientRect();
-      const pad = 8;
-      const tW = tooltip.offsetWidth || 180;
-      const tH = tooltip.offsetHeight || 25;
-      const sTop = rect.top, sBot = window.innerHeight - rect.bottom;
-      const sLeft = rect.left, sRight = window.innerWidth - rect.right;
-      let top, left;
-      if (sTop > tH + pad) {
-        top = rect.top + window.scrollY - tH - pad;
-        left = rect.left + rect.width / 2 - tW / 2;
-      } else if (sBot > tH + pad) {
-        top = rect.bottom + window.scrollY + pad;
-        left = rect.left + rect.width / 2 - tW / 2;
-      } else if (sRight > tW + pad) {
-        top = rect.top + window.scrollY + rect.height / 2 - tH / 2;
-        left = rect.right + pad;
-      } else {
-        top = rect.top + window.scrollY + rect.height / 2 - tH / 2;
-        left = rect.left - tW - pad;
-      }
-      if (left < 4) left = 4;
-      if (left + tW > window.innerWidth - 4)
-        left = window.innerWidth - tW - 4;
-      tooltip.style.top = `${top}px`;
-      tooltip.style.left = `${left}px`;
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
     });
-    el.addEventListener("mouseleave", () => {
-      tooltip.style.opacity = "0";
-      tooltip.style.transform = "scale(0.95)";
-    });
-  });
-
-  /* ==========================================================
-     🎛️ Control de filtros manuales
-  ========================================================== */
-  const filtros = document.getElementById("filtros");
-  const btnToggleFiltros = document.getElementById("btnToggleFiltros");
-  const btnProducto = document.getElementById("btnProducto");
-  const btnCategoria = document.getElementById("btnCategoria");
-  const btnFecha = document.getElementById("btnFecha");
-  const btnMargen = document.getElementById("btnMargen");
-
-  // Variable global para saber qué tipo de reporte está activo
-  window.tipoActual = null;
-
-  // Cerrar filtros al cambiar de tipo de reporte
-  [btnProducto, btnCategoria, btnFecha, btnMargen].forEach(btn => {
-    btn.addEventListener("click", () => {
-      window.tipoActual = btn.id.replace("btn", "").toLowerCase();
-      filtros.classList.add("hidden");
-    });
-  });
-
-  // Mostrar / ocultar filtros solo si aplica
-  btnToggleFiltros.addEventListener("click", () => {
-    if (window.tipoActual !== "fecha" && window.tipoActual !== "margen") {
-      Swal.fire({
-        icon: "info",
-        title: "Filtros disponibles",
-        text: "Solo puedes aplicar filtros en los reportes por Fecha o Margen y Utilidad.",
-        confirmButtonColor: "#a21caf",
-      });
-      return;
-    }
-    filtros.classList.toggle("hidden");
-  });
-});
-</script>
+  </script>
 
 </body>
 </html>

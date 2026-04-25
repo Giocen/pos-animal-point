@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>SmartPOS | Ventas</title>
 
   <!-- 🎨 Tailwind -->
@@ -62,49 +62,62 @@
       🟡 PANEL LATERAL (Izquierdo)
   ======================================================================================= -->
   <aside id="panelLateral" class="panel-lateral">
-    <div class="panel-lateral-header">
-      <div class="panel-lateral-title">
-        <i data-lucide="menu"></i><span>Panel SmartPOS</span>
+      <div class="panel-lateral-header">
+        <div class="panel-lateral-title">
+          <i data-lucide="menu"></i>
+          <span>Panel SmartPOS</span>
+        </div>
+        <button id="btnCerrarPanel" class="panel-close-btn">
+          <i data-lucide="x"></i>
+        </button>
       </div>
-      <button id="btnCerrarPanel" class="panel-close-btn"><i data-lucide="x"></i></button>
-    </div>
 
-    <div class="panel-lateral-body">
+      <div class="panel-lateral-body">
 
-      <button id="btnClientePanel"
-      class="panel-btn-left bg-gradient-to-r from-fuchsia-600 to-pink-500">
-        <i data-lucide="user"></i>Cliente
-      </button>
+        <!-- BLOQUE SUPERIOR -->
+        <div class="panel-lateral-group">
+          <button id="btnClientePanel"
+            class="panel-btn-left bg-gradient-to-r from-fuchsia-600 to-pink-500">
+            <i data-lucide="user"></i>
+            <span>Cliente</span>
+          </button>
 
-      <button id="btnTopVendidos"
-      class="panel-btn-left bg-gradient-to-r from-orange-500 to-amber-500">
-        <i data-lucide="flame"></i>Más Vendidos
-      </button>
+          <button id="btnTopVendidos"
+            class="panel-btn-left bg-gradient-to-r from-orange-500 to-amber-500">
+            <i data-lucide="flame"></i>
+            <span>Más Vendidos</span>
+          </button>
 
-      <button id="btnResumen"
-      class="panel-btn-left bg-gradient-to-r from-blue-600 to-sky-500">
-        <i data-lucide="calendar"></i>Resumen del Día
-      </button>
+          <button class="panel-btn-left bg-gradient-to-r from-purple-600 to-indigo-500"
+            onclick="window.location.href='/reportes/productos-no-vendidos.html'">
+            <i data-lucide="rotate-cw"></i>
+            <span>Rotación de Sku</span>
+          </button>
 
-      <!-- NUEVO REPORTE -->
-      <button id="btnUtilidadProductos"
-      class="panel-btn-left bg-gradient-to-r from-emerald-600 to-green-500">
-        <i data-lucide="bar-chart-3"></i>Ganancia por producto
-      </button>
+          <button class="panel-btn-left bg-gradient-to-r from-rose-600 to-pink-500"
+            onclick="window.location.href='/reportes/reporte-movimientos.html'">
+            <i data-lucide="repeat"></i>
+            <span>Movimientos SKU</span>
+          </button>
+        </div>
 
-      <button class="panel-btn-left bg-gradient-to-r from-purple-600 to-indigo-500"
-      onclick="window.location.href='/reportes/productos-no-vendidos.html'">
-        <i data-lucide="package-x"></i>Sku no vendidos
-      </button>
+        <!-- BLOQUE INFERIOR -->
+        <div class="panel-lateral-footer">
+          <button id="btnUtilidadProductos"
+            class="panel-btn-left bg-gradient-to-r from-emerald-600 to-green-500">
+            <i data-lucide="bar-chart-3"></i>
+            <span>Ganancia por Sku</span>
+          </button>
 
-      <button class="panel-btn-left bg-gradient-to-r from-rose-600 to-pink-500"
-      onclick="window.location.href='/reportes/reporte-movimientos.html'">
-        <i data-lucide="repeat"></i>Movimientos SKU
-      </button>
+          <button id="btnResumen"
+            class="panel-btn-left bg-gradient-to-r from-blue-600 to-sky-500">
+            <i data-lucide="calendar"></i>
+            <span>Resumen del Día</span>
+          </button>
+        </div>
 
-    </div>
-
-  </aside>
+      </div>
+    </aside>
 
   <!-- =======================================================================================
       🧩 CONTENIDO PRINCIPAL (3 columnas)
@@ -324,6 +337,14 @@
           onclick="import('/js/venta/ventas.js').then(m => m.verVentas())">
           <i data-lucide="receipt"></i>
           <span>Ventas</span>
+        </button>
+
+        <button 
+          class="panel-btn bg-gradient-to-r from-indigo-600 to-purple-600"
+          style="grid-column: 2; grid-row: 6;"
+          onclick="window.location.href='/cotizacion.html'">
+          <i data-lucide="file-text"></i>
+          <span>Cotización</span>
         </button>
 
       </div>

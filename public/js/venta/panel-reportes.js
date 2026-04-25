@@ -117,54 +117,93 @@ export async function abrirResumenDia() {
 
           try {
 
-            /* ================================
-               🔹 Margen y utilidad
-            ================================ */
-            const { data: filas } = await supabaseClient
-              .from("v_reporte_margen_utilidad")
-              .select("ingreso_total, costo_total, utilidad")
-              .eq("negocio_id", negocio_id)
-              .gte("fecha_venta", inicio)
-              .lte("fecha_venta", fin);
+          
+         /* ================================
+          🔹 Margen y utilidad (FIX)
+        ================================ */
+          const { data: filas, error } = await supabaseClient
+            .from("v_reporte_margen_utilidad")
+            .select("ingreso_total, costo_total, utilidad, fecha_venta")
+            .eq("negocio_id", negocio_id)
+            .gte("fecha_venta", `${inicio} 00:00:00`)
+            .lte("fecha_venta", `${fin} 23:59:59`);
 
-            const totalVentas = filas?.reduce((a, r) => a + Number(r.ingreso_total || 0), 0) || 0;
-            const totalCosto = filas?.reduce((a, r) => a + Number(r.costo_total || 0), 0) || 0;
-            const totalUtilidad = filas?.reduce((a, r) => a + Number(r.utilidad || 0), 0) || 0;
+          console.log("📊 FILAS MARGEN:", filas);
+          if (error) console.error("❌ Error margen:", error);
 
-            /* ================================
-               🔹 Métodos pago
+          /* 🔥 Totales seguros */
+          const totalVentas = (filas || []).reduce(
+            (a, r) => a + Number(r.ingreso_total || 0),
+            0
+          );
+
+          const totalCosto = (filas || []).reduce(
+            (a, r) => a + Number(r.costo_total || 0),
+            0
+          );
+
+          const totalUtilidad = (filas || []).reduce(
+            (a, r) => a + Number(r.utilidad || 0),
+            0
+          );
+
+  
+           /* ================================
+              🔹 MÉTODOS DE PAGO CORREGIDOS
             ================================ */
             const { data: pagos } = await supabaseClient
-              .from("ventas")
-              .select("pago_efectivo, pago_tarjeta, pago_transferencia, comision_tarjeta, folio")
-              .eq("negocio_id", negocio_id)
-              .gte("fecha", `${inicio} 00:00:00`)
-              .lte("fecha", `${fin} 23:59:59`);
+            .from("ventas")
+            .select(`
+              id,
+              total_final,
+              metodo_pago,
+              estado,
+              ventas_detalle!inner(id)  // 🔥 CLAVE
+            `)
+            .eq("negocio_id", negocio_id)
+            .neq("estado", "anulada")
+            .gte("fecha", `${inicio} 00:00:00`)
+            .lte("fecha", `${fin} 23:59:59`);
 
-            const efectivo = pagos?.reduce((a, v) => a + Number(v.pago_efectivo || 0), 0) || 0;
-            const tarjetaBruto = pagos?.reduce((a, v) => a + Number(v.pago_tarjeta || 0), 0) || 0;
-            const transferencia = pagos?.reduce((a, v) => a + Number(v.pago_transferencia || 0), 0) || 0;
-            const PORCENTAJE_MP = 0.035;
+            let efectivo = 0;
+            let tarjetaBruto = 0;
+            let transferencia = 0;
+            let comisionTotal = 0;
 
-            const comisionTotal = pagos?.reduce((a, v) => {
+            for (const v of (pagos || [])) {
+              const total = Number(v.total_final || 0);
 
-              if (v.comision_tarjeta !== null && v.comision_tarjeta !== undefined) {
-                return a + Number(v.comision_tarjeta);
+              if (v.metodo_pago === "tarjeta") {
+                tarjetaBruto += total;
+
+                // 🔥 comisión por transacción
+                const comision = total * 0.035;
+
+                comisionTotal += comision;
               }
 
-              // Si no existe comisión guardada, la calculamos
-              const tarjeta = Number(v.pago_tarjeta || 0);
-              return a + (tarjeta * PORCENTAJE_MP);
+              if (v.metodo_pago === "efectivo") {
+                efectivo += total;
+              }
 
-            }, 0) || 0;
+              if (v.metodo_pago === "transferencia") {
+                transferencia += total;
+              }
+            }
 
+            // 🔥 redondeo final
+            comisionTotal = Number(comisionTotal.toFixed(2));
+
+            /* 🔹 Neto */
             const tarjetaNeto = Number((tarjetaBruto - comisionTotal).toFixed(2));
-            const tickets = new Set(
-                (pagos || []).map(v => v.folio).filter(Boolean)
-              ).size;
 
+            /* 🔹 Tickets */
+            const tickets = (pagos || []).length;
+
+            /* 🔹 Utilidad */
             const utilidadReal = totalUtilidad - comisionTotal;
 
+            /* 🔹 Márgenes */
             const margen = totalVentas > 0
               ? (totalUtilidad / totalVentas) * 100
               : 0;
@@ -172,7 +211,6 @@ export async function abrirResumenDia() {
             const margenReal = totalVentas > 0
               ? (utilidadReal / totalVentas) * 100
               : 0;
-
             /* ================================
                🎨 Render
             ================================ */
@@ -354,19 +392,19 @@ export async function abrirUtilidadProductos(){
         await supabaseClient.rpc(
           "reporte_utilidad_productos",
           {
-            v_negocio_id:negocio_id,
-            fecha_inicio:inicio,
-            fecha_fin:fin
+            p_negocio_id: negocio_id,
+            p_inicio: inicio,
+            p_fin: fin
           }
         );
 
         const filas = data || [];
 
         const totalVenta =
-        filas.reduce((a,v)=>a+Number(v.venta_total||0),0);
+        filas.reduce((a,v)=>a+Number(v.ventas||0),0);
 
         const totalUtilidad =
-        filas.reduce((a,v)=>a+Number(v.utilidad_total||0),0);
+        filas.reduce((a,v)=>a+Number(v.ganancia||0),0);
 
         resultado.innerHTML = `
 
@@ -400,24 +438,32 @@ export async function abrirUtilidadProductos(){
 
         <table class="w-full text-sm table-fixed">
 
-        <thead>
+      <thead>
 
         <tr class="border-b border-fuchsia-600/40 text-xs uppercase">
 
-        <th class="text-left w-[45%]">
+        <th class="text-left w-[32%]">
         Producto
         </th>
 
-        <th class="text-right w-[10%]">
-        Cant
+        <th class="text-right w-[12%]">
+        Cantidad
         </th>
 
-        <th class="text-right w-[20%]">
+        <th class="text-right w-[16%]">
         Venta
         </th>
 
-        <th class="text-right w-[25%]">
+        <th class="text-right w-[16%]">
+        Inversión
+        </th>
+
+        <th class="text-right w-[16%]">
         Ganancia
+        </th>
+
+        <th class="text-right w-[12%]">
+        Margen
         </th>
 
         </tr>
@@ -426,39 +472,47 @@ export async function abrirUtilidadProductos(){
 
         <tbody>
 
-        ${
-          filas.length
-          ? filas.map(p=>`
+       ${
+        filas.length
+        ? filas.map(p=>`
 
-          <tr class="border-b border-fuchsia-600/20">
+      <tr class="border-b border-fuchsia-600/20">
 
           <td class="truncate text-left">
-          ${p.producto}
+            ${p.nombre || "Sin nombre"}
           </td>
 
-          <td class="text-right text-gray-200">
-          ${Number(p.cantidad_total)}
+          <td class="text-right text-cyan-300">
+            ${Number(p.cantidad ?? p.cantidad_vendida ?? p.total_cantidad ?? 0).toFixed(2)}
           </td>
 
           <td class="text-right text-blue-300">
-          $${Number(p.venta_total).toFixed(2)}
+            $${Number(p.ventas ?? p.venta_total ?? 0).toFixed(2)}
+          </td>
+
+          <td class="text-right text-orange-300">
+            $${Number(p.costo_total ?? 0).toFixed(2)}
           </td>
 
           <td class="text-right text-green-400 font-bold">
-          $${Number(p.utilidad_total).toFixed(2)}
+            $${Number(p.ganancia ?? p.utilidad_total ?? 0).toFixed(2)}
           </td>
 
-          </tr>
+          <td class="text-right text-pink-400">
+            ${Number(p.margen ?? 0).toFixed(2)}%
+          </td>
 
-          `).join("")
+        </tr>
 
-          : `<tr>
-               <td colspan="4"
-               class="text-center text-gray-400 py-3">
-               Sin ventas
-               </td>
-             </tr>`
-        }
+        `).join("")
+
+        : `<tr>
+            <td colspan="6"
+            class="text-center text-gray-400 py-3">
+            Sin ventas
+            </td>
+          </tr>`
+      }
 
         </tbody>
         </table>

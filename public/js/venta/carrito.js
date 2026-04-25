@@ -35,6 +35,9 @@ export async function inicializarCarrito() {
     data.forEach((i) => {
       carrito.push({
         ...i,
+        costo: i.costo !== undefined && i.costo !== null
+        ? Number(i.costo)
+        : null,
         cantidad: Number(i.cantidad) || 0,
         precio: Number(i.precio) || 0,
         subtotal: Number(i.subtotal) || Number(i.cantidad * i.precio) || 0,
@@ -74,7 +77,11 @@ export async function agregarProductoPorSku(
     .eq("negocio_id", negocio_id)
     .maybeSingle();
 
-  const existenciasReales = Number(vista?.existencias_total ?? 0);
+  const existenciasReales =
+  vista?.existencias_total !== null &&
+  vista?.existencias_total !== undefined
+    ? Number(vista.existencias_total)
+    : null;
   const stockMinimo = Number(vista?.stock_minimo ?? 0);
 
   const unidadRaw = producto.unidad?.toLowerCase() || "pieza";
@@ -114,7 +121,7 @@ export async function agregarProductoPorSku(
   } else {
     const subtotal = +(precio * cantidad).toFixed(2);
 
-    carrito.push({
+   carrito.push({
       id: producto.id,
       sku: producto.sku,
       codigo_barras: producto.codigo_barras,
@@ -126,7 +133,7 @@ export async function agregarProductoPorSku(
       descuento: 0,
       totalFinal: subtotal,
       unidad,
-      existencias: existenciasReales,
+      existencias: existenciasReales ?? null,
       stock_minimo: stockMinimo,
     });
   }
@@ -149,7 +156,15 @@ export async function renderCarrito() {
 
   carrito.forEach((item, index) => {
 
-    const stockRestante = (item.existencias ?? 0) - item.cantidad;
+ const existencias =
+  item.existencias === null || item.existencias === undefined
+    ? 9999
+    : Number(item.existencias);
+
+  const stockRestante =
+    existencias === null || existencias === undefined
+      ? 9999
+      : Number(existencias) - item.cantidad;
 
     item.subtotal = +(item.cantidad * item.precio).toFixed(2);
     item.totalFinal = +(
@@ -162,7 +177,9 @@ export async function renderCarrito() {
     tbody.insertAdjacentHTML(
       "beforeend",
       `
-      <tr class="border-t fila-carrito ${stockRestante < 0 ? 'bg-red-50' : ''}" data-index="${index}">
+      <tr class="border-t fila-carrito ${
+          existencias !== 9999 && stockRestante < 0 ? 'bg-red-50' : ''
+        }" data-index="${index}">
         
         <td class="p-2 producto-col">
 
@@ -171,7 +188,7 @@ export async function renderCarrito() {
           </div>
 
           ${
-            stockRestante < 0
+            existencias !== 9999 && stockRestante < 0
               ? `<div class="text-xs text-red-500">Inventario negativo</div>`
               : ""
           }

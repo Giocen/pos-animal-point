@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Productos</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+#tabla{display:none;}
+
+.card{
+  background:white;
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 6px 16px rgba(0,0,0,.08);
+  border:1px solid #f3f4f6;
+  transition:.2s;
+}
+.card:active{transform:scale(.97)}
+
+.badge{
+  font-size:11px;
+  padding:2px 8px;
+  border-radius:999px;
+  font-weight:600;
+}
+
+#modal.active {
+  display:flex !important;
+}
+
+#modal.hidden {
+  display: none !important;
+}
+
+#modal:not(.hidden) {
+  display: flex !important;
+}
+
+.swal-granel {
+  border-radius: 18px !important;
+  padding: 15px !important;
+}
+.swal-granel button:active {
+  transform: scale(0.95);
+}
+
+.swal2-container {
+  z-index: 9999 !important;
+}
+
+@media (max-width: 768px) {
+  .swal2-popup {
+    margin-bottom: 120px !important;
+  }
+}
+
+@keyframes bounceCarrito {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.25); }
+  60% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.bounce {
+  animation: bounceCarrito 0.4s ease;
+}
+
+</style>
+</head>
+
+<body class="bg-gray-100">
+
+<!-- HEADER -->
+<div class="bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white p-4 flex justify-between">
+  <button onclick="history.back()">←</button>
+  <h1 class="font-bold">PRODUCTOS</h1>
+</div>
+
+<!-- BUSCADOR -->
+<div class="p-3 bg-white shadow">
+  <input id="q" class="w-full p-3 border rounded-xl" placeholder="Buscar...">
+
+  <div class="flex gap-2 mt-2">
+    <button id="btnBuscar" class="flex-1 bg-purple-600 text-white p-2 rounded-xl">Buscar</button>
+    <button id="btnLimpiar" class="flex-1 bg-gray-200 p-2 rounded-xl">Limpiar</button>
+  </div>
+</div>
+
+<!-- TABLA ORIGINAL -->
+<table id="tabla">
+<thead>
+<tr>
+<th data-field="sku"></th>
+<th data-field="codigo_barras"></th>
+<th></th>
+<th data-field="nombre"></th>
+<th data-field="precio_base"></th>
+<th data-field="costo"></th>
+<th data-field="margen"></th>
+<th data-field="ganancia"></th>
+<th data-field="existencias_total"></th>
+<th data-field="stock_minimo"></th>
+<th data-field="caducidad_proxima"></th>
+<th></th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<!-- ELEMENTOS REQUERIDOS -->
+<div style="display:none">
+  <button id="prev"></button>
+  <button id="next"></button>
+  <span id="page"></span>
+  <span id="lblRango"></span>
+  <select id="pageSize"><option value="20">20</option></select>
+  <button id="btnPlantilla"></button>
+  <button id="btnPlantillaCSV"></button>
+  <input id="csvInput" type="file">
+  <select id="cat">
+    <option value="">Todas las categorías</option>
+  </select>
+</div>
+
+<div id="modal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-end">
+
+  <div class="w-full bg-white rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-center mb-3">
+      <strong>Editar</strong>
+      <button id="btnCancel">✕</button>
+    </div>
+
+    <form id="formEdit" class="flex flex-col gap-2 text-sm">
+
+      <!-- 🔥 TODOS LOS CAMPOS QUE EL JS NECESITA -->
+      <input id="e_id" hidden>
+      <input id="e_barcode" hidden>
+      <textarea id="e_desc" hidden></textarea>
+      <input id="e_categoria" hidden>
+      <select id="e_activo" hidden>
+        <option value="true"></option>
+        <option value="false"></option>
+      </select>
+      <input id="e_minimo" hidden>
+      <input id="e_existencias" hidden>
+
+      <!-- VISIBLES -->
+      <input id="e_sku" placeholder="SKU" class="border p-2 rounded">
+      <input id="e_nombre" placeholder="Nombre" class="border p-2 rounded">
+
+      <div class="flex gap-2">
+        <input id="e_precio" placeholder="Precio" class="border p-2 rounded w-full">
+        <input id="e_costo" placeholder="Costo" class="border p-2 rounded w-full">
+      </div>
+
+      <!-- 🔥 BLOQUE IMAGEN (OBLIGATORIO PARA JS) -->
+      <input id="e_imagen" type="file" hidden>
+      <img id="e_preview" hidden>
+      <div id="placeholder" hidden></div>
+
+      <button id="btnCamara" type="button" hidden></button>
+      <button id="btnQuitarImg" type="button" hidden></button>
+
+      <!-- GUARDAR -->
+      <button type="submit" class="bg-purple-600 text-white p-3 rounded-xl mt-2">
+        Guardar
+      </button>
+
+    </form>
+
+  </div>
+</div>
+
+<!-- CARDS -->
+<div id="cardsContainer" class="p-3 space-y-3"></div>
+
+<script type="module" src="/js/admin_productos.js"></script>
+
+<script type="module">
+
+import { supabaseClient } from "/js/proteccion.js";
+
+/* 💰 COBRO SIMPLE */
+window.cobrarSimple = async function () {
+
+  const carrito = window.carrito || [];
+
+  if (!carrito.length) {
+  return Swal.fire("Aviso", "No hay productos", "info");
+}
+
+const carritoValido = carrito.filter(i => i.id && i.cantidad > 0)
+
+if (!carritoValido.length) {
+  return Swal.fire("Error", "Carrito inválido", "error");
+}
+
+
+  const negocio_id =
+    window.usuarioActual?.negocio_id ||
+    localStorage.getItem("negocio_id");
+
+  try {
+
+    /* =====================================
+       1️⃣ CREAR VENTA
+    ===================================== */
+const total = carritoValido.reduce((acc, i) => acc + i.totalFinal, 0)
+
+const cantidadTotal = carritoValido.reduce(
+  (acc, i) => acc + Number(i.cantidad || 0),
+  0
+)
+
+const { data: venta, error } = await supabaseClient
+  .from("ventas")
+  .insert({
+    total,
+    total_final: total,
+    metodo_pago: "efectivo",
+    negocio_id,
+
+    // 🔥 CLAVES PARA QUE NO TRUENE
+    cantidad: cantidadTotal,
+    precio_unitario: 0,
+    producto_id: null,
+    unidad: "pieza"
+  })
+  .select("id")
+  .single()
+
+if (error) {
+  console.error(error)
+  Swal.fire("Error al guardar venta")
+  return
+}
+
+    /* =====================================
+       2️⃣ DETALLE (ESTO DESCUENTA INVENTARIO)
+    ===================================== */
+    const detalles = carritoValido.map(i => {
+
+      const precio = Number(String(i.precio).replace(/[^0-9.]/g, "")) || 0
+      const cantidad = Number(i.cantidad || 0)
+      const costo = Number(String(i.costo || 0).replace(/[^0-9.]/g, "")) || 0
+
+      return {
+        venta_id: venta.id,
+        producto_id: i.id,
+        cantidad: cantidad,
+        precio_unitario: precio,
+        costo_unitario: costo,
+        precio_total: precio * cantidad,
+        negocio_id
+      }
+    });
+
+    const { error: errorDetalle } = await supabaseClient
+      .from("ventas_detalle")
+      .insert(detalles);
+
+    if (errorDetalle) throw errorDetalle;
+
+    /* =====================================
+       3️⃣ LIMPIAR CARRITO
+    ===================================== */
+        window.carrito = [];
+        actualizarResumenCarrito()
+        window.dispatchEvent(new Event("ventaFinalizada"))
+
+    Swal.fire({
+    icon: "success",
+    title: "Venta realizada",
+    text: "Total $" + total.toFixed(2),
+    timer: 1200,
+    showConfirmButton: false
+    })
+
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", err.message, "error");
+  }
+};
+
+</script>
+
+<script>
+
+/* 🔎 BUSQUEDA EN VIVO */
+let t=null
+q.addEventListener("input",()=>{
+clearTimeout(t)
+t=setTimeout(()=>btnBuscar?.click(),400)
+})
+
+/* 👀 OBSERVER */
+const observer=new MutationObserver(()=>renderCards())
+observer.observe(tbody,{childList:true})
+
+
+window.carrito = JSON.parse(localStorage.getItem("carrito")) || []
+
+
+/* 🛒 AGREGAR A VENTA */
+async function venderProducto(p){
+
+  const nombre = p.nombre.toLowerCase()
+
+  const esGranel =
+    nombre.includes("kg") &&
+    !nombre.includes("bulto") &&
+    !nombre.includes("costal") &&
+    !nombre.includes("saco")
+
+  let cantidad = 1
+  let precioUnitario = Number(String(p.precio).replace(/[^0-9.]/g, "")) || 0
+
+  if (esGranel) {
+
+    window.addEventListener("load", () => {
+    const btn = document.getElementById("btnCobrar")
+    if (!btn) return
+
+    btn.style.display = "none"
+    })
+  const { value } = await Swal.fire({
+    title: "Venta a granel",
+    width: 350,
+    html: `
+<div style="display:flex; flex-direction:column; gap:10px">
+
+  <!-- PANTALLA -->
+  <div style="
+    background:#111;
+    color:#0f0;
+    font-size:26px;
+    text-align:right;
+    padding:14px;
+    border-radius:10px;
+    font-weight:bold;
+    letter-spacing:1px;
+  " id="pantalla">0.00</div>
+
+  <!-- PREVIEW -->
+  <div style="
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;
+    font-weight:500;
+  ">
+    <span id="previewKg">0 kg</span>
+    <span id="previewTotal">$0.00</span>
+  </div>
+
+  <!-- BOTONES DINERO -->
+  <div style="display:flex; gap:8px">
+    <button class="btnMonto" data-v="$20" style="flex:1; padding:10px; border-radius:8px; background:#f3f4f6">$20</button>
+    <button class="btnMonto" data-v="$50" style="flex:1; padding:10px; border-radius:8px; background:#f3f4f6">$50</button>
+    <button class="btnMonto" data-v="$100" style="flex:1; padding:10px; border-radius:8px; background:#f3f4f6">$100</button>
+  </div>
+
+  <!-- BOTONES KG -->
+  <div style="display:flex; gap:8px">
+    <button class="btnKg" data-v="0.25" style="flex:1; padding:10px; border-radius:8px; background:#e0f2fe">250g</button>
+    <button class="btnKg" data-v="0.5" style="flex:1; padding:10px; border-radius:8px; background:#e0f2fe">500g</button>
+    <button class="btnKg" data-v="1" style="flex:1; padding:10px; border-radius:8px; background:#e0f2fe">1kg</button>
+  </div>
+
+  <!-- TECLADO -->
+  <div style="
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+  ">
+    ${[1,2,3,4,5,6,7,8,9,'.',0,'⌫'].map(n=>`
+      <button class="num" style="
+        padding:14px;
+        font-size:18px;
+        border-radius:10px;
+        background:#f9fafb;
+      ">${n}</button>
+    `).join('')}
+  </div>
+
+</div>
+`,
+
+   didOpen: () => {
+
+  const popup = Swal.getPopup()
+
+  let modo = "kg"
+  
+  const pantalla = popup.querySelector("#pantalla")
+  const previewKg = popup.querySelector("#previewKg")
+  const previewTotal = popup.querySelector("#previewTotal")
+
+  if (!pantalla) return
+
+  function actualizarPreview() {
+    let val = pantalla.innerText || "0"
+    let limpio = val.replace(/\$/g,"")
+    let num = Number(limpio)
+
+    if (isNaN(num) || num <= 0) {
+      previewKg.innerText = "0 kg"
+      previewTotal.innerText = "$0.00"
+      return
+    }
+
+    const esDinero = val.includes("$")
+
+    if (esDinero) {
+      const kg = (num / precioUnitario).toFixed(3)
+      previewKg.innerText = kg + " kg"
+      previewTotal.innerText = "$" + num.toFixed(2)
+    } else {
+      const total = num * precioUnitario
+      previewKg.innerText = num.toFixed(3) + " kg"
+      previewTotal.innerText = "$" + total.toFixed(2)
+    }
+  }
+
+      document.querySelectorAll(".num").forEach(b=>{
+        b.onclick = () => {
+
+          const val = b.innerText
+
+          if (val === "⌫") {
+            pantalla.innerText = pantalla.innerText.slice(0,-1)
+            actualizarPreview()
+            return
+          }
+
+          if (val === "." && pantalla.innerText.includes(".")) return
+
+          if (pantalla.innerText === "0.00") pantalla.innerText = ""
+
+          pantalla.innerText += val
+
+          // 🔥 AQUI DEFINES EL MODO
+          if (modo === "dinero") {
+            pantalla.innerText = "$" + pantalla.innerText.replace("$","")
+          }
+
+          actualizarPreview()
+        }
+      })
+
+
+      document.querySelectorAll(".btnMonto").forEach(b=>{
+        b.onclick = () => {
+          modo = "dinero"
+          pantalla.innerText = b.dataset.v
+          actualizarPreview()
+        }
+      })
+
+        document.querySelectorAll(".btnKg").forEach(b=>{
+      b.onclick = () => {
+        modo = "kg"
+        pantalla.innerText = b.dataset.v
+        actualizarPreview()
+      }
+    })
+        actualizarPreview()
+    },
+    preConfirm: () => {
+    const v = document.getElementById("pantalla").innerText
+    if (!v) return false
+    return v
+    },
+
+        didClose: () => {
+    toggleBtnCobrar()
+    }
+  })
+
+  
+
+  if (!value) return
+
+let limpio = String(value).replace(/\$/g,"")
+    let input = Number(limpio)
+
+  if (!input) return
+
+  // 👉 lógica inteligente
+  const esDinero = String(value).includes("$")
+
+if (esDinero) {
+  cantidad = input / precioUnitario
+} else {
+  cantidad = input
+}
+cantidad = Number(cantidad.toFixed(3))
+}
+
+
+  if (!window.carrito) window.carrito = []
+
+  const existente = window.carrito.find(i => i.id === p.id)
+
+  if (existente) {
+    existente.cantidad += cantidad
+    existente.totalFinal = existente.precio * existente.cantidad
+  } else {
+    window.carrito.push({
+      id: p.id,
+      uuid_supabase: p.id,
+      nombre: p.nombre,
+      precio: precioUnitario,
+      cantidad: cantidad,
+      costo: Number(String(p.costo || 0).replace(/[^0-9.]/g, "")) || 0,
+      totalFinal: precioUnitario * cantidad,
+      unidad: "kg"
+    })
+  }
+
+ actualizarResumenCarrito()
+
+setTimeout(() => {
+  animarCarrito()
+  vibrar()
+}, 50)
+
+  Swal.fire({
+    toast:true,
+    position:'top-end',
+    icon:'success',
+    title:'Agregado',
+    showConfirmButton:false,
+    timer:1000
+  })
+}
+
+
+function actualizarResumenCarrito() {
+
+    const box = document.getElementById("carritoBox")
+    const lista = document.getElementById("carritoLista")
+    const totalBox = document.getElementById("carritoTotal")
+
+  if (!(window.carrito || []).length) {
+    box.classList.add("hidden")
+    lista.innerHTML = ""
+    totalBox.innerText = "$0.00"
+    toggleBtnCobrar()
+    return
+  }
+
+  box.classList.remove("hidden")
+
+  let total = 0
+
+  lista.innerHTML = (window.carrito || []).map((item, i) => {
+
+    const precio = Number(item.precio || 0)
+    const cantidad = Number(item.cantidad || 0)
+    const totalItem = Number(item.totalFinal ?? (precio * cantidad)) || 0
+
+    total += totalItem
+
+    return `
+
+
+      <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
+
+        <div class="flex-1">
+          <div class="font-medium text-xs">${item.nombre}</div>
+          <div class="text-gray-400 text-xs">$${item.precio}</div>
+        </div>
+
+        <div class="flex items-center gap-2">
+
+          <button onclick="cambiarCantidad(${i}, -1)"
+            class="bg-gray-200 px-2 rounded">➖</button>
+
+          <span class="text-sm">${item.cantidad}</span>
+
+          <button onclick="cambiarCantidad(${i}, 1)"
+            class="bg-gray-200 px-2 rounded">➕</button>
+
+        </div>
+
+        <div class="w-16 text-right text-sm font-bold">
+          $${(Number(item.totalFinal ?? (item.precio * item.cantidad)) || 0).toFixed(2)}
+        </div>
+
+        <button onclick="eliminarItem(${i})"
+          class="ml-2 text-red-500">✕</button>
+
+      </div>
+    `
+
+  }).join("")
+
+  totalBox.innerText = "$" + total.toFixed(2)
+  toggleBtnCobrar()
+}
+
+
+
+window.cambiarCantidad = function(index, cambio){
+
+  if (!window.carrito[index]) return
+
+  const item = window.carrito[index]
+
+  item.cantidad = Number(item.cantidad || 0) + cambio
+
+  if (item.cantidad <= 0) {
+    window.carrito.splice(index, 1)
+  } else {
+    item.totalFinal = Number(item.precio) * Number(item.cantidad)
+  }
+
+  actualizarResumenCarrito()
+
+  if (window.refreshCarritoModal) {
+    window.refreshCarritoModal()
+  }
+}
+
+function toggleBtnCobrar() {
+
+  const btn = document.getElementById("btnCobrar")
+  if (!btn) return
+
+  const totalItems = (window.carrito || []).reduce(
+    (acc, i) => acc + Number(i.cantidad || 0),
+    0
+  )
+
+  // 🔥 BADGE
+  const badge = document.getElementById("badgeCarrito")
+
+  if (badge) {
+    if (totalItems > 0) {
+      badge.classList.remove("hidden")
+      badge.innerText = totalItems
+    } else {
+      badge.classList.add("hidden")
+    }
+  }
+
+  // 🔥 VISIBILIDAD BOTÓN
+  btn.style.display = totalItems > 0 ? "flex" : "none"
+
+   localStorage.setItem("carrito", JSON.stringify(window.carrito || []))
+}
+
+
+window.eliminarItem = function(index){
+  if (!window.carrito) return
+  window.carrito.splice(index, 1)
+ 
+  actualizarResumenCarrito()
+
+  if (window.refreshCarritoModal) {
+    window.refreshCarritoModal()
+  }
+}
+
+
+setTimeout(() => {
+  actualizarResumenCarrito()
+}, 100)
+
+
+/* 🎨 RENDER */
+function renderCards(){
+
+const rows=document.querySelectorAll("#tbody tr")
+cardsContainer.innerHTML=""
+
+rows.forEach(row=>{
+
+const tds=row.querySelectorAll("td")
+if(tds.length<9)return
+
+const producto={
+  id:row.dataset.id,
+  nombre:tds[3].innerText,
+  precio:tds[4].innerText,
+  costo:tds[5].innerText,
+  stock:tds[8].innerText,
+  unidad: row.dataset.unidad || "pieza"
+}
+
+const edit=row.querySelector("[data-edit]")
+const del=row.querySelector("[data-delete]")
+
+const card=document.createElement("div")
+card.className="card"
+
+card.innerHTML = `
+<div class="text-xs text-gray-400 flex items-center gap-1">
+  <i data-lucide="barcode" class="w-3 h-3"></i>
+  ${tds[0].innerText}
+</div>
+
+<div class="font-semibold text-sm mb-1">
+  ${tds[3].innerText}
+</div>
+
+<div class="flex justify-between items-center mb-2">
+
+  <div>
+    <div class="text-xs text-gray-400 flex items-center gap-1">
+      <i data-lucide="dollar-sign" class="w-3 h-3"></i>
+      Precio
+    </div>
+    <div class="text-lg font-bold text-purple-700">
+      ${tds[4].innerText}
+    </div>
+  </div>
+
+  <div class="text-right">
+    <div class="text-xs text-gray-400 flex items-center gap-1 justify-end">
+      <i data-lucide="trending-up" class="w-3 h-3"></i>
+      Ganancia
+    </div>
+    <div class="text-sm font-bold text-fuchsia-600">
+      ${tds[7].innerText}
+    </div>
+  </div>
+
+</div>
+
+<div class="flex justify-between text-sm mb-2">
+
+  <div>
+    <span class="text-gray-400">Costo</span><br>
+    <span>${tds[5].innerText}</span>
+  </div>
+
+  <div class="text-right">
+    <span class="text-gray-400">Margen</span><br>
+    <span class="px-2 py-1 rounded-full text-xs font-bold
+      ${tds[6].innerText.includes('-')?'bg-red-100 text-red-700':
+        tds[6].innerText.includes('1')||tds[6].innerText.includes('2')?'bg-yellow-100 text-yellow-700':
+        'bg-green-100 text-green-700'}">
+      ${tds[6].innerText}
+    </span>
+  </div>
+
+</div>
+
+<div class="text-xs mb-3 flex items-center gap-1">
+  <i data-lucide="package" class="w-3 h-3"></i>
+  ${tds[8].innerHTML}
+</div>
+
+<div class="flex gap-2">
+
+  <button class="sell flex-1 bg-green-100 text-green-700 py-1 rounded flex items-center justify-center">
+    <i data-lucide="shopping-cart"></i>
+  </button>
+
+  <button class="edit flex-1 bg-blue-100 text-blue-700 py-1 rounded flex items-center justify-center">
+    <i data-lucide="edit-3"></i>
+  </button>
+
+  <button class="del flex-1 bg-red-100 text-red-700 py-1 rounded flex items-center justify-center">
+    <i data-lucide="trash-2"></i>
+  </button>
+
+</div>
+`
+
+card.querySelector(".sell").onclick=(e)=>{
+e.stopPropagation()
+venderProducto(producto)
+}
+
+card.querySelector(".edit").onclick=(e)=>{
+e.stopPropagation()
+edit?.click()
+}
+
+card.querySelector(".del").onclick=(e)=>{
+e.stopPropagation()
+del?.click()
+}
+
+cardsContainer.appendChild(card)
+
+})
+
+if (window.lucide) {
+  requestAnimationFrame(() => {
+    lucide.createIcons()
+  })
+}
+}
+
+/* ⚡ SCROLL */
+let loading=false
+window.addEventListener("scroll",()=>{
+if(loading)return
+const rect=cardsContainer.getBoundingClientRect()
+if(rect.bottom<=window.innerHeight+100){
+const next=document.getElementById("next")
+if(next && !next.disabled){
+loading=true
+next.click()
+setTimeout(()=>loading=false,700)
+}
+}
+})
+
+
+if (window.lucide) {
+  requestAnimationFrame(() => {
+    lucide.createIcons()
+  })
+}
+
+function generarHTMLCarrito() {
+  const carrito = window.carrito || []
+
+  let html = carrito.map((item, i) => `
+  <div class="border-b py-2">
+
+    <!-- FILA 1 -->
+    <div class="flex justify-between items-center">
+
+      <div class="text-sm font-semibold truncate pr-2">
+        ${item.nombre}
+      </div>
+
+
+    </div>
+
+    <!-- FILA 2 -->
+    <div class="flex justify-between items-center mt-1">
+
+      <div class="text-base font-bold text-emerald-600">
+        $${Number(item.totalFinal || 0).toFixed(2)}
+      </div>
+
+      <div class="flex items-center gap-2">
+
+        <button onclick="cambiarCantidad(${i}, -1)"
+          class="bg-gray-200 px-2 py-1 rounded text-xs">−</button>
+
+        <span class="text-sm w-6 text-center">
+          ${Number(item.cantidad || 0)}
+        </span>
+
+        <button onclick="cambiarCantidad(${i}, 1)"
+          class="bg-gray-200 px-2 py-1 rounded text-xs">+</button>
+
+        <button onclick="eliminarItem(${i})"
+          class="text-red-400 text-xs ml-1">✕</button>
+
+      </div>
+
+    </div>
+
+  </div>
+`).join("")
+
+
+  const total = carrito.reduce(
+    (acc, i) => acc + Number(i.totalFinal || 0),
+    0
+  )
+
+  return `
+    <div style="max-height:300px; overflow:auto; text-align:left">
+      ${html}
+    </div>
+    <hr>
+    <div class="flex justify-between items-center mt-2 text-base font-semibold">
+      <span>Total</span>
+      <span class="text-green-600">$${total.toFixed(2)}</span>
+    </div>
+  `
+}
+
+
+
+function abrirCarrito() {
+  const carrito = window.carrito || []
+
+  if (!carrito.length) {
+    Swal.fire("Carrito vacío")
+    return
+  }
+
+  Swal.fire({
+    title: "Carrito",
+    html: generarHTMLCarrito(),
+    confirmButtonText: "Cobrar",
+    showCancelButton: true,
+    cancelButtonText: "Seguir comprando",
+
+    didOpen: () => {
+      window.refreshCarritoModal = () => {
+
+        const c = window.carrito || []
+
+        if (!c.length) {
+          Swal.close()
+          return
+        }
+
+        Swal.update({
+          html: generarHTMLCarrito()
+        })
+      }
+    },
+
+    didClose: () => {
+      window.refreshCarritoModal = null
+    }
+
+  }).then(res => {
+    if (res.isConfirmed) {
+      cobrarSimple()
+    }
+  })
+}
+
+
+function animarCarrito() {
+  const btn = document.getElementById("btnCobrar")
+  if (!btn) return
+
+  // asegurar que esté visible
+  btn.style.display = "flex"
+
+  btn.classList.remove("bounce")
+  void btn.offsetWidth
+  btn.classList.add("bounce")
+}
+
+function vibrar() {
+  if (navigator.vibrate) {
+    navigator.vibrate([60, 30, 60])// milisegundos
+  }
+}
+
+
+</script>
+
+<script>
+const modal = document.getElementById("modal")
+
+const modalObserver = new MutationObserver(()=>{
+  if(modal.classList.contains("hidden")){
+    modal.style.display = "none"
+  } else {
+    modal.style.display = "flex"
+  }
+})
+
+modalObserver.observe(modal, { attributes:true })
+
+</script>
+
+
+<div id="carritoBox" class="hidden">
+  class="fixed bottom-20 left-3 right-3 bg-white border shadow-xl rounded-2xl p-3 text-sm z-50 hidden">
+
+  <!-- HEADER -->
+  <div class="flex justify-between items-center mb-2">
+    <b class="text-base">🛒 Venta actual</b>
+    <span id="carritoTotal" class="text-green-600 text-2xl font-extrabold font-bold">$0.00</span>
+  </div>
+
+  <!-- LISTA -->
+  <div id="carritoLista" class="max-h-40 overflow-y-auto space-y-2"></div>
+
+</div>
+
+<button id="btnCobrar" onclick="abrirCarrito()"
+  class="fixed bottom-6 right-6 bg-green-600 text-white w-16 h-16 rounded-full shadow-xl z-50 flex items-center justify-center">
+
+  <i data-lucide="shopping-cart" class="w-7 h-7"></i>
+
+  <span id="badgeCarrito"
+    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center hidden">
+    0
+  </span>
+
+</button>
+
+
+<!-- FIX para admin_productos.js (NO visible en móvil) -->
+<div id="fix-admin" style="display:none !important;">
+  <button id="btnGuardar"></button>
+  <button id="btnEditar"></button>
+  <button id="btnEliminar"></button>
+  <button id="btnNuevo"></button>
+</div>
+
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  lucide.createIcons()
+</script>
+
+</body>
+</html>

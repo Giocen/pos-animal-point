@@ -12,8 +12,10 @@ let bloqueoNavegacion = false;
 let indexSku = new Map();
 let indexCodigo = new Map();
 let indexNombre = new Map();
-
+let productoSeleccionado = null;
 let cacheProductos = [];
+let productosInicializados = false;
+let productosListos = false;
 
 /* =========================================
    SCANNER GLOBAL SEPARADO DEL INPUT VISUAL
@@ -24,31 +26,50 @@ let ultimoScannerAt = 0;
 let ultimoCodigo = "";
 let ultimoTiempo = 0;
 
+let negocioId;
+
+/* ========================================================== */
+/* 🔧 HELPERS */
+/* ========================================================== */
+
+function esProductoKg(producto) {
+  const unidad = (producto.unidad || "").toLowerCase().trim();
+  return unidad.includes("kg") || unidad.includes("kilo");
+}
+
 function normalizarCodigo(c) {
   return (c || "").toString().trim();
 }
 
-
-function limpiarAutocomplete(){
-
+function limpiarAutocomplete() {
   const autocompleteBox = document.getElementById("autocompleteProductos");
-
-  if(!autocompleteBox) return;
+  if (!autocompleteBox) return;
 
   autocompleteBox.classList.add("hidden");
   autocompleteBox.innerHTML = "";
-  resultadosBusqueda = [];
+  
   indiceSeleccionado = -1;
 }
 
-async function agregarProductoDesdeBusqueda(prod){
+function debounceSmartPOS(fn, delay = 150) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
 
+/* ========================================================== */
+/* 🔍 AGREGAR PRODUCTO */
+/* ========================================================== */
+
+async function agregarProductoDesdeBusqueda(prod) {
   limpiarAutocomplete();
 
   if (bloqueoAgregar) return;
   bloqueoAgregar = true;
 
-  setTimeout(() => bloqueoAgregar = false, 120);
+  setTimeout(() => (bloqueoAgregar = false), 120);
 
   const inputSku = document.getElementById("sku");
   const form = document.getElementById("formBuscar");
@@ -59,18 +80,17 @@ async function agregarProductoDesdeBusqueda(prod){
   form.dispatchEvent(new Event("submit", { cancelable: true }));
 }
 
-/* =========================================
-   PROCESAR SCANNER GLOBAL
-========================================= */
+/* ========================================================== */
+/* 📡 SCANNER GLOBAL */
+/* ========================================================== */
+
 async function procesarScanner(codigo) {
   if (!codigo) return;
 
   const ahora = Date.now();
 
-  // 🔥 evita doble scan
-  if (codigo === ultimoCodigo && (ahora - ultimoTiempo) < 400) {
-    return;
-  }
+  // 🔥 anti doble scan
+  if (codigo === ultimoCodigo && ahora - ultimoTiempo < 400) return;
 
   ultimoCodigo = codigo;
   ultimoTiempo = ahora;
@@ -78,72 +98,84 @@ async function procesarScanner(codigo) {
   limpiarAutocomplete();
 
   const inputSku = document.getElementById("sku");
-  if (inputSku) {
-    inputSku.value = codigo;
-  }
+  if (inputSku) inputSku.value = codigo;
 
   const producto = await buscarProductoTotal(codigo);
 
   if (producto) {
-  await agregarProductoDesdeBusqueda(producto);
-} else {
-  if (inputSku) inputSku.value = "";
+    await agregarProductoDesdeBusqueda(producto);
+  } else {
+    if (inputSku) inputSku.value = "";
+  }
+
+  bufferScanner = "";
+  clearTimeout(timeoutScanner);
 }
 
-// 🔥 LIMPIEZA TOTAL
-bufferScanner = "";
-clearTimeout(timeoutScanner);
-}
+/* ========================================================== */
+/* 🚀 INICIALIZACIÓN */
+/* ========================================================== */
 
-const negocioId = localStorage.getItem("negocio_id");
-/* ==========================================================
-   🔧 Debounce
-========================================================== */
-function debounceSmartPOS(fn, delay = 150) {
-  let timeout;
-  return function (...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => fn.apply(this, args), delay);
-  };
-}
-/* -------------------------------------------------------------------------- */
-/* 🚀 INICIALIZACIÓN                                                          */
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
 document.addEventListener("DOMContentLoaded", async () => {
+  if (productosInicializados) return;
+  productosInicializados = true;
 
   await protegerSesion(["admin", "cajero"]);
 
-  
+  negocioId = localStorage.getItem("negocio_id");
 
   if (!negocioId) {
     console.warn("⚠ negocio_id no disponible aún");
     return;
   }
 
-  /* asegurar Dexie */
   if (!db) {
     await inicializarDB();
   }
 
-  // precargar productos desde Dexie
-  const productos = await db.productos
-    .where("negocio_id")
-    .equals(negocioId)
-    .toArray();
+  /* ==========================================================
+     🔥 CARGA INTELIGENTE (FIX DEFINITIVO)
+  ========================================================== */
 
-  if (productos.length) {
+ const respaldoDexie = await db.productos
+  .where("negocio_id")
+  .equals(negocioId)
+  .toArray();
 
-  cacheProductos = productos.filter(p => p.negocio_id === negocioId); 
-  indexarProductos(cacheProductos);
+// 🔥 validar global correctamente
+let productos = (window.productosGlobal || [])
+  .filter(p => p.negocio_id === negocioId);
 
-  cachearProductos(cacheProductos);
+// 🔥 SIEMPRE usar el mejor dataset
+if (!productos.length) {
+  productos = respaldoDexie;
+}
 
-  resultadosBusqueda = cacheProductos.slice(0, 12);
+// 🔥 si Dexie tiene más → usar Dexie
+if (respaldoDexie.length > productos.length) {
+  productos = respaldoDexie;
+}
+
+  /* ==========================================================
+     🧠 CACHE CONTROLADO
+  ========================================================== */
+
+  if (productos && productos.length) {
+    const nuevos = productos.filter(p => p.negocio_id === negocioId);
+
+    if (nuevos.length) {
+      cacheProductos = nuevos;
+      window.cacheProductosGlobal = cacheProductos;
+      indexarProductos(cacheProductos);
+      resultadosBusqueda = cacheProductos.slice(0, 12);
+      cachearProductos(cacheProductos);
+    } else {
+      console.warn("⚠ Evitando sobrescribir cache con vacío");
+    }
 
   } else {
 
-    /* 🔥 si Dexie está vacío cargar desde Supabase */
+    /* 🔥 fallback Supabase SOLO si todo está vacío */
 
     const { data } = await supabaseClient
       .from("v_productos_existencias")
@@ -155,91 +187,138 @@ document.addEventListener("DOMContentLoaded", async () => {
         sku,
         codigo_barras,
         precio_base,
+        costo,
+        unidad,
         existencias_total,
         stock_minimo
       `)
       .eq("negocio_id", negocioId);
 
     if (data?.length) {
+      const nuevos = data.filter(p => p.negocio_id === negocioId);
 
-  cacheProductos = data.filter(p => p.negocio_id === negocioId);
+      if (nuevos.length) {
+        cacheProductos = nuevos;
+        indexarProductos(cacheProductos);
+        resultadosBusqueda = cacheProductos.slice(0, 12);
+        cachearProductos(cacheProductos);
+      }
+    }
+  }
 
-  indexarProductos(cacheProductos); // 🔥 FALTABA ESTO
+  /* ==========================================================
+     🔥 FALLBACK FINAL (NUNCA VACÍO)
+  ========================================================== */
 
-  cachearProductos(cacheProductos);
+  if (!cacheProductos.length) {
+    console.warn("⚠ Cache vacío → recuperando respaldo Dexie...");
+
+    const respaldo = await db.productos
+      .where("negocio_id")
+      .equals(negocioId)
+      .toArray();
+
+    if (respaldo.length) {
+      cacheProductos = respaldo;
+      indexarProductos(cacheProductos);
+      resultadosBusqueda = cacheProductos.slice(0, 12);
+      console.log("♻ Cache restaurado desde Dexie:", cacheProductos.length);
+    }
+  }
+
+  window.cacheProductosGlobal = cacheProductos;
+  console.log("🧠 Cache global lista:", cacheProductos.length);
+  /* ==========================================================
+     🔥 SIEMPRE LLENAR RESULTADOS
+  ========================================================== */
 
   resultadosBusqueda = cacheProductos.slice(0, 12);
 
-}
+  /* ==========================================================
+     🚀 INICIAR MÓDULO
+  ========================================================== */
 
-  }
+configurarProductos();
+productosListos = true;
+ /* =========================================
+   🚀 SCANNER HÍBRIDO REAL (TC22 + USB)
+========================================= */
 
-  configurarProductos();
+let scanBuffer = "";
+let scanTimer = null;
 
-  /* =========================================
-     LISTENER GLOBAL DEL SCANNER
-  ========================================= */
-  document.addEventListener("keydown", async (e) => {
+const SCAN_MIN_LENGTH = 4;
+const SCAN_END_DELAY = 300; // 🔥 más tolerante para Bluetooth
 
-    const target = e.target;
-    const tag = target?.tagName?.toLowerCase();
+const inputSku = document.getElementById("sku");
 
-    // Si está escribiendo en textarea o en otro input que NO sea sku, no interceptar
-    if (tag === "textarea") return;
+document.addEventListener("keydown", async (e) => {
 
-    // 🔥 CLAVE: evitar que el scanner escriba en inputs
-    if (tag === "input") {
-      // Si viene muy rápido (scanner), lo bloqueamos
-      if (bufferScanner.length >= 2) {
-        e.preventDefault();
+  const target = e.target;
+ const tag = target?.tagName?.toLowerCase();
+
+
+if (tag === "textarea") return;
+
+  const key = e.key;
+
+  // ignorar teclas especiales
+  if (
+    key === "Shift" ||
+    key === "Control" ||
+    key === "Alt" ||
+    key === "Meta"
+  ) return;
+
+  // ==============================
+  // 📦 CAPTURA SIEMPRE
+  // ==============================
+  if (key.length === 1 && document.activeElement !== inputSku) {
+
+    scanBuffer += key;
+
+    clearTimeout(scanTimer);
+
+    scanTimer = setTimeout(async () => {
+
+      if (scanBuffer.length >= SCAN_MIN_LENGTH) {
+
+        const codigo = scanBuffer.trim();
+
+        scanBuffer = "";
+
+        await procesarScanner(codigo);
+
+      } else {
+        scanBuffer = "";
       }
-}
 
-    // Enter = cerrar lectura del scanner
-    if (e.key === "Enter") {
+    }, SCAN_END_DELAY);
 
-  // 🔥 SCANNER
-  if (bufferScanner.length >= 8) {
-    e.preventDefault();
-
-    const codigo = bufferScanner;
-    bufferScanner = "";
-    clearTimeout(timeoutScanner);
-
-    await procesarScanner(codigo);
     return;
   }
 
-  // 🔥 MANUAL (usuario)
-  if (e.target?.id === "sku") {
-    return; // deja que el submit normal haga su trabajo
-  }
-}
+  // ==============================
+  // ⏎ ENTER (PRIORIDAD)
+  // ==============================
+  if (key === "Enter") {
 
-    // Solo dígitos para scanner
-    if (/^[0-9]$/.test(e.key)) {
-      const ahora = Date.now();
-      const delta = ahora - ultimoScannerAt;
-      ultimoScannerAt = ahora;
+    if (scanBuffer.length >= SCAN_MIN_LENGTH) {
 
-      // Si pasó mucho tiempo, reiniciar buffer
-      if (delta > 80) {
-        bufferScanner = "";
-      }
+      e.preventDefault();
 
-      bufferScanner += e.key;
+      const codigo = scanBuffer.trim();
 
-      clearTimeout(timeoutScanner);
-      timeoutScanner = setTimeout(() => {
-        bufferScanner = "";
-      }, 120);
+      scanBuffer = "";
 
+      await procesarScanner(codigo);
       return;
     }
 
-    // Cualquier otra tecla corta el buffer
-    bufferScanner = "";
-  });
+    scanBuffer = "";
+  }
+
+});
 
 });
 
@@ -267,22 +346,28 @@ function safeNumber(v, fallback = 0) {
 /* -------------------------------------------------------------------------- */
 export function configurarProductos() {
 
-  const formBuscar = document.getElementById("formBuscar");
   const inputSku = document.getElementById("sku");
+
+  if (!inputSku) {
+    console.warn("⚠ inputSku no listo, reintentando...");
+    setTimeout(configurarProductos, 100);
+    return;
+  }
+
+  const formBuscar = document.getElementById("formBuscar");
   const inputCantidad = document.getElementById("cantidad");
   const autocompleteBox = document.getElementById("autocompleteProductos");
 
-    if (autocompleteBox) {
+  if (autocompleteBox) {
     autocompleteBox.classList.add("hidden");
   }
-
 
   if (!formBuscar || !inputSku || !inputCantidad) {
     console.warn("⚠️ No se encontró el formulario de productos");
     return;
   }
 
-    inputSku.addEventListener("focus", () => {
+  inputSku.addEventListener("focus", () => {
     bufferScanner = "";
     clearTimeout(timeoutScanner);
   });
@@ -298,7 +383,8 @@ function renderAutocomplete(lista){
     return;
   }
 
-  indiceSeleccionado = 0;
+  indiceSeleccionado = -1;
+  productoSeleccionado = null;
 
   autocompleteBox.innerHTML = lista.map((p,i)=>`
 
@@ -316,17 +402,7 @@ function renderAutocomplete(lista){
   `).join("");
 
   autocompleteBox.classList.remove("hidden");
-  // 🔥 seleccionar automáticamente el primer resultado
-setTimeout(()=>{
-
-  const first = autocompleteBox.querySelector(".autocomplete-item");
-
-  if(first){
-    first.classList.add("active");
-  }
-
-});
-
+ 
 }
 
 
@@ -334,28 +410,51 @@ setTimeout(()=>{
 
 inputSku.addEventListener("input", debounceSmartPOS(async (e) => {
 
+  if (!productosListos) return;
+
+  productoSeleccionado = null;
+
   // 🔥 SI HAY ACTIVIDAD DE SCANNER → IGNORAR INPUT
   if (bufferScanner.length > 0) return;
 
   const texto = e.target.value.trim();
 
   if (!texto) {
-    indiceSeleccionado = -1;
-    autocompleteBox.classList.add("hidden");
-    autocompleteBox.innerHTML = "";
-    resultadosBusqueda = [];
+  indiceSeleccionado = -1;
+  autocompleteBox.classList.add("hidden");
+  autocompleteBox.innerHTML = "";
+  return;
+}
+productoSeleccionado = null;
+  
+ 
+if (/^\d{8,}$/.test(texto)) {
+
+  const producto = await buscarProductoTotal(texto);
+
+  if (producto) {
+
+  limpiarAutocomplete();
+
+  // 🔥 SI ES KG → SOLO LLENAR INPUT, NO AGREGAR
+  if (esProductoKg(producto)) {
+    inputSku.value = producto.codigo_barras || producto.sku;
     return;
   }
 
-  // Si parece código numérico largo, no mostrar autocomplete.
-  // El scanner real ya se procesa globalmente por keydown.
-  if (/^\d{8,}$/.test(texto)) {
-    autocompleteBox.classList.add("hidden");
-    autocompleteBox.innerHTML = "";
-    resultadosBusqueda = [];
-    indiceSeleccionado = -1;
-    return;
-  }
+  // 🔥 SI ES PIEZA → AGREGAR DIRECTO
+  inputSku.value = "";
+  await agregarProductoDesdeBusqueda(producto);
+  return;
+}
+
+  autocompleteBox.classList.add("hidden");
+  autocompleteBox.innerHTML = "";
+ 
+  indiceSeleccionado = -1;
+  return;
+}
+
 
   if (texto.length >= 2) {
     resultadosBusqueda = await buscarProductosAutocomplete(texto);
@@ -363,7 +462,7 @@ inputSku.addEventListener("input", debounceSmartPOS(async (e) => {
   } else {
     autocompleteBox.classList.add("hidden");
     autocompleteBox.innerHTML = "";
-    resultadosBusqueda = [];
+   
     indiceSeleccionado = -1;
   }
 
@@ -375,70 +474,162 @@ inputSku.addEventListener("input", debounceSmartPOS(async (e) => {
      SUBMIT → AGREGAR PRODUCTO
   ========================================================== */
 
-  formBuscar.addEventListener("submit", async (e) => {
+formBuscar.addEventListener("submit", async (e) => {
 
-    e.preventDefault();
+  e.preventDefault();
 
-    if (bloqueoSubmit) return;
+  if (bloqueoSubmit) return;
 
-    bloqueoSubmit = true;
+  bloqueoSubmit = true;
 
-   setTimeout(() => {
-      bloqueoSubmit = false;
-    }, 250);
+  setTimeout(() => {
+    bloqueoSubmit = false;
+  }, 250);
 
-    const sku = inputSku.value.trim();
-    let cantidad = safeNumber(inputCantidad.value, 1);
+  const sku = inputSku.value.trim();
 
-    if (!sku) return;
+  if (!sku) return;
 
-    const producto = await buscarProductoTotal(sku);
+  const producto = await buscarProductoTotal(sku);
 
-    if (!producto) {
-      return Swal.fire("Error", "Producto no encontrado", "error");
-    }
+  if (!producto) {
+    return Swal.fire("Error", "Producto no encontrado", "error");
+  }
 
-    const precio = safeNumber(producto.precio_base);
+  const precio = safeNumber(producto.precio_base);
 
-    const existente = window.carrito.find(
-      (i) =>
-        i.id === producto.id ||
-        i.sku === producto.sku ||
-        i.codigo_barras === producto.codigo_barras
+  // 🔥 =========================
+  // ⚖️ MANEJO CORRECTO DE KG
+  // =========================
+  let cantidad = 1;
+
+  if (esProductoKg(producto)) {
+
+    const pesoManual = safeNumber(
+      document.getElementById("pesoManual")?.value,
+      0
     );
 
-    if (existente) {
+    const pesoAuto = safeNumber(
+      window.smartPOS?.bascula?.peso,
+      0
+    );
 
-      existente.cantidad = +(existente.cantidad + cantidad).toFixed(3);
-      existente.subtotal = +(existente.cantidad * precio).toFixed(2);
+    const basculaActiva = window.smartPOS?.bascula?.activa === true;
+
+    if (basculaActiva) {
+
+      if (pesoAuto > 0) {
+        cantidad = pesoAuto;
+      } 
+      else if (pesoManual > 0) {
+        cantidad = pesoManual;
+      } 
+      else {
+        cantidad = 1; // default
+      }
 
     } else {
 
-      window.carrito.push({
-        id: producto.id,
-        sku: producto.sku,
-        codigo_barras: producto.codigo_barras,
-        nombre: producto.nombre,
-        precio,
-        cantidad,
-        subtotal: +(cantidad * precio).toFixed(2),
-        unidad: producto.unidad || "pieza",
-        existencias: producto.existencias_total ?? 0,
-        stock_minimo: producto.stock_minimo ?? 0
-      });
+      cantidad = pesoManual > 0 ? pesoManual : 1;
 
     }
 
-       renderCarrito();
+  } else {
+    // 🔥 PIEZA NORMAL
+    cantidad = safeNumber(inputCantidad.value, 1);
+  }
 
-    limpiarAutocomplete();
+  // 🔥 =========================
+  // 🛒 CARRITO
+  // =========================
+  const existente = window.carrito.find(
+    (i) =>
+      i.id === producto.id ||
+      i.sku === producto.sku ||
+      i.codigo_barras === producto.codigo_barras
+  );
 
-    inputSku.value = "";
-    inputCantidad.value = 1;
-    inputSku.focus();
+  if (existente) {
 
-  });
+  // 🔥 FORZAR UNIDAD CORRECTA
+  const unidadRaw = (producto.unidad || "").toLowerCase().trim();
 
+  existente.unidad =
+    unidadRaw.includes("kg") || unidadRaw.includes("kilo")
+      ? "kg"
+      : "pieza";
+
+  existente.cantidad = +(existente.cantidad + cantidad).toFixed(3);
+  existente.subtotal = +(existente.cantidad * precio).toFixed(2);
+
+}
+ else {
+
+    // 🔥 NORMALIZAR UNIDAD
+const unidadRaw = (producto.unidad || "").toLowerCase().trim();
+
+const unidad =
+  unidadRaw.includes("kg") || unidadRaw.includes("kilo")
+    ? "kg"
+    : "pieza";
+
+carrito.push({
+  id: producto.id || producto.uuid_supabase,
+  sku: producto.sku,
+  codigo_barras: producto.codigo_barras,
+  nombre: producto.nombre,
+
+  precio,
+  costo: (() => {
+    const c =
+      producto.costo ??
+      producto.costo_unitario ??
+      producto.costo_base ??
+      producto.precio_compra ??
+      null;
+
+    console.log("🔥 DEBUG LISTA COSTO:", producto.nombre, c, producto);
+
+    return c !== null ? Number(c) : null;
+  })(),
+
+  cantidad,
+  subtotal: +(cantidad * precio).toFixed(2),
+  unidad,
+
+  existencias:
+    producto.existencias_total !== undefined
+      ? Number(producto.existencias_total)
+      : producto.existencias !== undefined
+      ? Number(producto.existencias)
+      : null,
+
+  stock_minimo: producto.stock_minimo ?? 0,
+});
+
+  }
+
+  renderCarrito();
+
+  limpiarAutocomplete();
+
+  inputSku.value = "";
+  inputCantidad.value = 1;
+
+  // 🔥 LIMPIAR PESO DESPUÉS
+  if (esProductoKg(producto)) {
+    if (window.smartPOS?.bascula) {
+      window.smartPOS.bascula.peso = 0;
+    }
+
+    const pesoInput = document.getElementById("pesoManual");
+    if (pesoInput) pesoInput.value = "0.000";
+  }
+
+  inputSku.focus();
+
+});
 
   /* ==========================================================
      AUTOCOMPLETE TECLADO
@@ -466,39 +657,37 @@ inputSku.addEventListener("input", debounceSmartPOS(async (e) => {
     if (indiceSeleccionado >= resultadosBusqueda.length) {
       indiceSeleccionado = 0;
     }
-
+productoSeleccionado = resultadosBusqueda[indiceSeleccionado];
   }
 
-  else if (e.key === "ArrowUp") {
+ else if (e.key === "ArrowUp") {
 
-    e.preventDefault();
+  e.preventDefault();
 
-    bloqueoNavegacion = true;
-    setTimeout(()=> bloqueoNavegacion = false, 80);
+  bloqueoNavegacion = true;
+  setTimeout(()=> bloqueoNavegacion = false, 80);
 
-    indiceSeleccionado--;
+  indiceSeleccionado--;
 
-    if (indiceSeleccionado < 0) {
-      indiceSeleccionado = resultadosBusqueda.length - 1;
-    }
-
+  if (indiceSeleccionado < 0) {
+    indiceSeleccionado = resultadosBusqueda.length - 1;
   }
+
+  productoSeleccionado = resultadosBusqueda[indiceSeleccionado]; 
+}
 
   else if (e.key === "Enter" || e.key === "Tab") {
 
-    e.preventDefault();
+  e.preventDefault();
 
-    const prod =
-      resultadosBusqueda[indiceSeleccionado] ||
-      resultadosBusqueda[0];
+  // 🔥 SOLO SI REALMENTE SELECCIONÓ ALGO
+  if (!productoSeleccionado) return;
 
-    if (!prod) return;
+  autocompleteBox.classList.add("hidden");
 
-    autocompleteBox.classList.add("hidden");
-
-    agregarProductoDesdeBusqueda(prod);
-    return;
-  }
+  agregarProductoDesdeBusqueda(productoSeleccionado);
+  return;
+}
 
   else if (e.key === "Escape") {
 
@@ -537,7 +726,7 @@ inputSku.addEventListener("input", debounceSmartPOS(async (e) => {
     const prod = resultadosBusqueda[Number(row.dataset.index)];
 
     autocompleteBox.classList.add("hidden");
-
+    productoSeleccionado = prod;
     agregarProductoDesdeBusqueda(prod);
 
   });
@@ -619,6 +808,7 @@ export async function buscarGlobal() {
       sku,
       codigo_barras,
       precio_base,
+      costo,
       existencias_total,
       stock_minimo
     `)
@@ -677,7 +867,16 @@ let producto =
   indexSku.get(sku) ||
   indexCodigo.get(sku);
 
-if (producto) return producto;
+if (producto) {
+  producto.existencias_total =
+    producto.existencias_total !== undefined && producto.existencias_total !== null
+      ? Number(producto.existencias_total)
+      : producto.existencias !== undefined && producto.existencias !== null
+      ? Number(producto.existencias)
+      : null;
+
+  return producto;
+}
 
 
   // --- ONLINE ---
@@ -685,19 +884,20 @@ if (producto) return producto;
    
   const { data } = await supabaseClient
   .from("v_productos_existencias")
-  .select(`
-    id,
-    negocio_id,
-    nombre,
-    descripcion,
-    precio_base,
-    unidad,
-    existencias_total,
-    stock_minimo,
-    sku,
-    codigo_barras,
-    imagen_url
-  `)
+      .select(`
+      id,
+      negocio_id,
+      nombre,
+      descripcion,
+      precio_base,
+      costo,
+      unidad,
+      existencias_total,
+      stock_minimo,
+      sku,
+      codigo_barras,
+      imagen_url
+    `)
   .eq("negocio_id", negocioId)
   .or(`sku.eq.${sku},codigo_barras.eq.${sku}`)
   .limit(1)
@@ -726,6 +926,16 @@ if (producto) return producto;
   // 🔥 auto indexado en caliente
   if (producto.sku) indexSku.set(producto.sku, producto);
   if (producto.codigo_barras) indexCodigo.set(producto.codigo_barras, producto);
+}
+
+
+if (producto) {
+  producto.existencias_total =
+    producto.existencias_total !== undefined && producto.existencias_total !== null
+      ? Number(producto.existencias_total)
+      : producto.existencias !== undefined && producto.existencias !== null
+      ? Number(producto.existencias)
+      : null;
 }
 
 return producto;
@@ -860,7 +1070,10 @@ function inicializarTablaProductos(lista) {
       /* ------------------------------ */
       /* 🔥 VALIDACIÓN DE STOCK         */
       /* ------------------------------ */
-      const existenciasActuales = producto.existencias_total ?? 0;
+      const existenciasActuales =
+      producto.existencias_total ??
+      producto.existencias ??
+      0;
 
       if (existenciasActuales <= (producto.stock_minimo ?? 0)) {
         const esSinStock = existenciasActuales === 0;
@@ -895,7 +1108,7 @@ function inicializarTablaProductos(lista) {
 /* ------------------------------ */
       let cantidad = 1;
 
-      if (producto.unidad === "kg") {
+      if (esProductoKg(producto)) {
 
           let pesoFinal = 0;
 
@@ -943,45 +1156,105 @@ function inicializarTablaProductos(lista) {
       /* ------------------------------ */
       /* ➕ AGREGAR AL CARRITO           */
       /* ------------------------------ */
-      const precio = parseFloat(producto.precio_base);
 
-      const existe = window.carrito.find(
-        (i) =>
-          i.id === producto.id ||
-          i.sku === producto.sku ||
-          i.codigo_barras === producto.codigo_barras
-      );
+      // 🚨 BLOQUEO DEFINITIVO DE PRODUCTOS SIN COSTO
+const costoValido =
+  producto.costo ??
+  producto.costo_unitario ??
+  producto.costo_base ??
+  producto.precio_compra ??
+  null;
 
-      if (existe) {
-        existe.cantidad = +(existe.cantidad + cantidad).toFixed(3);
-        existe.subtotal = +(existe.cantidad * precio).toFixed(2);
-      } else {
-        window.carrito.push({
-          id: producto.id,
-          sku: producto.sku,
-          codigo_barras: producto.codigo_barras,
-          nombre: producto.nombre,
-          precio,
-          cantidad,
-          subtotal: parseFloat((cantidad * precio).toFixed(2)),
-          unidad: producto.unidad || "pieza",
-          existencias: producto.existencias_total ?? producto.existencias ?? 0,
-          stock_minimo: producto.stock_minimo ?? 0,
-        });
-      }
+if (costoValido === null || Number(costoValido) <= 0) {
+  return Swal.fire({
+    icon: "error",
+    title: "Producto sin costo",
+    html: `
+      <b>${producto.nombre}</b><br><br>
+      Este producto no tiene costo registrado.<br>
+      Corrígelo antes de vender.
+    `,
+    confirmButtonText: "OK"
+  });
+}
 
-      renderCarrito();
+const precio = parseFloat(producto.precio_base);
 
-      // 🧹 LIMPIAR PESO DESPUÉS DE AGREGAR PRODUCTO KG
-      if (producto.unidad === "kg") {
-        if (window.smartPOS?.bascula) {
-          window.smartPOS.bascula.peso = 0;
-        }
+// 🔥 NORMALIZAR UNIDAD
+const unidadRaw = (producto.unidad || "").toLowerCase().trim();
 
-        const pesoInput = document.getElementById("pesoManual");
-        if (pesoInput) pesoInput.value = "0.000";
-      }
+const unidad =
+  unidadRaw.includes("kg") || unidadRaw.includes("kilo")
+    ? "kg"
+    : "pieza";
 
+const existe = window.carrito.find(
+  (i) =>
+    i.id === producto.id ||
+    i.sku === producto.sku ||
+    i.codigo_barras === producto.codigo_barras
+);
+
+if (existe) {
+  if (existe.costo === undefined || existe.costo === null) {
+    const c =
+      producto.costo ??
+      producto.costo_unitario ??
+      producto.costo_base ??
+      producto.precio_compra ??
+      null;
+
+    existe.costo = c !== null ? Number(c) : null;
+    console.log("🔥 DEBUG EXISTE COSTO:", producto.nombre, existe.costo, producto);
+  }
+
+  existe.cantidad = +(existe.cantidad + cantidad).toFixed(3);
+  existe.subtotal = +(existe.cantidad * precio).toFixed(2);
+} else {
+  carrito.push({
+  id: producto.id || producto.uuid_supabase,
+  sku: producto.sku,
+  codigo_barras: producto.codigo_barras,
+  nombre: producto.nombre,
+
+  precio,
+  costo: (() => {
+  const c =
+    producto.costo ??
+    producto.costo_unitario ??
+    producto.costo_base ??
+    producto.precio_compra ??
+    null;
+
+  return c !== null ? Number(c) : null;
+})(),
+
+  cantidad,
+  subtotal: +(cantidad * precio).toFixed(2),
+  unidad,
+
+  existencias:
+    producto.existencias_total !== undefined
+      ? Number(producto.existencias_total)
+      : producto.existencias !== undefined
+      ? Number(producto.existencias)
+    : null,
+
+  stock_minimo: producto.stock_minimo ?? 0,
+});
+}
+
+renderCarrito();
+
+// 🧹 LIMPIAR PESO DESPUÉS DE AGREGAR PRODUCTO KG
+if (unidad === "kg") { // 🔥 TAMBIÉN CAMBIA ESTO
+  if (window.smartPOS?.bascula) {
+    window.smartPOS.bascula.peso = 0;
+  }
+
+  const pesoInput = document.getElementById("pesoManual");
+  if (pesoInput) pesoInput.value = "0.000";
+}
 
       // ⭐ Efecto visual
       btnAdd.classList.add("scale-125", "bg-green-600");
@@ -1087,7 +1360,9 @@ async function mostrarSwalProducto(producto) {
 
         <p><b>Código:</b> ${producto.sku || producto.codigo_barras}</p>
         <p><b>Precio:</b> $${producto.precio_base}</p>
-        <p><b>Existencias:</b> ${producto.existencias_total ?? 0}</p>
+        <p><b>Existencias:</b> ${
+          producto.existencias_total ?? producto.existencias ?? 0
+        }</p>
 
         <div class="mt-6 flex flex-col gap-3">
 
@@ -1128,16 +1403,49 @@ async function mostrarSwalProducto(producto) {
 
 async function buscarProductosAutocomplete(texto){
 
+  if (!cacheProductos.length && !window.cacheProductosGlobal?.length) {
+    console.warn("⏳ Esperando carga de productos...");
+    return [];
+  }
+
   const q = texto.toLowerCase().trim()
 
   if(q.length < 1) return []
 
   /* usar memoria primero */
-  let productos = cacheProductos || []
+ let productos = [];
+
+// 🔥 1. PRIORIDAD: cache en memoria
+// 🔥 SIEMPRE tomar el mejor dataset disponible
+const localCache = cacheProductos || [];
+const globalCache = window.cacheProductosGlobal || [];
+
+if (localCache.length >= globalCache.length && localCache.length) {
+  productos = localCache;
+}
+else if (globalCache.length) {
+  productos = globalCache;
+}
+else {
+  productos = await db.productos
+    .where("negocio_id")
+    .equals(negocioId)
+    .toArray();
+}
 
   if(!productos.length){
     productos = await obtenerProductosOffline()
   }
+
+  if (!productos.length) {
+  console.warn("⚠ Autocomplete sin datos → fallback forzado Dexie");
+
+  productos = await db.productos
+    .where("negocio_id")
+    .equals(negocioId)
+    .toArray();
+}
+
   productos = productos.filter(p => p.negocio_id === negocioId)
 
   const palabras = q.split(" ").filter(Boolean)

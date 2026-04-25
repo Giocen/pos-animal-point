@@ -33,11 +33,16 @@ function obtenerNombreDB() {
 /* 🔹 Control de sincronización incremental        */
 /* ----------------------------------------------- */
 function getUltimaSync() {
-  return localStorage.getItem("ultima_sync_productos");
+  const negocioId = obtenerNegocioId();
+  return localStorage.getItem(`ultima_sync_productos_${negocioId}`);
 }
 
-function setUltimaSync() {
-  localStorage.setItem("ultima_sync_productos", new Date().toISOString());
+function setUltimaSync(fecha) {
+  const negocioId = obtenerNegocioId();
+  localStorage.setItem(
+    `ultima_sync_productos_${negocioId}`,
+    fecha || new Date().toISOString()
+  );
 }
 
 /* ----------------------------------------------- */
@@ -71,14 +76,16 @@ if (!negocioId) {
 
     db = new Dexie(nombreDB);
 
-    db.version(113).stores({
+    db.version(114).stores({
       productos: `
-        &uuid_supabase,
+        &id,
+        uuid_supabase,
         negocio_id,
         sku,
         codigo_barras,
         nombre,
         precio_base,
+        costo,
         unidad,
         existencias,
         stock_minimo,
@@ -185,7 +192,13 @@ export async function sincronizarProductos() {
 
     console.log("📡 Descargando catálogo desde v_productos_existencias...");
 
-  const ultimaSync = getUltimaSync();
+const ultimaSync = getUltimaSync();
+
+// 🔥 verificar si Dexie ya tiene datos
+const totalLocal = await db.productos
+  .where("negocio_id")
+  .equals(negocioId)
+  .count();
 
 let query = supabaseClient
   .from("v_productos_existencias")
@@ -208,22 +221,33 @@ let query = supabaseClient
   `)
   .eq("negocio_id", negocioId);
 
-// 🔥 SOLO TRAER CAMBIOS
-if (ultimaSync) {
+// 🔥 SOLO usar incremental si YA hay datos
+if (ultimaSync && totalLocal > 0) {
   query = query.gt("updated_at", ultimaSync);
+} else {
+  console.log("📦 Primera carga completa");
 }
 
 const { data: productos, error } = await query;
 
     if (error) throw error;
-
-  if (!productos?.length) {
+if (!productos?.length) {
   console.log("⚡ Sin cambios en productos");
-  return [];
+
+  // 🔥 ESPERAR un tick para asegurar Dexie listo
+  await new Promise(r => setTimeout(r, 50));
+
+  const respaldo = await db.productos
+    .where("negocio_id")
+    .equals(negocioId)
+    .toArray();
+
+  console.log("📦 Respaldo Dexie:", respaldo.length);
+
+  return respaldo;
 }
 
-    /* cache rápido */
-   // LocalDB.set(`productos_cache_${negocioId}`, productos, 60);//
+  
 
     let actualizados = 0;
 
@@ -231,26 +255,31 @@ const { data: productos, error } = await query;
       🚀 INSERT MASIVO (ULTRA RÁPIDO)
     ========================================================== */
     const registros = productos.map(p => ({
-      uuid_supabase: p.id,
-      negocio_id: p.negocio_id,
-      nombre: p.nombre,
-      descripcion: p.descripcion,
-      precio_base: p.precio_base,
-      unidad: p.unidad,
-      sku: p.sku,
-      codigo_barras: p.codigo_barras,
-      existencias: p.existencias_total,
-      stock_minimo: p.stock_minimo,
-      updated_at: p.updated_at,
-      costo: p.costo,
-      activo: p.activo,
-      categoria_id: p.categoria_id,
-      imagen_url: p.imagen_url,
-    }));
+  id: p.id, // ✅ FIX CRÍTICO
+  uuid_supabase: p.id,
+  negocio_id: p.negocio_id,
+  nombre: p.nombre,
+  descripcion: p.descripcion,
+  precio_base: p.precio_base,
+  unidad: p.unidad,
+  sku: p.sku,
+  codigo_barras: p.codigo_barras,
+  existencias: p.existencias_total,
+  stock_minimo: p.stock_minimo,
+  updated_at: p.updated_at,
+  costo: p.costo,
+  activo: p.activo,
+  categoria_id: p.categoria_id,
+  imagen_url: p.imagen_url,
+}));
 
     await db.transaction("rw", db.productos, async () => {
       await db.productos.bulkPut(registros);
     });
+
+    console.log("📊 Total en Dexie:",
+  await db.productos.where("negocio_id").equals(negocioId).count()
+);
 
 const maxUpdated = productos.reduce((max, p) => {
   if (!p.updated_at) return max;
@@ -258,18 +287,22 @@ const maxUpdated = productos.reduce((max, p) => {
 }, null);
 
 if (maxUpdated) {
-  localStorage.setItem("ultima_sync_productos", maxUpdated);
+  setUltimaSync(maxUpdated);
 }
 
     /* ==========================================================
       📊 CONTADOR (se mantiene tu lógica)
     ========================================================== */
-    actualizados = registros.length;
+   actualizados = registros.length;
 
-  console.log(`✅ Productos sincronizados (${actualizados}/${productos.length})`);
+    console.log(`✅ Productos sincronizados (${actualizados}/${productos.length})`);
 
-  return productos;
+    await new Promise(r => setTimeout(r, 50));
 
+  return await db.productos
+  .where("negocio_id")
+  .equals(negocioId)
+  .toArray();
   } catch (err) {
 
     console.error("❌ Error sincronizando productos:", err);
